@@ -2,12 +2,6 @@ package main
 
 import "github.com/veandco/go-sdl2/sdl"
 
-const (
-	size         int32 = 16
-	screenWidth  int32 = 640
-	screenHeight int32 = 480
-)
-
 type Tile uint8
 
 const (
@@ -44,15 +38,20 @@ type TileInfo struct {
 
 type SpriteStage struct {
 	sprites  []*Sprite
+	entities []Entity
 	texture  *sdl.Texture
 	src, dst *sdl.Rect
 	time     int64
 }
 
+type Entity struct {
+	sprite *Sprite
+	x, y   int32
+}
+
 type Sprite struct {
 	texture *sdl.Texture
 	src     []*sdl.Rect
-	x, y    int32
 	timeDiv int64
 }
 
@@ -62,48 +61,59 @@ func (stage *Stage) Render(renderer *sdl.Renderer) {
 	}
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
-	renderer.SetDrawColor(0, 0, 0, 255)
+	renderer.SetDrawColor(255, 0, 0, 255)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	renderer.Clear()
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
 	renderer.Copy(stage.sprites.texture, stage.sprites.src, stage.sprites.dst)
+	renderer.Present()
 }
 
 func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(tiles.texture)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
-	for x := int32(0); x < tiles.w; x++ {
-		tiles.tileDst.X = x * size
-		for y := int32(0); y < tiles.h; y++ {
-			tiles.tileDst.Y = y * size
-			tiles.tileDst.W = size
-			tiles.tileDst.H = size
-			renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
-				tiles.tileInfo.src[tiles.tiles[x][y]], tiles.dst)
+	if tiles.tiles != nil {
+		for x := int32(0); x < tiles.w; x++ {
+			tiles.tileDst.X = x * size
+			for y := int32(0); y < tiles.h; y++ {
+				tiles.tileDst.Y = y * size
+				tiles.tileDst.W = size
+				tiles.tileDst.H = size
+				renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
+					tiles.tileInfo.src[tiles.tiles[x][y]], tiles.tileDst)
+			}
 		}
+		tiles.renderedOnce = true
 	}
-	tiles.renderedOnce = true
 }
 
 func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(sprites.texture)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
-	for i := 0; i < len(sprites.sprites); i++ {
-		s := sprites.sprites[i]
-		sprites.dst.X = s.x * size
-		sprites.dst.Y = s.y * size
-		renderer.Copy(s.texture,
-			s.src[sprites.time/s.timeDiv], sprites.dst)
+	if sprites.entities != nil {
+		for i := 0; i < len(sprites.entities); i++ {
+			e := sprites.entities[i]
+			s := e.sprite
+			sprites.dst.X = e.x * size
+			sprites.dst.Y = e.y * size
+			t := (sprites.time / s.timeDiv) % int64(len(s.src))
+			renderer.Copy(s.texture,
+				s.src[t], sprites.dst)
+		}
 	}
 }
 
-func Load(width, height int32, renderer *sdl.Renderer) *Stage {
+func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	rect4x4 := sdl.Rect{0, 0, 4, 4}
 	stageRect := sdl.Rect{0, 0, width * size, height * size}
 	offsetFromScreenX := (screenWidth - width*size) / 2
 	offsetFromScreenY := (screenHeight - height*size) / 2
 	stageScreenRect := sdl.Rect{offsetFromScreenX, offsetFromScreenY,
-		screenWidth * size, screenHeight * size}
+		width * size, height * size}
 
 	tileTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(width*size), int(height*size))
@@ -118,6 +128,12 @@ func Load(width, height int32, renderer *sdl.Renderer) *Stage {
 		tileInfo.textures[i] = texture
 		tileInfo.src[i] = &rect4x4
 	}
+	renderer.SetRenderTarget(tileInfo.textures[0])
+	renderer.SetDrawColor(65, 105, 225, 255)
+	renderer.Clear()
+	renderer.SetRenderTarget(tileInfo.textures[1])
+	renderer.SetDrawColor(25, 25, 112, 255)
+	renderer.Clear()
 
 	tileStage := TileStage{false, &tileInfo, nil,
 		tileTexture, &stageRect, &stageScreenRect,
@@ -126,8 +142,9 @@ func Load(width, height int32, renderer *sdl.Renderer) *Stage {
 	spriteTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(width*size), int(height*size))
 	e(err)
+	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
-	spriteStage := SpriteStage{nil, spriteTexture,
+	spriteStage := SpriteStage{nil, nil, spriteTexture,
 		&stageRect, &stageScreenRect, 0}
 
 	return &Stage{&tileStage, &spriteStage}
