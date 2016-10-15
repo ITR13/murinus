@@ -1,6 +1,8 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 type Tile uint8
 
@@ -37,11 +39,12 @@ type TileInfo struct {
 }
 
 type SpriteStage struct {
-	sprites  []*Sprite
-	entities []Entity
-	texture  *sdl.Texture
-	src, dst *sdl.Rect
-	time     int64
+	sprites   []*Sprite
+	entities  []*Entity
+	texture   *sdl.Texture
+	src, dst  *sdl.Rect
+	spriteDst *sdl.Rect
+	time      int64
 }
 
 type Entity struct {
@@ -50,9 +53,10 @@ type Entity struct {
 }
 
 type Sprite struct {
-	texture *sdl.Texture
-	src     []*sdl.Rect
-	timeDiv int64
+	texture  *sdl.Texture
+	src      []*sdl.Rect
+	timeDiv  int64
+	priority int
 }
 
 func (stage *Stage) Render(renderer *sdl.Renderer) {
@@ -95,14 +99,20 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
 	if sprites.entities != nil {
-		for i := 0; i < len(sprites.entities); i++ {
-			e := sprites.entities[i]
-			s := e.sprite
-			sprites.dst.X = e.x * size
-			sprites.dst.Y = e.y * size
-			t := (sprites.time / s.timeDiv) % int64(len(s.src))
-			renderer.Copy(s.texture,
-				s.src[t], sprites.dst)
+		for priority := 0; priority <= 10; priority++ {
+			for i := 0; i < len(sprites.entities); i++ {
+				e := sprites.entities[i]
+				s := e.sprite
+				if s.priority == priority {
+					sprites.spriteDst.X = e.x * size
+					sprites.spriteDst.Y = e.y * size
+					sprites.spriteDst.W = size
+					sprites.spriteDst.H = size
+					t := (sprites.time / s.timeDiv) % int64(len(s.src))
+					renderer.Copy(s.texture,
+						s.src[t], sprites.spriteDst)
+				}
+			}
 		}
 	}
 }
@@ -134,6 +144,11 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	renderer.SetRenderTarget(tileInfo.textures[1])
 	renderer.SetDrawColor(25, 25, 112, 255)
 	renderer.Clear()
+	renderer.SetRenderTarget(tileInfo.textures[2])
+	renderer.SetDrawColor(65, 105, 225, 255)
+	renderer.Clear()
+	renderer.SetDrawColor(240, 230, 140, 255)
+	renderer.DrawRect(&sdl.Rect{1, 1, 2, 2})
 
 	tileStage := TileStage{false, &tileInfo, nil,
 		tileTexture, &stageRect, &stageScreenRect,
@@ -144,8 +159,23 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	e(err)
 	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
-	spriteStage := SpriteStage{nil, nil, spriteTexture,
-		&stageRect, &stageScreenRect, 0}
+	spriteDatas := make([]*Sprite, 2)
+	for i := 0; i < len(spriteDatas); i++ {
+		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
+			sdl.TEXTUREACCESS_TARGET, 4, 4)
+		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
+		e(err)
+		spriteDatas[i] = &Sprite{texture, []*sdl.Rect{&rect4x4}, 1, 10 - i}
+	}
+	renderer.SetRenderTarget(spriteDatas[0].texture)
+	renderer.SetDrawColor(0, 95, 0, 255)
+	renderer.Clear()
+	renderer.SetRenderTarget(spriteDatas[1].texture)
+	renderer.SetDrawColor(0, 127, 0, 255)
+	renderer.Clear()
+
+	spriteStage := SpriteStage{spriteDatas, nil, spriteTexture,
+		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
 
 	return &Stage{&tileStage, &spriteStage}
 }
