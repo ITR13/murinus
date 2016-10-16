@@ -9,6 +9,7 @@ type Engine struct {
 type Player struct {
 	entity       *Entity
 	timeout, max int
+	step         int
 }
 
 type Snake struct {
@@ -19,6 +20,10 @@ type Snake struct {
 	moveTimer, moveTimerMax int
 	growTimer, growTimerMax int
 	maxLength               int
+}
+
+func (engine *Engine) GetSnake() {
+
 }
 
 func (engine *Engine) Advance() {
@@ -47,7 +52,7 @@ func (engine *Engine) LegalPos(x, y int32) bool {
 	}
 	for i := 0; i < len(engine.snakes); i++ {
 		snake := engine.snakes[i]
-		if snake.head.Is(x, y) || snake.tail.Is(x, y) {
+		if snake.head.Is(x, y) /*|| snake.tail.Is(x, y)*/ {
 			return false
 		}
 		for k := 0; k < len(snake.body); k++ {
@@ -70,7 +75,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		last := len(snake.body) - 1
 		if snake.growTimer <= 0 && len(snake.body) < snake.maxLength {
 			snake.growTimer = snake.growTimerMax
-			entity := Entity{snake.body[0].sprite, 0, 0}
+			entity := Entity{snake.body[0].sprite, 0, 0, 0, 0}
 			engine.Stage.sprites.entities = append(
 				engine.Stage.sprites.entities, &entity)
 			snake.body = append(snake.body, &entity)

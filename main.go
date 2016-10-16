@@ -51,33 +51,22 @@ func main() {
 	stage.tiles.tiles = tiles
 	fmt.Println("Created tiles")
 
-	entities := make([]*Entity, 5)
-	entities[0] = &Entity{
-		stage.sprites.sprites[0],
-		1, 1}
-	for i := 1; i < 5; i++ {
-		entities[i] = &Entity{
-			stage.sprites.sprites[1],
-			1, 1}
-	}
-	stage.sprites.entities = entities
 	engine := Engine{nil, []*Snake{
-		&Snake{
-			entities[0],
-			[]*Entity{entities[1], entities[2], entities[3]},
-			entities[4],
-			&SimpleAI{}, 0, 5,
-			10 * 2, 10 * 4, 300}}, stage}
+		stage.sprites.GetSnake(1, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100),
+		stage.sprites.GetSnake(31, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100)},
+		stage}
 
 	stage.Render(renderer)
-	for i := 0; true; i++ {
+	for i := uint64(0); true; i++ {
 		sdl.Delay(17)
-		engine.Advance()
-		stage.Render(renderer)
-		if i%60 == 0 {
-			fmt.Printf("Rendered for %d seconds\n", i/60)
-		}
-		for sdl.PollEvent() != nil {
+		if i >= 30 {
+			engine.Advance()
+			stage.Render(renderer)
+			if i%60 == 0 {
+				fmt.Printf("Rendered for %d seconds\n", i/60)
+			}
+			for sdl.PollEvent() != nil {
+			}
 		}
 	}
 	fmt.Println("Exit")
