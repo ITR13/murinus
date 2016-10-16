@@ -71,19 +71,22 @@ type Sprite struct {
 	priority int
 }
 
+func (spriteStage *SpriteStage) GetEntity(x, y int32, id SpriteID) *Entity {
+	entity := &Entity{
+		spriteStage.sprites[id],
+		x, y, 0, Right}
+	spriteStage.entities = append(spriteStage.entities, entity)
+	return entity
+}
+
 func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 	moveTimer, moveTimerMax, growTimer, growTimerMax, maxLength int) *Snake {
 	length += 2
 	entities := make([]*Entity, length)
-	entities[0] = &Entity{
-		spriteStage.sprites[SnakeHead],
-		x, y, 0, 0}
+	entities[0] = spriteStage.GetEntity(x, y, SnakeHead)
 	for i := 1; i < length; i++ {
-		entities[i] = &Entity{
-			spriteStage.sprites[SnakeBody],
-			x, y, 0, 0}
+		entities[i] = spriteStage.GetEntity(x, y, SnakeBody)
 	}
-	spriteStage.entities = append(spriteStage.entities, entities...)
 	return &Snake{
 		entities[0], entities[1 : length-1], entities[length-1],
 		ai, moveTimer, moveTimerMax, growTimer, growTimerMax, maxLength}

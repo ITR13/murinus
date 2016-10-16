@@ -1,15 +1,17 @@
 package main
 
 type Engine struct {
-	players []*Player
-	snakes  []*Snake
-	Stage   *Stage
+	p1, p2 *Player
+	snakes []*Snake
+	Stage  *Stage
+	Input  *Input
 }
 
 type Player struct {
 	entity       *Entity
 	timeout, max int
-	step         int
+	step         int32
+	score        uint64
 }
 
 type Snake struct {
@@ -22,15 +24,21 @@ type Snake struct {
 	maxLength               int
 }
 
-func (engine *Engine) GetSnake() {
-
+func GetEngine(p1 *Player, p2 *Player, stage *Stage, snakes ...*Snake) *Engine {
+	input := GetInput()
+	return &Engine{p1, p2, snakes, stage, input}
 }
 
 func (engine *Engine) Advance() {
-	if engine.players != nil {
-		for i := 0; i < len(engine.players); i++ {
-			panic("Do this")
-		}
+	if engine.p1 != nil {
+		player := engine.p1
+		player.Control(engine.Input.p1, engine)
+		engine.CheckCollisions(player)
+	}
+	if engine.p2 != nil {
+		player := engine.p2
+		player.Control(engine.Input.p2, engine)
+		engine.CheckCollisions(player)
 	}
 	if engine.snakes != nil {
 		for i := 0; i < len(engine.snakes); i++ {
@@ -92,5 +100,118 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 	if engine.LegalPos(x, y) {
 		snake.head.x, snake.head.y = x, y
 		snake.growTimer--
+	}
+}
+
+func (engine *Engine) CheckCollisions(player *Player) {
+	x, y := player.entity.x, player.entity.y
+	modified := false
+	if engine.Stage.tiles.tiles[x][y] == Point {
+		engine.Stage.tiles.tiles[x][y] = Empty
+		player.score += 10
+		modified = true
+	} else if engine.Stage.tiles.tiles[x][y] == p200 {
+		engine.Stage.tiles.tiles[x][y] = Empty
+		player.score += 200
+		modified = true
+	} else if engine.Stage.tiles.tiles[x][y] == p500 {
+		engine.Stage.tiles.tiles[x][y] = Empty
+		player.score += 500
+		modified = true
+	} else if engine.Stage.tiles.tiles[x][y] == p1000 {
+		engine.Stage.tiles.tiles[x][y] = Empty
+		player.score += 1000
+		modified = true
+	} else if engine.Stage.tiles.tiles[x][y] == p2000 {
+		engine.Stage.tiles.tiles[x][y] = Empty
+		player.score += 2000
+		modified = true
+	}
+
+	if modified {
+		engine.Stage.tiles.renderedOnce = false
+	}
+
+	for i := 0; i < len(engine.snakes); i++ {
+		if engine.snakes[i].head.Is(x, y) {
+			player.score = 0
+			player.entity.x = 1
+			player.entity.y = 1
+			player.entity.dir = Right
+			break
+		}
+	}
+}
+
+func (player *Player) Control(controller *Controller, engine *Engine) {
+	e := player.entity
+	if controller.IsDirection(e.dir) {
+		e.precision += controller.Dir(e.dir) * player.step
+	} else {
+		if e.dir == Up || e.dir == Down {
+			val := controller.leftRight.Val()
+			if !engine.LegalPos(e.x+val, e.y) {
+				val = 0
+			}
+			if val != 0 {
+				e.precision -= player.step
+				if e.precision < 0 {
+					e.precision = -e.precision
+					if val < 0 {
+						e.dir = Left
+					} else {
+						e.dir = Right
+					}
+				}
+			} else {
+				e.precision += controller.Dir(e.dir) * player.step
+				if e.precision < 0 {
+					dir := (e.dir + 2) % 4
+					x, y := NewPos(e.x, e.y, dir)
+					if engine.LegalPos(x, y) {
+						e.precision = -e.precision
+						e.dir = dir
+					} else {
+						e.precision = 0
+					}
+				}
+			}
+		} else if e.dir == Right || e.dir == Left {
+			val := controller.upDown.Val()
+			if !engine.LegalPos(e.x, e.y+val) {
+				val = 0
+			}
+			if val != 0 {
+				e.precision -= player.step
+				if e.precision < 0 {
+					e.precision = -e.precision
+					if val < 0 {
+						e.dir = Up
+					} else {
+						e.dir = Down
+					}
+				}
+			} else {
+				e.precision += controller.Dir(e.dir) * player.step
+				if e.precision < 0 {
+					dir := (e.dir + 2) % 4
+					x, y := NewPos(e.x, e.y, dir)
+					if engine.LegalPos(x, y) {
+						e.precision = -e.precision
+						e.dir = dir
+					} else {
+						e.precision = 0
+					}
+				}
+			}
+		}
+	}
+	if e.precision > 127 {
+		e.precision = 127*2 - e.precision
+		e.x, e.y = NewPos(e.x, e.y, e.dir)
+		e.dir = (e.dir + 2) % 4
+	}
+	if e.precision < 0 {
+		panic("Should not reach this point")
 	}
 }

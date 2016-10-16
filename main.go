@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -11,6 +12,8 @@ const (
 	screenHeight int32 = 480
 	size         int32 = 16
 )
+
+var quit bool
 
 func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -40,36 +43,46 @@ func main() {
 			if x == 0 || y == 0 || x == 32 || y == 24 {
 				tiles[x][y] = Wall
 			} else if x == 1 || y == 1 || y == 11 || x == 31 || y == 23 {
-				tiles[x][y] = Point
+				if (x+y)%3 != 0 {
+					tiles[x][y] = Point
+				} else {
+					tiles[x][y] = Empty
+				}
 			} else if (x%4 != 2 && y%12 == 0) || x%2 == 0 && y%4 != 1 {
 				tiles[x][y] = Wall
 			} else {
-				tiles[x][y] = Point
+				if (x+y)%3 != 0 {
+					tiles[x][y] = Point
+				} else {
+					tiles[x][y] = Empty
+				}
 			}
 		}
 	}
 	stage.tiles.tiles = tiles
 	fmt.Println("Created tiles")
 
-	engine := Engine{nil, []*Snake{
+	p1 := Player{stage.sprites.GetEntity(1, 1, Player1),
+		0, 4, 32, 0}
+
+	engine := GetEngine(&p1, nil, stage,
 		stage.sprites.GetSnake(1, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100),
-		stage.sprites.GetSnake(31, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100)},
-		stage}
+		stage.sprites.GetSnake(31, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100))
 
 	stage.Render(renderer)
-	for i := uint64(0); true; i++ {
-		sdl.Delay(17)
-		if i >= 30 {
-			engine.Advance()
-			stage.Render(renderer)
-			if i%60 == 0 {
-				fmt.Printf("Rendered for %d seconds\n", i/60)
-			}
-			for sdl.PollEvent() != nil {
-			}
-		}
-	}
+	Play(engine, window, renderer)
 	fmt.Println("Exit")
+}
+
+func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
+	quit = false
+	for !quit {
+		sdl.Delay(17)
+		engine.Input.Poll()
+		engine.Advance()
+		window.SetTitle("Murinus (score: " + strconv.Itoa(int(engine.p1.score)) + ")")
+		engine.Stage.Render(renderer)
+	}
 }
 
 func e(err error) {
