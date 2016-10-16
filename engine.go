@@ -40,6 +40,7 @@ func (engine *Engine) Advance() {
 		player.Control(engine.Input.p2, engine)
 		engine.CheckCollisions(player)
 	}
+
 	if engine.snakes != nil {
 		for i := 0; i < len(engine.snakes); i++ {
 			snake := engine.snakes[i]
@@ -55,6 +56,9 @@ func (engine *Engine) Advance() {
 }
 
 func (engine *Engine) LegalPos(x, y int32) bool {
+	if x < 0 || y < 0 || x >= engine.Stage.tiles.w || y >= engine.Stage.tiles.h {
+		return false
+	}
 	if engine.Stage.tiles.tiles[x][y] == Wall {
 		return false
 	}
@@ -108,6 +112,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	modified := false
 	if engine.Stage.tiles.tiles[x][y] == Point {
 		engine.Stage.tiles.tiles[x][y] = Empty
+		engine.Stage.pointsLeft--
 		player.score += 10
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p200 {
@@ -134,10 +139,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
-			player.score = 0
-			player.entity.x = 1
-			player.entity.y = 1
-			player.entity.dir = Right
+			lostLife = true
 			break
 		}
 	}
@@ -145,7 +147,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 
 func (player *Player) Control(controller *Controller, engine *Engine) {
 	e := player.entity
-	if controller.IsDirection(e.dir) {
+	if e.precision > 95 || controller.IsDirection(e.dir) {
 		e.precision += controller.Dir(e.dir) * player.step
 	} else {
 		if e.dir == Up || e.dir == Down {
@@ -206,10 +208,15 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 			}
 		}
 	}
-	if e.precision > 127 {
-		e.precision = 127*2 - e.precision
-		e.x, e.y = NewPos(e.x, e.y, e.dir)
-		e.dir = (e.dir + 2) % 4
+	x, y := NewPos(e.x, e.y, e.dir)
+	if engine.LegalPos(x, y) {
+		if e.precision > 127 {
+			e.precision = 127*2 - e.precision
+			e.x, e.y = x, y
+			e.dir = (e.dir + 2) % 4
+		}
+	} else {
+		e.precision = 0
 	}
 	if e.precision < 0 {
 		panic("Should not reach this point")

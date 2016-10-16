@@ -8,12 +8,18 @@ import (
 )
 
 const (
-	screenWidth  int32 = 640
-	screenHeight int32 = 480
-	size         int32 = 16
+	sizeMult int32 = 1 //27
+	sizeDiv  int32 = 2 //20
+)
+
+const (
+	screenWidth  int32 = 1280 * sizeMult / sizeDiv
+	screenHeight int32 = 800 * sizeMult / sizeDiv
+	blockSize    int32 = 48 * sizeMult / sizeDiv
 )
 
 var quit bool
+var lostLife bool
 
 func main() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -34,54 +40,59 @@ func main() {
 	renderer.Clear()
 	fmt.Println("Created renderer")
 
-	stage := LoadTextures(33, 25, renderer)
-	fmt.Println("Created loaded stage-basis")
-	tiles := make([][]Tile, 33)
-	for x := 0; x < 33; x++ {
-		tiles[x] = make([]Tile, 25)
-		for y := 0; y < 25; y++ {
-			if x == 0 || y == 0 || x == 32 || y == 24 {
-				tiles[x][y] = Wall
-			} else if x == 1 || y == 1 || y == 11 || x == 31 || y == 23 {
-				if (x+y)%3 != 0 {
-					tiles[x][y] = Point
-				} else {
-					tiles[x][y] = Empty
-				}
-			} else if (x%4 != 2 && y%12 == 0) || x%2 == 0 && y%4 != 1 {
-				tiles[x][y] = Wall
+	stage := LoadTextures(stageWidth, stageHeight, renderer)
+	fmt.Println("Loaded stage-basis")
+
+	lostLife = false
+	lives := 3
+	score := uint64(0)
+	score -= 1000
+	for !quit {
+		var engine *Engine
+		if lostLife {
+			lostLife = false
+			lives--
+			if lives == 0 {
+				score = 0
+				score -= 1000
+				engine = stage.Load(0, true, 0)
 			} else {
-				if (x+y)%3 != 0 {
-					tiles[x][y] = Point
-				} else {
-					tiles[x][y] = Empty
-				}
+				engine = stage.Load(stage.ID+1, false, score)
 			}
+		} else {
+			engine = stage.Load(stage.ID+1, true, score+1000)
 		}
+		Play(engine, window, renderer)
+		score += engine.p1.score
+		fmt.Printf("Score: %d\n", score)
 	}
-	stage.tiles.tiles = tiles
-	fmt.Println("Created tiles")
 
-	p1 := Player{stage.sprites.GetEntity(1, 1, Player1),
-		0, 4, 32, 0}
-
-	engine := GetEngine(&p1, nil, stage,
-		stage.sprites.GetSnake(1, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100),
-		stage.sprites.GetSnake(31, 23, 3, &SimpleAI{}, 0, 5, 10*2, 10*4, 100))
-
-	stage.Render(renderer)
-	Play(engine, window, renderer)
 	fmt.Println("Exit")
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
 	quit = false
+	for i := 0; i < 90; i++ {
+		engine.Stage.Render(renderer)
+		sdl.Delay(17)
+		engine.Input.Poll()
+	}
 	for !quit {
 		sdl.Delay(17)
 		engine.Input.Poll()
 		engine.Advance()
-		window.SetTitle("Murinus (score: " + strconv.Itoa(int(engine.p1.score)) + ")")
+		window.SetTitle("Murinus (score: " +
+			strconv.Itoa(int(engine.p1.score)) +
+			", left " + strconv.Itoa(engine.Stage.pointsLeft) + ")")
 		engine.Stage.Render(renderer)
+		if engine.Stage.pointsLeft <= 0 || lostLife {
+			break
+		}
+	}
+	for i := 0; i < 90; i++ {
+		engine.Stage.Render(renderer)
+		sdl.Delay(17)
+		engine.Input.Poll()
 	}
 }
 

@@ -28,8 +28,9 @@ const (
 )
 
 type Stage struct {
-	tiles   *TileStage
-	sprites *SpriteStage
+	tiles          *TileStage
+	sprites        *SpriteStage
+	pointsLeft, ID int
 }
 
 type TileStage struct {
@@ -98,7 +99,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer) {
 	}
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
-	renderer.SetDrawColor(255, 0, 0, 255)
+	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	renderer.Clear()
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
@@ -113,11 +114,11 @@ func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 	renderer.Clear()
 	if tiles.tiles != nil {
 		for x := int32(0); x < tiles.w; x++ {
-			tiles.tileDst.X = x * size
+			tiles.tileDst.X = x * blockSize
 			for y := int32(0); y < tiles.h; y++ {
-				tiles.tileDst.Y = y * size
-				tiles.tileDst.W = size
-				tiles.tileDst.H = size
+				tiles.tileDst.Y = y * blockSize
+				tiles.tileDst.W = blockSize
+				tiles.tileDst.H = blockSize
 				renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
 					tiles.tileInfo.src[tiles.tiles[x][y]], tiles.tileDst)
 			}
@@ -137,19 +138,19 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 				e := sprites.entities[i]
 				s := e.sprite
 				if s.priority == priority {
-					sprites.spriteDst.X = e.x * size
-					sprites.spriteDst.Y = e.y * size
+					sprites.spriteDst.X = e.x * blockSize
+					sprites.spriteDst.Y = e.y * blockSize
 					if e.dir == Up {
-						sprites.spriteDst.Y -= e.precision * size / 255
+						sprites.spriteDst.Y -= e.precision * blockSize / 255
 					} else if e.dir == Right {
-						sprites.spriteDst.X += e.precision * size / 255
+						sprites.spriteDst.X += e.precision * blockSize / 255
 					} else if e.dir == Down {
-						sprites.spriteDst.Y += e.precision * size / 255
+						sprites.spriteDst.Y += e.precision * blockSize / 255
 					} else if e.dir == Left {
-						sprites.spriteDst.X -= e.precision * size / 255
+						sprites.spriteDst.X -= e.precision * blockSize / 255
 					}
-					sprites.spriteDst.W = size
-					sprites.spriteDst.H = size
+					sprites.spriteDst.W = blockSize
+					sprites.spriteDst.H = blockSize
 					t := (sprites.time / s.timeDiv) % int64(len(s.src))
 					renderer.Copy(s.texture,
 						s.src[t], sprites.spriteDst)
@@ -162,14 +163,14 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	rect4x4 := sdl.Rect{0, 0, 4, 4}
 	rect2x2 := sdl.Rect{1, 1, 2, 2}
-	stageRect := sdl.Rect{0, 0, width * size, height * size}
-	offsetFromScreenX := (screenWidth - width*size) / 2
-	offsetFromScreenY := (screenHeight - height*size) / 2
+	stageRect := sdl.Rect{0, 0, width * blockSize, height * blockSize}
+	offsetFromScreenX := (screenWidth - width*blockSize) / 2
+	offsetFromScreenY := (screenHeight - height*blockSize) / 2
 	stageScreenRect := sdl.Rect{offsetFromScreenX, offsetFromScreenY,
-		width * size, height * size}
+		width * blockSize, height * blockSize}
 
 	tileTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-		sdl.TEXTUREACCESS_TARGET, int(width*size), int(height*size))
+		sdl.TEXTUREACCESS_TARGET, int(width*blockSize), int(height*blockSize))
 	e(err)
 	tileInfo := TileInfo{&sdl.Rect{},
 		make([]*sdl.Texture, 8),
@@ -198,7 +199,7 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 		&sdl.Rect{}, width, height}
 
 	spriteTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-		sdl.TEXTUREACCESS_TARGET, int(width*size), int(height*size))
+		sdl.TEXTUREACCESS_TARGET, int(width*blockSize), int(height*blockSize))
 	e(err)
 	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
@@ -208,23 +209,26 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 			sdl.TEXTUREACCESS_TARGET, 4, 4)
 		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 		e(err)
-		spriteDatas[i] = &Sprite{texture, []*sdl.Rect{&rect4x4}, 1, 10 - i}
+		spriteDatas[i] = &Sprite{texture, []*sdl.Rect{&rect4x4}, 1, 0}
 	}
 
 	renderer.SetRenderTarget(spriteDatas[Player1].texture)
 	renderer.SetDrawColor(255, 182, 193, 255)
 	renderer.Clear()
-	renderer.SetDrawColor(0, 0, 0, 255)
-	renderer.DrawRect(&rect2x2)
+	spriteDatas[Player1].priority = 5
+
 	renderer.SetRenderTarget(spriteDatas[SnakeHead].texture)
 	renderer.SetDrawColor(0, 95, 0, 255)
 	renderer.Clear()
+	spriteDatas[SnakeHead].priority = 6
+
 	renderer.SetRenderTarget(spriteDatas[SnakeBody].texture)
 	renderer.SetDrawColor(0, 127, 0, 255)
 	renderer.Clear()
+	spriteDatas[SnakeBody].priority = 4
 
 	spriteStage := SpriteStage{spriteDatas, nil, spriteTexture,
 		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
 
-	return &Stage{&tileStage, &spriteStage}
+	return &Stage{&tileStage, &spriteStage, -1, -1}
 }
