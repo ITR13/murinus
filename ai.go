@@ -40,14 +40,6 @@ type AI interface {
 	Move(snakeID int, engine *Engine) Direction
 }
 
-type Graph struct {
-	nodes []*Node
-}
-
-type Node struct {
-	neighbours []*Node
-}
-
 type SimpleAI struct {
 	lastDirection Direction
 	turnedRight   bool

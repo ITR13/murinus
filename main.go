@@ -77,7 +77,7 @@ func main() {
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
 	quit = false
 	lostLife = false
-	for i := 0; i < 90; i++ {
+	for i := 0; i < 90 && !quit; i++ {
 		engine.Stage.Render(renderer)
 		sdl.Delay(17)
 		engine.Input.Poll()
@@ -94,7 +94,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
 			break
 		}
 	}
-	for i := 0; i < 90; i++ {
+	for i := 0; i < 90 && !quit; i++ {
 		engine.Stage.Render(renderer)
 		sdl.Delay(17)
 		engine.Input.Poll()

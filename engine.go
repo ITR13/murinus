@@ -11,6 +11,7 @@ type Engine struct {
 	snakes []*Snake
 	Stage  *Stage
 	Input  *Input
+	Graph  *Graph
 }
 
 type Player struct {
@@ -33,7 +34,8 @@ type Snake struct {
 
 func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
 	input := GetInput()
-	return &Engine{p1, p2, snakes, stage, input}
+	graph := stage.tiles.MakeGraph()
+	return &Engine{p1, p2, snakes, stage, input, graph}
 }
 
 func (engine *Engine) Advance() {
@@ -175,10 +177,15 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	if e.precision > 15*PrecisionMax/16 || controller.IsDirection(e.dir) {
 		e.precision += controller.Dir(e.dir) * player.step
 	} else {
+		checkDir := false
+		perpMove := false
 		if e.dir == Up || e.dir == Down {
 			val := controller.leftRight.Val()
-			if !engine.LegalPos(e.x+val, e.y, false) {
-				val = 0
+			if val != 0 {
+				perpMove = true
+				if !engine.LegalPos(e.x+val, e.y, false) {
+					val = 0
+				}
 			}
 			if val != 0 {
 				e.precision -= player.step
@@ -191,22 +198,15 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 					}
 				}
 			} else {
-				e.precision += controller.Dir(e.dir) * player.step
-				if e.precision < 0 {
-					dir := (e.dir + 2) % 4
-					x, y := NewPos(e.x, e.y, dir)
-					if engine.LegalPos(x, y, false) {
-						e.precision = -e.precision
-						e.dir = dir
-					} else {
-						e.precision = 0
-					}
-				}
+				checkDir = true
 			}
 		} else if e.dir == Right || e.dir == Left {
 			val := controller.upDown.Val()
-			if !engine.LegalPos(e.x, e.y+val, false) {
-				val = 0
+			if val != 0 {
+				perpMove = true
+				if !engine.LegalPos(e.x, e.y+val, false) {
+					val = 0
+				}
 			}
 			if val != 0 {
 				e.precision -= player.step
@@ -219,7 +219,13 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 					}
 				}
 			} else {
-				e.precision += controller.Dir(e.dir) * player.step
+				checkDir = true
+			}
+		}
+		if checkDir {
+			val := controller.Dir(e.dir)
+			if val != 0 {
+				e.precision += val * player.step
 				if e.precision < 0 {
 					dir := (e.dir + 2) % 4
 					x, y := NewPos(e.x, e.y, dir)
@@ -228,6 +234,27 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 						e.dir = dir
 					} else {
 						e.precision = 0
+					}
+				}
+			} else if perpMove {
+				edge := engine.Graph.edge[e.x][e.y]
+				if edge != nil && edge.distance > 0 &&
+					edge.distance < 2 {
+					if e.dir != edge.dir && edge.me != nil {
+						e.precision -= player.step
+						if e.precision < 0 {
+							//x, y := NewPos(e.x, e.y, edge.dir)
+							//if engine.LegalPos(x, y, false) {
+							e.precision = -e.precision
+							e.dir = edge.dir
+							//} else {
+							//Tested for when making graph
+							//panic("Edge pointing in illegal direction")
+							//}
+						}
+
+					} else {
+						e.precision += player.step
 					}
 				}
 			}
