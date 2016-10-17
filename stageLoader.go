@@ -8,9 +8,11 @@ const (
 func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	var p1, p2 *Player
 	var tiles [][]Tile
+	var snakes []*Snake
 
 	stage.sprites.entities = make([]*Entity, 0)
-	if ID == 0 {
+	stage.ID = ID
+	if true {
 		if loadTiles {
 			tiles = ConvertStringToTiles("" +
 				"#########################" +
@@ -30,8 +32,23 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				"#########################")
 
 		}
+
+		speed := 18 - ID*5
+		if speed < 0 {
+			speed = 0
+		}
+
+		pspeed := 8 * int32(ID+4) * PrecisionMax / 127
+		if pspeed > PrecisionMax/2 {
+			pspeed = PrecisionMax / 2
+		}
+
+		snakes = []*Snake{
+			stage.sprites.GetSnake(1, stageHeight-2, 6, &SimpleAI{}, speed, 100/(speed+2), 10*4, 16),
+			stage.sprites.GetSnake(stageWidth-2, 1, 6, &SimpleAI{}, speed, 100/(speed+2), 10*4, 16)}
+
 		p1 = &Player{stage.sprites.GetEntity(stageWidth/2, stageHeight/2, Player1),
-			0, 4, 32, score}
+			0, 4, pspeed, score}
 	} else if ID == 1 {
 		if loadTiles {
 			for i := int32(2); i < 6; i++ {
@@ -72,9 +89,8 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 		}
 		stage.tiles.tiles = tiles
 	}
-	engine := GetEngine(p1, p2, stage,
-		stage.sprites.GetSnake(1, stageHeight-2, 6, &SimpleAI{}, 0, 5, 10*2, 10*4, 16),
-		stage.sprites.GetSnake(stageWidth-2, 1, 6, &SimpleAI{}, 0, 5, 10*2, 10*4, 16))
+	engine := GetEngine(p1, p2, snakes, stage)
+
 	return engine
 }
 

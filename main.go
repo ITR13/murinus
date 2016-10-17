@@ -53,12 +53,15 @@ func main() {
 			lostLife = false
 			lives--
 			if lives == 0 {
+				lives = 3
 				score = 0
 				score -= 1000
 				engine = stage.Load(0, true, 0)
 			} else {
-				engine = stage.Load(stage.ID+1, false, score)
+				engine = stage.Load(stage.ID, false, score)
 			}
+			window.SetTitle("Score: " + strconv.Itoa(int(score)) +
+				" Lives: " + strconv.Itoa(lives))
 		} else {
 			engine = stage.Load(stage.ID+1, true, score+1000)
 		}

@@ -82,7 +82,7 @@ func (spriteStage *SpriteStage) GetEntity(x, y int32, id SpriteID) *Entity {
 }
 
 func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
-	moveTimer, moveTimerMax, growTimer, growTimerMax, maxLength int) *Snake {
+	moveTimerMax, speedUpTimerMax, growTimerMax, maxLength int) *Snake {
 	length += 2
 	entities := make([]*Entity, length)
 	entities[0] = spriteStage.GetEntity(x, y, SnakeHead)
@@ -90,8 +90,9 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 		entities[i] = spriteStage.GetEntity(x, y, SnakeBody)
 	}
 	return &Snake{
-		entities[0], entities[1 : length-1], entities[length-1],
-		ai, moveTimer, moveTimerMax, growTimer, growTimerMax, maxLength}
+		entities[0], entities[1 : length-1], entities[length-1], ai,
+		moveTimerMax / 2, moveTimerMax, speedUpTimerMax, speedUpTimerMax,
+		growTimerMax / 3, growTimerMax, maxLength}
 }
 
 func (stage *Stage) Render(renderer *sdl.Renderer) {
@@ -142,13 +143,13 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 					sprites.spriteDst.X = e.x * blockSize
 					sprites.spriteDst.Y = e.y * blockSize
 					if e.dir == Up {
-						sprites.spriteDst.Y -= e.precision * blockSize / 255
+						sprites.spriteDst.Y -= e.precision * blockSize / PrecisionMax
 					} else if e.dir == Right {
-						sprites.spriteDst.X += e.precision * blockSize / 255
+						sprites.spriteDst.X += e.precision * blockSize / PrecisionMax
 					} else if e.dir == Down {
-						sprites.spriteDst.Y += e.precision * blockSize / 255
+						sprites.spriteDst.Y += e.precision * blockSize / PrecisionMax
 					} else if e.dir == Left {
-						sprites.spriteDst.X -= e.precision * blockSize / 255
+						sprites.spriteDst.X -= e.precision * blockSize / PrecisionMax
 					}
 					sprites.spriteDst.W = blockSize
 					sprites.spriteDst.H = blockSize

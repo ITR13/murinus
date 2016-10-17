@@ -1,5 +1,11 @@
 package main
 
+import "fmt"
+
+const (
+	PrecisionMax int32 = 255 * 4
+)
+
 type Engine struct {
 	p1, p2 *Player
 	snakes []*Snake
@@ -15,16 +21,17 @@ type Player struct {
 }
 
 type Snake struct {
-	head                    *Entity
-	body                    []*Entity
-	tail                    *Entity
-	ai                      AI
-	moveTimer, moveTimerMax int
-	growTimer, growTimerMax int
-	maxLength               int
+	head                          *Entity
+	body                          []*Entity
+	tail                          *Entity
+	ai                            AI
+	moveTimer, moveTimerMax       int
+	speedUpTimer, speedUpTimerMax int
+	growTimer, growTimerMax       int
+	maxLength                     int
 }
 
-func GetEngine(p1 *Player, p2 *Player, stage *Stage, snakes ...*Snake) *Engine {
+func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
 	input := GetInput()
 	return &Engine{p1, p2, snakes, stage, input}
 }
@@ -112,6 +119,16 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 	if engine.LegalPos(x, y, true) {
 		snake.head.x, snake.head.y = x, y
 		snake.growTimer--
+		snake.speedUpTimer--
+		if snake.speedUpTimer <= 0 && snake.moveTimerMax > 0 {
+			if snake.moveTimerMax > 1 {
+				snake.speedUpTimerMax = (snake.moveTimerMax*300)/
+					(snake.moveTimerMax-1) + snake.speedUpTimerMax/2
+			}
+			snake.speedUpTimer = snake.speedUpTimerMax
+			snake.moveTimerMax--
+			fmt.Printf("Sped up to %d!\tNext speed up: %d\n", snake.moveTimerMax, snake.speedUpTimer)
+		}
 	}
 }
 
@@ -155,7 +172,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 
 func (player *Player) Control(controller *Controller, engine *Engine) {
 	e := player.entity
-	if e.precision > 95 || controller.IsDirection(e.dir) {
+	if e.precision > 15*PrecisionMax/16 || controller.IsDirection(e.dir) {
 		e.precision += controller.Dir(e.dir) * player.step
 	} else {
 		if e.dir == Up || e.dir == Down {
@@ -218,8 +235,8 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	}
 	x, y := NewPos(e.x, e.y, e.dir)
 	if engine.LegalPos(x, y, false) {
-		if e.precision > 127 {
-			e.precision = 127*2 - e.precision
+		if e.precision > PrecisionMax/2 {
+			e.precision = PrecisionMax - e.precision
 			e.x, e.y = x, y
 			e.dir = (e.dir + 2) % 4
 		}
