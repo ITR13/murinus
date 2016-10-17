@@ -192,7 +192,7 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	renderer.SetDrawColor(65, 105, 225, 255)
 	renderer.Clear()
 	renderer.SetDrawColor(240, 230, 140, 255)
-	renderer.DrawRect(&rect2x2)
+	renderer.FillRect(&rect2x2)
 
 	tileStage := TileStage{false, &tileInfo, nil,
 		tileTexture, &stageRect, &stageScreenRect,
