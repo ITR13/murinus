@@ -42,29 +42,37 @@ func (engine *Engine) Advance() {
 	}
 
 	if engine.snakes != nil {
+		newPos := make([][2]int32, len(engine.snakes))
 		for i := 0; i < len(engine.snakes); i++ {
 			snake := engine.snakes[i]
 			snake.moveTimer--
 			if snake.moveTimer < 0 {
-				snake.moveTimer = snake.moveTimerMax
 				dir := snake.ai.Move(i, engine)
 				x, y := NewPos(snake.head.x, snake.head.y, dir)
-				snake.Move(x, y, engine)
+				newPos[i] = [2]int32{x, y}
+			}
+		}
+		for i := 0; i < len(engine.snakes); i++ {
+			snake := engine.snakes[i]
+			if snake.moveTimer < 0 {
+				snake.moveTimer = snake.moveTimerMax
+				snake.Move(newPos[i][0], newPos[i][1], engine)
 			}
 		}
 	}
 }
 
-func (engine *Engine) LegalPos(x, y int32) bool {
+func (engine *Engine) LegalPos(x, y int32, isSnake bool) bool {
 	if x < 0 || y < 0 || x >= engine.Stage.tiles.w || y >= engine.Stage.tiles.h {
 		return false
 	}
-	if engine.Stage.tiles.tiles[x][y] == Wall {
+	if engine.Stage.tiles.tiles[x][y] == Wall ||
+		(isSnake && engine.Stage.tiles.tiles[x][y] == SnakeWall) {
 		return false
 	}
 	for i := 0; i < len(engine.snakes); i++ {
 		snake := engine.snakes[i]
-		if snake.head.Is(x, y) /*|| snake.tail.Is(x, y)*/ {
+		if snake.head.Is(x, y) || (!isSnake && snake.tail.Is(x, y)) {
 			return false
 		}
 		for k := 0; k < len(snake.body); k++ {
@@ -101,7 +109,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		snake.body[0].x, snake.body[0].y = snake.head.x, snake.head.y
 	}
 
-	if engine.LegalPos(x, y) {
+	if engine.LegalPos(x, y, true) {
 		snake.head.x, snake.head.y = x, y
 		snake.growTimer--
 	}
@@ -152,7 +160,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	} else {
 		if e.dir == Up || e.dir == Down {
 			val := controller.leftRight.Val()
-			if !engine.LegalPos(e.x+val, e.y) {
+			if !engine.LegalPos(e.x+val, e.y, false) {
 				val = 0
 			}
 			if val != 0 {
@@ -170,7 +178,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				if e.precision < 0 {
 					dir := (e.dir + 2) % 4
 					x, y := NewPos(e.x, e.y, dir)
-					if engine.LegalPos(x, y) {
+					if engine.LegalPos(x, y, false) {
 						e.precision = -e.precision
 						e.dir = dir
 					} else {
@@ -180,7 +188,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 			}
 		} else if e.dir == Right || e.dir == Left {
 			val := controller.upDown.Val()
-			if !engine.LegalPos(e.x, e.y+val) {
+			if !engine.LegalPos(e.x, e.y+val, false) {
 				val = 0
 			}
 			if val != 0 {
@@ -198,7 +206,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				if e.precision < 0 {
 					dir := (e.dir + 2) % 4
 					x, y := NewPos(e.x, e.y, dir)
-					if engine.LegalPos(x, y) {
+					if engine.LegalPos(x, y, false) {
 						e.precision = -e.precision
 						e.dir = dir
 					} else {
@@ -209,7 +217,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 		}
 	}
 	x, y := NewPos(e.x, e.y, e.dir)
-	if engine.LegalPos(x, y) {
+	if engine.LegalPos(x, y, false) {
 		if e.precision > 127 {
 			e.precision = 127*2 - e.precision
 			e.x, e.y = x, y

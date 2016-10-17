@@ -25,10 +25,11 @@ func NewPos(x, y int32, d Direction) (int32, int32) {
 	return x, y
 }
 
+//Only use with snakes
 func (engine *Engine) LegalDir(x, y int32, d Direction) int {
 	for i := 0; true; i++ {
 		x, y = NewPos(x, y, d)
-		if !engine.LegalPos(x, y) {
+		if !engine.LegalPos(x, y, true) {
 			return i
 		}
 	}
@@ -69,14 +70,20 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 	} else if legalOptions == 1 {
 		for i := Up; i <= Left; i++ {
 			if options[i] > 0 {
+				simpleAI.lastDirection = i
 				return i
 			}
 		}
-	}
-
-	simpleAI.ignore++
-	if simpleAI.ignore%23 == 0 || simpleAI.ignore%37 == 0 {
-		simpleAI.turnedRight = !simpleAI.turnedRight
+	} else if legalOptions == 2 {
+		fx, fy := NewPos(X, Y, simpleAI.lastDirection)
+		if engine.LegalPos(fx, fy, true) {
+			for i := Up; i <= Left; i++ {
+				if options[i] > 0 && i != simpleAI.lastDirection {
+					simpleAI.lastDirection = i
+					return i
+				}
+			}
+		}
 	}
 
 	if simpleAI.turnedRight {
@@ -89,13 +96,13 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 			}
 			dir = (dir + 2) % 4
 			if options[dir] >= i {
-				simpleAI.turnedRight = false
+				simpleAI.turnedRight = true
 				simpleAI.lastDirection = dir
 				return dir
 			}
 			dir = (dir + 3) % 4
 			if options[dir] >= i+1 {
-				simpleAI.turnedRight = false
+				simpleAI.turnedRight = true
 				simpleAI.lastDirection = dir
 				return dir
 			}
@@ -111,13 +118,13 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 			}
 			dir = (dir + 2) % 4
 			if options[dir] >= i {
-				simpleAI.turnedRight = true
+				simpleAI.turnedRight = false
 				simpleAI.lastDirection = dir
 				return dir
 			}
 			dir = (dir + 1) % 4
 			if options[dir] >= i+1 {
-				simpleAI.turnedRight = true
+				simpleAI.turnedRight = false
 				simpleAI.lastDirection = dir
 				return dir
 			}

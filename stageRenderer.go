@@ -7,14 +7,15 @@ import (
 type Tile uint8
 
 const (
-	Empty   Tile = iota
-	Wall    Tile = iota
-	Point   Tile = iota
-	Powerup Tile = iota
-	p200    Tile = iota
-	p500    Tile = iota
-	p1000   Tile = iota
-	p2000   Tile = iota
+	Empty     Tile = iota
+	Wall      Tile = iota
+	Point     Tile = iota
+	Powerup   Tile = iota
+	p200      Tile = iota
+	p500      Tile = iota
+	p1000     Tile = iota
+	p2000     Tile = iota
+	SnakeWall Tile = iota
 )
 
 type SpriteID uint8
@@ -173,9 +174,9 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 		sdl.TEXTUREACCESS_TARGET, int(width*blockSize), int(height*blockSize))
 	e(err)
 	tileInfo := TileInfo{&sdl.Rect{},
-		make([]*sdl.Texture, 8),
-		make([]*sdl.Rect, 8)}
-	for i := 0; i < 8; i++ {
+		make([]*sdl.Texture, SnakeWall+1),
+		make([]*sdl.Rect, SnakeWall+1)}
+	for i := Empty; i < SnakeWall; i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 			sdl.TEXTUREACCESS_TARGET, 4, 4)
 		e(err)
@@ -193,6 +194,8 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	renderer.Clear()
 	renderer.SetDrawColor(240, 230, 140, 255)
 	renderer.FillRect(&rect2x2)
+
+	tileInfo.textures[SnakeWall] = tileInfo.textures[Empty]
 
 	tileStage := TileStage{false, &tileInfo, nil,
 		tileTexture, &stageRect, &stageScreenRect,

@@ -62,8 +62,9 @@ func main() {
 		} else {
 			engine = stage.Load(stage.ID+1, true, score+1000)
 		}
+		fmt.Printf("Lives: %d\n", lives)
 		Play(engine, window, renderer)
-		score += engine.p1.score
+		score = engine.p1.score
 		fmt.Printf("Score: %d\n", score)
 	}
 
@@ -72,6 +73,7 @@ func main() {
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
 	quit = false
+	lostLife = false
 	for i := 0; i < 90; i++ {
 		engine.Stage.Render(renderer)
 		sdl.Delay(17)
