@@ -43,11 +43,6 @@ func (engine *Engine) Advance() {
 	if engine.p1 != nil {
 		player := engine.p1
 		player.Control(engine.Input.p1, engine)
-		player.entity.x = engine.snakes[0].head.x
-		player.entity.y = engine.snakes[0].head.y
-		engine.CheckCollisions(player)
-		player.entity.x = engine.snakes[1].head.x
-		player.entity.y = engine.snakes[1].head.y
 		engine.CheckCollisions(player)
 	}
 	if engine.p2 != nil {
@@ -169,7 +164,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	if modified {
 		engine.Stage.tiles.renderedOnce = false
 	}
-	return
+
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
 			lostLife = true
