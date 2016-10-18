@@ -59,7 +59,17 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 		}
 		return edges[x][y]
 	}
-	edges[1][1] = getEdge(1, 1)
+
+	for x := int32(0); x < stageWidth; x++ {
+		for y := int32(0); y < stageHeight; y++ {
+			if tileStage.tiles[x][y] != Wall &&
+				(!snake || tileStage.tiles[x][y] != SnakeWall) {
+				if edges[x][y] == nil {
+					getEdge(x, y)
+				}
+			}
+		}
+	}
 	fmt.Println(edgeCount, nodecount)
 
 	var setMe func(*Edge, int32, *Node)
