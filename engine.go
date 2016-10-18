@@ -4,6 +4,7 @@ import "fmt"
 
 const (
 	PrecisionMax int32 = 255 * 4
+	EdgeSlip     int32 = 5
 )
 
 type Engine struct {
@@ -34,7 +35,7 @@ type Snake struct {
 
 func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
 	input := GetInput()
-	graph := stage.tiles.MakeGraph()
+	graph := stage.tiles.MakeGraph(false)
 	return &Engine{p1, p2, snakes, stage, input, graph}
 }
 
@@ -42,6 +43,11 @@ func (engine *Engine) Advance() {
 	if engine.p1 != nil {
 		player := engine.p1
 		player.Control(engine.Input.p1, engine)
+		player.entity.x = engine.snakes[0].head.x
+		player.entity.y = engine.snakes[0].head.y
+		engine.CheckCollisions(player)
+		player.entity.x = engine.snakes[1].head.x
+		player.entity.y = engine.snakes[1].head.y
 		engine.CheckCollisions(player)
 	}
 	if engine.p2 != nil {
@@ -163,7 +169,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	if modified {
 		engine.Stage.tiles.renderedOnce = false
 	}
-
+	return
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
 			lostLife = true
@@ -239,20 +245,15 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 			} else if perpMove {
 				edge := engine.Graph.edge[e.x][e.y]
 				if edge != nil && edge.distance > 0 &&
-					edge.distance < 2 {
+					edge.distance < EdgeSlip {
 					if e.dir != edge.dir && edge.me != nil {
-						e.precision -= player.step
-						if e.precision < 0 {
-							//x, y := NewPos(e.x, e.y, edge.dir)
-							//if engine.LegalPos(x, y, false) {
-							e.precision = -e.precision
-							e.dir = edge.dir
-							//} else {
-							//Tested for when making graph
-							//panic("Edge pointing in illegal direction")
-							//}
+						if edge.distance < (EdgeSlip-1)/2 {
+							e.precision -= player.step
+							if e.precision < 0 {
+								e.precision = -e.precision
+								e.dir = edge.dir
+							}
 						}
-
 					} else {
 						e.precision += player.step
 					}

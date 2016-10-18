@@ -1,6 +1,8 @@
 package main
 
-//import "fmt"
+import (
+	"math/rand"
+)
 
 type Direction uint8
 
@@ -124,4 +126,57 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 		}
 	}
 	return simpleAI.lastDirection
+}
+
+type GraphAI struct {
+	divertTimer, divertTimerMax int
+}
+
+func (graphAI *GraphAI) Move(snakeID int, engine *Engine) Direction {
+	/*snake := engine.snakes[snakeID]
+	X, Y := snake.head.x, snake.head.y
+	edge := graphAI.graph.edge[X][Y]
+	distance := make([][]int, stageWidth)
+	for x := int32(0); x < stageWidth; x++ {
+		distance[x] = make([]int, stageHeight)
+	}
+	//func shortestDistance*/
+	return Up
+}
+
+type RandomAI struct {
+	r *rand.Rand
+}
+
+func (randAI *RandomAI) Move(snakeID int, engine *Engine) Direction {
+	snake := engine.snakes[snakeID]
+	X, Y := snake.head.x, snake.head.y
+	options := make([]int, 4)
+	legalOptions := 0
+	for i := Up; i <= Left; i++ {
+		options[i] = engine.LegalDir(X, Y, i)
+		if options[i] > 0 {
+			legalOptions++
+		}
+	}
+	if legalOptions == 0 {
+		return Up
+	} else if legalOptions == 1 {
+		for i := Up; i <= Left; i++ {
+			if options[i] > 0 {
+				return i
+			}
+		}
+	}
+	dir := randAI.r.Int() % legalOptions
+	for i := Up; i <= Left; i++ {
+		if options[i] > 0 {
+			if dir == 0 {
+				return i
+			} else {
+				dir--
+			}
+		}
+	}
+	return Up
 }

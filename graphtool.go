@@ -19,7 +19,7 @@ type Node struct {
 	neighbours []*Node
 }
 
-func (tileStage *TileStage) MakeGraph() *Graph {
+func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 	edges := make([][]*Edge, stageWidth)
 	for x := int32(0); x < stageWidth; x++ {
 		edges[x] = make([]*Edge, screenHeight)
@@ -33,7 +33,8 @@ func (tileStage *TileStage) MakeGraph() *Graph {
 			sides := 0
 			for i := Up; i <= Left; i++ {
 				x2, y2 := NewPos(x, y, i)
-				if tileStage.tiles[x2][y2] != Wall {
+				if tileStage.tiles[x2][y2] != Wall &&
+					(!snake || tileStage.tiles[x2][y2] != SnakeWall) {
 					sides++
 				}
 			}
@@ -48,7 +49,8 @@ func (tileStage *TileStage) MakeGraph() *Graph {
 			c := 0
 			for i := Up; i <= Left; i++ {
 				x2, y2 := NewPos(x, y, i)
-				if tileStage.tiles[x2][y2] != Wall {
+				if tileStage.tiles[x2][y2] != Wall &&
+					(!snake || tileStage.tiles[x2][y2] != SnakeWall) {
 					edges[x][y].neighbours[c] = getEdge(x2, y2)
 					edges[x][y].neighDir[c] = i
 					c++
@@ -106,18 +108,21 @@ func (tileStage *TileStage) MakeGraph() *Graph {
 	for x := int32(0); x < stageWidth; x++ {
 		for y := int32(0); y < stageHeight; y++ {
 			if edges[x][y] == nil {
-				if tileStage.tiles[x][y] != Wall {
+				if tileStage.tiles[x][y] != Wall &&
+					(!snake || tileStage.tiles[x][y] != SnakeWall) {
 					fmt.Printf("Expected edge on %d,%d, got nil\n", x, y)
 					panic("Position lacks edge (Not A Wall)")
 				}
 			} else {
-				if tileStage.tiles[x][y] == Wall {
+				if tileStage.tiles[x][y] == Wall ||
+					(snake && tileStage.tiles[x][y] == SnakeWall) {
 					fmt.Printf("Illegal edge on %d,%d, in wall\n", x, y)
 					panic("Illegal edge position (In A Wall)")
 				} else {
 					if edges[x][y].me != nil && edges[x][y].distance > 0 {
 						x2, y2 := NewPos(x, y, edges[x][y].dir)
-						if tileStage.tiles[x2][y2] == Wall {
+						if tileStage.tiles[x2][y2] == Wall &&
+							(!snake || tileStage.tiles[x2][y2] == SnakeWall) {
 							fmt.Printf("Edge pointing towards at wall from"+
 								" %d,%d with %d, at %d,%d\n", x, y,
 								edges[x][y].dir, x2, y2)
@@ -126,7 +131,8 @@ func (tileStage *TileStage) MakeGraph() *Graph {
 					}
 					for i := 0; i < len(edges[x][y].neighDir); i++ {
 						x2, y2 := NewPos(x, y, edges[x][y].neighDir[i])
-						if tileStage.tiles[x2][y2] == Wall {
+						if tileStage.tiles[x2][y2] == Wall &&
+							(!snake || tileStage.tiles[x2][y2] == SnakeWall) {
 							fmt.Printf("Edge with neighdir towards at wall "+
 								"from %d,%d with %d (%d), at %d,%d\n", x, y,
 								edges[x][y].neighDir[i], i, x2, y2)
