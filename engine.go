@@ -16,10 +16,10 @@ type Engine struct {
 }
 
 type Player struct {
-	entity       *Entity
-	timeout, max int
-	step         int32
-	score        uint64
+	entity *Entity
+	//timeout, max int
+	step  int32
+	score uint64
 }
 
 type Snake struct {
@@ -109,7 +109,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		if !snake.shrinking {
 			if len(snake.body) < snake.normalLength {
 				if snake.normalLengthGrowTimer <= 0 {
-					snake.normalLengthGrowTimer = 20
+					snake.normalLengthGrowTimer = 4
 					grow = true
 				}
 			} else if snake.growTimer <= 0 && len(snake.body) < snake.maxLength {

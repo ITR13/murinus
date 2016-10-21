@@ -273,5 +273,5 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	spriteStage := SpriteStage{spriteDatas, nil, spriteTexture,
 		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
 
-	return &Stage{&tileStage, &spriteStage, -1, 11}
+	return &Stage{&tileStage, &spriteStage, -1, 3}
 }

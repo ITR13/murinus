@@ -31,7 +31,7 @@ func NewPos(x, y int32, d Direction) (int32, int32) {
 func (engine *Engine) LegalDir(x, y int32, d Direction) int {
 	for i := 0; true; i++ {
 		x, y = NewPos(x, y, d)
-		if !engine.LegalPos(x, y, true) {
+		if i > 3 || !engine.LegalPos(x, y, true) {
 			return i
 		}
 	}
@@ -128,19 +128,69 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 	return simpleAI.lastDirection
 }
 
-type GraphAI struct {
+type ApproximatedAI struct {
 	divertTimer, divertTimerMax int
 }
 
-func (graphAI *GraphAI) Move(snakeID int, engine *Engine) Direction {
-	/*snake := engine.snakes[snakeID]
+func (approx *ApproximatedAI) Move(snakeID int, engine *Engine) Direction {
+	snake := engine.snakes[snakeID]
 	X, Y := snake.head.x, snake.head.y
-	edge := graphAI.graph.edge[X][Y]
-	distance := make([][]int, stageWidth)
-	for x := int32(0); x < stageWidth; x++ {
-		distance[x] = make([]int, stageHeight)
+	options := make([]int, 4)
+	legalOptions := 0
+	for i := Up; i <= Left; i++ {
+		options[i] = engine.LegalDir(X, Y, i)
+		if options[i] > 0 {
+			legalOptions++
+		}
 	}
-	//func shortestDistance*/
+	if legalOptions == 0 {
+		return Up
+	} else if legalOptions == 1 {
+		for i := Up; i <= Left; i++ {
+			if options[i] > 0 {
+				return i
+			}
+		}
+	}
+
+	UpDownDir := Up
+	LeftRightDir := Left
+	dx := X - engine.p1.entity.x
+	dy := Y - engine.p1.entity.y
+	if dx < 0 {
+		dx = -dx
+		LeftRightDir = Right
+	}
+	if dy < 0 {
+		dy = -dy
+		UpDownDir = Down
+	}
+	approx.divertTimer--
+	if approx.divertTimer < 0 {
+		approx.divertTimer = approx.divertTimerMax
+	}
+
+	if (dx > dy) != (approx.divertTimer == 0) {
+		if options[LeftRightDir] > 0 {
+			return LeftRightDir
+		}
+		dir := UpDownDir - LeftRightDir
+		for i := UpDownDir; i != LeftRightDir; i = (i + dir) % 4 {
+			if options[i] > 0 {
+				return i
+			}
+		}
+	} else {
+		if options[UpDownDir] > 0 {
+			return UpDownDir
+		}
+		dir := LeftRightDir - UpDownDir
+		for i := LeftRightDir; i != UpDownDir; i = (i + dir) % 4 {
+			if options[i] > 0 {
+				return i
+			}
+		}
+	}
 	return Up
 }
 
