@@ -13,9 +13,9 @@ const (
 )
 
 const (
-	screenWidth  int32 = 1280 * sizeMult / sizeDiv
-	screenHeight int32 = 800 * sizeMult / sizeDiv
-	blockSize    int32 = 48 * sizeMult / sizeDiv
+	screenWidth  int32 = (1280 * sizeMult) / sizeDiv
+	screenHeight int32 = (800 * sizeMult) / sizeDiv
+	blockSize    int32 = (48 * sizeMult) / sizeDiv
 )
 
 var quit bool

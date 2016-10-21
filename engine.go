@@ -23,14 +23,16 @@ type Player struct {
 }
 
 type Snake struct {
-	head                          *Entity
-	body                          []*Entity
-	tail                          *Entity
-	ai                            AI
-	moveTimer, moveTimerMax       int
-	speedUpTimer, speedUpTimerMax int
-	growTimer, growTimerMax       int
-	maxLength                     int
+	head                               *Entity
+	body                               []*Entity
+	tail                               *Entity
+	ai                                 AI
+	shrinking                          bool
+	moveTimer, moveTimerMax            int
+	speedUpTimer, speedUpTimerMax      int
+	growTimer, growTimerMax            int
+	normalLengthGrowTimer              int
+	minLength, normalLength, maxLength int
 }
 
 func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
@@ -56,7 +58,7 @@ func (engine *Engine) Advance() {
 		for i := 0; i < len(engine.snakes); i++ {
 			snake := engine.snakes[i]
 			snake.moveTimer--
-			if snake.moveTimer < 0 {
+			if snake.moveTimer < 0 && !snake.shrinking {
 				dir := snake.ai.Move(i, engine)
 				x, y := NewPos(snake.head.x, snake.head.y, dir)
 				newPos[i] = [2]int32{x, y}
@@ -103,25 +105,46 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		snake.tail.x, snake.tail.y = snake.head.x, snake.head.y
 	} else {
 		last := len(snake.body) - 1
-		if snake.growTimer <= 0 && len(snake.body) < snake.maxLength {
-			snake.growTimer = snake.growTimerMax
-			entity := Entity{snake.body[0].sprite, 0, 0, 0, 0}
-			engine.Stage.sprites.entities = append(
-				engine.Stage.sprites.entities, &entity)
-			snake.body = append(snake.body, &entity)
+		grow := false
+		if !snake.shrinking {
+			if len(snake.body) < snake.normalLength {
+				if snake.normalLengthGrowTimer <= 0 {
+					snake.normalLengthGrowTimer = 20
+					grow = true
+				}
+			} else if snake.growTimer <= 0 && len(snake.body) < snake.maxLength {
+				snake.growTimer = snake.growTimerMax
+				snake.normalLength++
+				grow = true
+			}
+		}
+		if grow {
+			entity := engine.Stage.sprites.GetEntity(0, 0, SnakeBody)
+			snake.body = append(snake.body, entity)
 			last++
 		} else {
 			snake.tail.x, snake.tail.y = snake.body[last].x, snake.body[last].y
 		}
+
 		for i := last; i > 0; i-- {
 			snake.body[i].x, snake.body[i].y = snake.body[i-1].x, snake.body[i-1].y
 		}
-		snake.body[0].x, snake.body[0].y = snake.head.x, snake.head.y
+		if snake.shrinking {
+			snake.body[0].display = false
+			snake.body = snake.body[1:]
+			if len(snake.body) <= snake.minLength {
+				snake.shrinking = false
+				snake.normalLengthGrowTimer = 1
+			}
+		} else {
+			snake.body[0].x, snake.body[0].y = snake.head.x, snake.head.y
+		}
 	}
 
-	if engine.LegalPos(x, y, true) {
+	if !snake.shrinking && engine.LegalPos(x, y, true) {
 		snake.head.x, snake.head.y = x, y
 		snake.growTimer--
+		snake.normalLengthGrowTimer--
 		snake.speedUpTimer--
 		if snake.speedUpTimer <= 0 && snake.moveTimerMax > 0 {
 			if snake.moveTimerMax > 1 {
@@ -158,6 +181,20 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	} else if engine.Stage.tiles.tiles[x][y] == p2000 {
 		engine.Stage.tiles.tiles[x][y] = Empty
 		player.score += 2000
+		modified = true
+	} else if engine.Stage.tiles.tiles[x][y] == Powerup {
+		engine.Stage.tiles.tiles[x][y] = Empty
+		for i := 0; i < len(engine.snakes); i++ {
+			points := uint64(75)
+			for length := len(engine.snakes[i].body); length > 0; length /= 3 {
+				points *= 2
+			}
+			if engine.snakes[i].shrinking {
+				points /= 2
+			}
+			player.score += points
+			engine.snakes[i].shrinking = true
+		}
 		modified = true
 	}
 
