@@ -66,7 +66,7 @@ func main() {
 			engine = stage.Load(stage.ID+1, true, score+1000)
 		}
 		fmt.Printf("Lives: %d\n", lives)
-		Play(engine, window, renderer)
+		Play(engine, window, renderer, int32(lives))
 		score = engine.p1.score
 		fmt.Printf("Score: %d\n", score)
 	}
@@ -74,11 +74,12 @@ func main() {
 	fmt.Println("Exit")
 }
 
-func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
+func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
+	lives int32) {
 	quit = false
 	lostLife = false
 	for i := 0; i < 90 && !quit; i++ {
-		engine.Stage.Render(renderer)
+		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		sdl.Delay(17)
 		engine.Input.Poll()
 	}
@@ -89,13 +90,18 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer) {
 		window.SetTitle("Murinus (score: " +
 			strconv.Itoa(int(engine.p1.score)) +
 			", left " + strconv.Itoa(engine.Stage.pointsLeft) + ")")
-		engine.Stage.Render(renderer)
+		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		if engine.Stage.pointsLeft <= 0 || lostLife {
 			break
 		}
 	}
 	for i := 0; i < 90 && !quit; i++ {
-		engine.Stage.Render(renderer)
+		if lostLife {
+			engine.Stage.Render(renderer, lives-int32(i/15%2),
+				int32(engine.p1.score))
+		} else {
+			engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+		}
 		sdl.Delay(17)
 		engine.Input.Poll()
 	}

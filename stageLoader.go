@@ -87,13 +87,24 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	} else {
 		ID -= 3
 		if ID >= 3 {
-			ID += 20
+			ID += 4
 		}
-		STAGE := ID % 20
-		ID /= 20
+		STAGE := ID % 4
+		ID /= 4
 
-		speed := 10
-		pspeed := 8 * 4 * PrecisionMax / 127
+		speed := 11 - ID
+		if speed-ID > 3 {
+			speed -= ID
+		} else {
+			speed -= 2
+		}
+		if speed < 0 {
+			speed = 0
+		}
+		pspeed := 8 * (int32(ID*3)/2 + 4) * PrecisionMax / 127
+		if pspeed > PrecisionMax {
+			pspeed = PrecisionMax
+		}
 
 		if STAGE == 0 {
 			if loadTiles {
@@ -131,7 +142,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 					"#########################" +
 					"#########################" +
 					"#########################" +
-					"########*********########" +
+					"########3*******3########" +
 					"###########*#*###########" +
 					"###########*0*###########" +
 					"###########*#*###########" +
@@ -167,13 +178,13 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 					"#########################" +
 					"#########################" +
 					"#########################")
-				snakes = []*Snake{
-					stage.sprites.GetSnake(4, 4, 6, &ApproximatedAI{0, 3},
-						speed, 100/(speed+2), 10*4, 2, 16)}
-
-				p1 = &Player{stage.sprites.GetEntity(stageWidth-5,
-					stageHeight-5, Player1), pspeed, score}
 			}
+			snakes = []*Snake{
+				stage.sprites.GetSnake(4, 4, 6, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 2, 16)}
+
+			p1 = &Player{stage.sprites.GetEntity(stageWidth-5,
+				stageHeight-5, Player1), pspeed, score}
 		} else {
 			if loadTiles {
 				tiles = ConvertStringToTiles("" +

@@ -31,6 +31,7 @@ const (
 type Stage struct {
 	tiles          *TileStage
 	sprites        *SpriteStage
+	scoreField     *ScoreField
 	pointsLeft, ID int
 }
 
@@ -74,6 +75,12 @@ type Sprite struct {
 	priority int
 }
 
+type ScoreField struct {
+	rect           *sdl.Rect
+	lives          *sdl.Rect
+	xOffset, xMult int32
+}
+
 func (spriteStage *SpriteStage) GetEntity(x, y int32, id SpriteID) *Entity {
 	entity := &Entity{
 		spriteStage.sprites[id],
@@ -97,7 +104,8 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 		growTimerMax / 3, growTimerMax, 0, minLength, length - 2, maxLength}
 }
 
-func (stage *Stage) Render(renderer *sdl.Renderer) {
+func (stage *Stage) Render(renderer *sdl.Renderer,
+	lives, score int32) {
 	if !stage.tiles.renderedOnce {
 		stage.tiles.Render(renderer)
 	}
@@ -108,6 +116,14 @@ func (stage *Stage) Render(renderer *sdl.Renderer) {
 	renderer.Clear()
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
 	renderer.Copy(stage.sprites.texture, stage.sprites.src, stage.sprites.dst)
+
+	for i := int32(0); i < lives; i++ {
+		renderer.SetDrawColor(255, 182, 193, 255)
+		stage.scoreField.lives.X = stage.scoreField.xOffset +
+			stage.scoreField.xMult*i
+		renderer.FillRect(stage.scoreField.lives)
+	}
+
 	renderer.Present()
 }
 
@@ -171,8 +187,8 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	rect4x4 := sdl.Rect{gSize / 4, gSize / 4, gSize / 2, gSize / 2}
 	stageRect := sdl.Rect{0, 0, width * blockSize, height * blockSize}
 	offsetFromScreenX := (screenWidth - width*blockSize) / 2
-	offsetFromScreenY := (screenHeight - height*blockSize) / 2
-	stageScreenRect := sdl.Rect{offsetFromScreenX, offsetFromScreenY,
+	offsetFromScreenY := (screenHeight - height*(blockSize+2)) / 2
+	stageScreenRect := sdl.Rect{offsetFromScreenX, blockSize + offsetFromScreenY,
 		width * blockSize, height * blockSize}
 
 	tileTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
@@ -273,5 +289,9 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 	spriteStage := SpriteStage{spriteDatas, nil, spriteTexture,
 		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
 
-	return &Stage{&tileStage, &spriteStage, -1, 3}
+	scoreField := ScoreField{&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
+		width * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
+		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
+
+	return &Stage{&tileStage, &spriteStage, &scoreField, -1, -1}
 }
