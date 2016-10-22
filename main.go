@@ -47,15 +47,18 @@ func main() {
 	lives := 3
 	score := uint64(0)
 	score -= 1000
+	wonInARow := -2
 	for !quit {
 		var engine *Engine
 		if lostLife {
+			wonInARow = -1
 			lostLife = false
 			lives--
 			if lives == 0 {
 				lives = 3
 				score = 0
 				score -= 1000
+				wonInARow = -2
 				engine = stage.Load(0, true, 0)
 			} else {
 				engine = stage.Load(stage.ID, false, score)
@@ -63,6 +66,19 @@ func main() {
 			window.SetTitle("Score: " + strconv.Itoa(int(score)) +
 				" Lives: " + strconv.Itoa(lives))
 		} else {
+			wonInARow++
+			if wonInARow == 3 {
+				if lives < 4 {
+					wonInARow = 0
+					lives++
+				}
+			} else if wonInARow == 10 {
+				if lives < 5 {
+					wonInARow = 0
+					lives++
+				}
+			}
+			fmt.Printf("Won in a row counter: %d\n", wonInARow)
 			engine = stage.Load(stage.ID+1, true, score+1000)
 		}
 		fmt.Printf("Lives: %d\n", lives)
@@ -70,7 +86,6 @@ func main() {
 		score = engine.p1.score
 		fmt.Printf("Score: %d\n", score)
 	}
-
 	fmt.Println("Exit")
 }
 
@@ -83,6 +98,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		sdl.Delay(17)
 		engine.Input.Poll()
 	}
+	fmt.Println("Finished starting animation")
 	for !quit {
 		sdl.Delay(17)
 		engine.Input.Poll()
@@ -95,16 +111,22 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 			break
 		}
 	}
-	for i := 0; i < 90 && !quit; i++ {
-		if lostLife {
+	fmt.Println("Exited play loop")
+	if lostLife {
+		for i := 0; i < 90 && !quit; i++ {
 			engine.Stage.Render(renderer, lives-int32(i/15%2),
 				int32(engine.p1.score))
-		} else {
-			engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+			sdl.Delay(17)
+			engine.Input.Poll()
 		}
-		sdl.Delay(17)
-		engine.Input.Poll()
+	} else {
+		for i := 0; i < 30 && !quit; i++ {
+			engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+			sdl.Delay(17)
+			engine.Input.Poll()
+		}
 	}
+	fmt.Println("Finished exit animation")
 }
 
 func e(err error) {

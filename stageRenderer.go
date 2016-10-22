@@ -112,7 +112,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
 	renderer.SetDrawColor(0, 0, 0, 255)
-	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
 	renderer.Clear()
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
 	renderer.Copy(stage.sprites.texture, stage.sprites.src, stage.sprites.dst)
@@ -129,7 +129,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 
 func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(tiles.texture)
-	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
 	if tiles.tiles != nil {
@@ -149,7 +149,7 @@ func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 
 func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(sprites.texture)
-	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
 	if sprites.entities != nil {
