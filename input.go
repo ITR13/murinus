@@ -18,8 +18,8 @@ type Input struct {
 type Controller struct {
 	upDown    *Axis
 	leftRight *Axis
-	//	a         *Key
-	//	b         *Key
+	a         *Key
+	b         *Key
 }
 
 type Axis struct {
@@ -46,32 +46,56 @@ func GetKey(keyCode ...sdl.Keycode) *Key {
 	return &Key{keyCode, false}
 }
 
-func GetInput() *Input {
+func GetInput(oneP bool) *Input {
+	var input *Input
 	if Arcade {
 		panic("Make this")
 	} else {
-		ipc := Direction(4)
-		allInputs := make([]*Key, ipc*2)
-		allInputs[Up] = GetKey(sdl.K_w)
-		allInputs[Right] = GetKey(sdl.K_d)
-		allInputs[Down] = GetKey(sdl.K_s)
-		allInputs[Left] = GetKey(sdl.K_a)
-		allInputs[ipc+Up] = GetKey(sdl.K_UP)
-		allInputs[ipc+Right] = GetKey(sdl.K_RIGHT)
-		allInputs[ipc+Down] = GetKey(sdl.K_LEFT)
-		allInputs[ipc+Left] = GetKey(sdl.K_DOWN)
+		if oneP {
+			ipc := Direction(6)
+			allInputs := make([]*Key, ipc)
+			allInputs[Up] = GetKey(sdl.K_w, sdl.K_UP)
+			allInputs[Right] = GetKey(sdl.K_d, sdl.K_RIGHT)
+			allInputs[Down] = GetKey(sdl.K_s, sdl.K_DOWN)
+			allInputs[Left] = GetKey(sdl.K_a, sdl.K_LEFT)
+			allInputs[4] = GetKey(sdl.K_SPACE, sdl.K_RETURN)
+			allInputs[5] = GetKey(sdl.K_LSHIFT, sdl.K_RSHIFT)
+			p1 := Controller{
+				&Axis{allInputs[Up], allInputs[Down]},
+				&Axis{allInputs[Left], allInputs[Right]},
+				allInputs[4], allInputs[5],
+			}
+			input = &Input{&p1, nil, allInputs}
+		} else {
+			ipc := Direction(6)
+			allInputs := make([]*Key, ipc*2)
+			allInputs[Up] = GetKey(sdl.K_w)
+			allInputs[Right] = GetKey(sdl.K_d)
+			allInputs[Down] = GetKey(sdl.K_s)
+			allInputs[Left] = GetKey(sdl.K_a)
+			allInputs[4] = GetKey(sdl.K_SPACE)
+			allInputs[5] = GetKey(sdl.K_LSHIFT)
+			allInputs[ipc+Up] = GetKey(sdl.K_UP)
+			allInputs[ipc+Right] = GetKey(sdl.K_RIGHT)
+			allInputs[ipc+Down] = GetKey(sdl.K_LEFT)
+			allInputs[ipc+Left] = GetKey(sdl.K_DOWN)
+			allInputs[ipc+4] = GetKey(sdl.K_RETURN)
+			allInputs[ipc+5] = GetKey(sdl.K_RSHIFT)
 
-		p1 := Controller{
-			&Axis{allInputs[Up], allInputs[Down]},
-			&Axis{allInputs[Left], allInputs[Right]},
+			p1 := Controller{
+				&Axis{allInputs[Up], allInputs[Down]},
+				&Axis{allInputs[Left], allInputs[Right]},
+				allInputs[4], allInputs[5],
+			}
+			p2 := Controller{
+				&Axis{allInputs[ipc+Up], allInputs[ipc+Down]},
+				&Axis{allInputs[ipc+Left], allInputs[ipc+Right]},
+				allInputs[ipc+4], allInputs[ipc+5],
+			}
+			input = &Input{&p1, &p2, allInputs}
 		}
-		p2 := Controller{
-			&Axis{allInputs[ipc+Up], allInputs[ipc+Down]},
-			&Axis{allInputs[ipc+Left], allInputs[ipc+Right]},
-		}
-
-		return &Input{&p1, &p2, allInputs}
 	}
+	return input
 }
 
 func (input *Input) Poll() {

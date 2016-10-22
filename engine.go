@@ -36,8 +36,11 @@ type Snake struct {
 }
 
 func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
-	input := GetInput()
+	fmt.Println("Getting input")
+	input := GetInput(true)
+	fmt.Println("Making graph")
 	graph := stage.tiles.MakeGraph(false)
+	fmt.Println("Returning engine")
 	return &Engine{p1, p2, snakes, stage, input, graph}
 }
 
@@ -212,8 +215,13 @@ func (engine *Engine) CheckCollisions(player *Player) {
 
 func (player *Player) Control(controller *Controller, engine *Engine) {
 	e := player.entity
+	step := player.step
+	if controller.b.down {
+		step = (step * 2) / 3
+	}
+
 	if e.precision > 15*PrecisionMax/16 || controller.IsDirection(e.dir) {
-		e.precision += controller.Dir(e.dir) * player.step
+		e.precision += controller.Dir(e.dir) * step
 	} else {
 		checkDir := false
 		perpMove := false
@@ -226,7 +234,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				}
 			}
 			if val != 0 {
-				e.precision -= player.step
+				e.precision -= step
 				if e.precision < 0 {
 					e.precision = -e.precision
 					if val < 0 {
@@ -247,7 +255,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				}
 			}
 			if val != 0 {
-				e.precision -= player.step
+				e.precision -= step
 				if e.precision < 0 {
 					e.precision = -e.precision
 					if val < 0 {
@@ -263,7 +271,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 		if checkDir {
 			val := controller.Dir(e.dir)
 			if val != 0 {
-				e.precision += val * player.step
+				e.precision += val * step
 				if e.precision < 0 {
 					dir := (e.dir + 2) % 4
 					x, y := NewPos(e.x, e.y, dir)
@@ -280,14 +288,14 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 					edge.distance < EdgeSlip {
 					if e.dir != edge.dir && edge.me != nil {
 						if edge.distance < (EdgeSlip-1)/2 {
-							e.precision -= player.step
+							e.precision -= step
 							if e.precision < 0 {
 								e.precision = -e.precision
 								e.dir = edge.dir
 							}
 						}
 					} else {
-						e.precision += player.step
+						e.precision += step
 					}
 				}
 			}

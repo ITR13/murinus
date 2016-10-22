@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Graph struct {
 	nodes []*Node
@@ -19,11 +21,24 @@ type Node struct {
 	neighbours []*Node
 }
 
+var edges [][]*Edge
+
 func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
-	edges := make([][]*Edge, stageWidth)
-	for x := int32(0); x < stageWidth; x++ {
-		edges[x] = make([]*Edge, screenHeight)
+	fmt.Println("Making edge array")
+	if edges == nil {
+		edges = make([][]*Edge, stageWidth)
+		for x := int32(0); x < stageWidth; x++ {
+			edges[x] = make([]*Edge, screenHeight)
+		}
+	} else {
+
+		for x := int32(0); x < stageWidth; x++ {
+			for y := int32(0); y < stageHeight; y++ {
+				edges[x][y] = nil
+			}
+		}
 	}
+	fmt.Println("Making GetEdge")
 	var getEdge func(int32, int32) *Edge
 	nodecount := 0
 	edgeCount := 0
@@ -60,6 +75,7 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 		return edges[x][y]
 	}
 
+	fmt.Println("Using GetEdge")
 	for x := int32(0); x < stageWidth; x++ {
 		for y := int32(0); y < stageHeight; y++ {
 			if tileStage.tiles[x][y] != Wall &&
@@ -70,7 +86,7 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 			}
 		}
 	}
-	fmt.Println(edgeCount, nodecount)
+	fmt.Printf("The stagegraph has %d edges, and %d nodes\n", edgeCount, nodecount)
 
 	var setMe func(*Edge, int32, *Node)
 	setMe = func(edge *Edge, distance int32, node *Node) {

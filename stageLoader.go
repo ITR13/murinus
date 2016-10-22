@@ -1,25 +1,27 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	stageWidth  int32 = 25
 	stageHeight int32 = 15
 )
 
+var tiles [][]Tile
+
 func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	var p1, p2 *Player
-	var tiles [][]Tile
 	var snakes []*Snake
 
 	stage.sprites.entities = make([]*Entity, 0)
 	stage.ID = ID
 	fmt.Printf("Loading stage %d, Tiles: %t\n", ID, loadTiles)
-
 	if ID < 3 {
 		if ID == 0 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -41,7 +43,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				8 * 4 * PrecisionMax / 127, score}
 		} else if ID == 1 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -63,7 +65,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				8 * 4 * PrecisionMax / 127, score}
 		} else if ID == 2 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -90,8 +92,8 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	} else {
 		ID -= 3
 
-		STAGE := ID % 7
-		ID /= 7
+		STAGE := ID % 10
+		ID /= 10
 
 		speed := 11 - ID
 		if speed-ID > 3 {
@@ -109,7 +111,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 
 		if STAGE == 0 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#*******0000400000000003#" +
 					"#*#####*#########0#####0#" +
@@ -138,7 +140,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				pspeed, score}
 		} else if STAGE == 1 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -163,7 +165,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				stageHeight/2-3, Player1), pspeed, score}
 		} else if STAGE == 2 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -188,7 +190,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				stageHeight-5, Player1), pspeed, score}
 		} else if STAGE == 3 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -215,7 +217,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				stageHeight/2, Player1), pspeed, score}
 		} else if STAGE == 4 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#########################" +
 					"#########################" +
@@ -241,7 +243,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				Player1), pspeed, score}
 		} else if STAGE == 5 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
 					"#0**********#***********#" +
 					"#0#*#######*#*#*#4#4#4#*#" +
@@ -269,30 +271,126 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				pspeed, score}
 		} else if STAGE == 6 {
 			if loadTiles {
-				tiles = ConvertStringToTiles("" +
+				ConvertStringToTiles("" +
 					"#########################" +
-					"#0**********#***********#" +
-					"#0#*#######*#*#*#4#4#4#*#" +
-					"#0#*0003000***#*********#" +
-					"#0#*#######*#*#########*#" +
-					"#4#*********#***********#" +
-					"#0#######*#*#*#*#########" +
-					"#00000000*#*0*#*********#" +
-					"#########*#*#*#*#######*#" +
-					"#***********#***000000#*#" +
-					"#*#########*#*#######0#*#" +
-					"#000000000#***00000000#*#" +
-					"#0#0#0#0#0#*#*#######0#*#" +
-					"#0000000000*#00000000003#" +
+					"#0**********#00000000000#" +
+					"#0#*#######*#0#0#6#6#6#0#" +
+					"#0#*0003000*00#000000000#" +
+					"#0#*#######*#0#########0#" +
+					"#4#*********#00000000000#" +
+					"#0#######*#*#0#0#########" +
+					"#00000000*#***#000000000#" +
+					"#########*#*#*#0#######0#" +
+					"#***********#*00000000#0#" +
+					"#0#########*#*#######0#0#" +
+					"#000000000#***00000000#0#" +
+					"#0#0#0#0#0#0#0#######0#0#" +
+					"#00000000000#00000000003#" +
 					"#########################")
 			}
 
 			snakes = []*Snake{
-				stage.sprites.GetSnake(1, stageHeight-2, 6, &ApproximatedAI{0, 3},
-					speed, 100/(speed+2), 10*4, 2, 16),
-				stage.sprites.GetSnake(stageWidth-2, 1, 6, &ApproximatedAI{0, 3},
-					speed, 100/(speed+2), 10*4, 2, 16),
+				stage.sprites.GetSnake(1, stageHeight-2, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(stageWidth-2, 1, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
 				stage.sprites.GetSnake(stageWidth-2, stageHeight-2, 6, &SimpleAI{},
+					speed, 100/(speed+2), 10*4, 2, 16),
+				stage.sprites.GetSnake(1, 1, 6, &SimpleAI{},
+					speed, 100/(speed+2), 10*4, 2, 16)}
+
+			p1 = &Player{stage.sprites.GetEntity(stageWidth/2, stageHeight/2, Player1),
+				pspeed, score}
+		} else if STAGE == 7 {
+			if loadTiles {
+				ConvertStringToTiles("" +
+					"#########################" +
+					"#***********************#" +
+					"#*#0#0#0#0#0#0#0#0#0#0#0#" +
+					"#***********************#" +
+					"#0#0#0#0#0#0#0#0#0#0#0#*#" +
+					"#***********************#" +
+					"#*#0#0#0#0#0#0#0#0#0#0#0#" +
+					"#***********000000000000#" +
+					"#0#0#0#0#0#0#0#0#0#0#0#0#" +
+					"#00000000000000000000000#" +
+					"#0#0#5#0#0#0#0#0#0#5#0#0#" +
+					"#00000000040004000000000#" +
+					"#0#0#0#0#4#0#0#4#0#0#0#0#" +
+					"#40000000000000000000004#" +
+					"#########################")
+			}
+
+			snakes = []*Snake{
+				stage.sprites.GetSnake(1, stageHeight-2, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(stageWidth-2, 1, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(stageWidth-2, stageHeight-2, 6, &SimpleAI{},
+					speed, 100/(speed+2), 10*4, 2, 16),
+				stage.sprites.GetSnake(1, 1, 6, &SimpleAI{},
+					speed, 100/(speed+2), 10*4, 2, 16)}
+
+			p1 = &Player{stage.sprites.GetEntity(stageWidth/2, stageHeight/2, Player1),
+				pspeed, score}
+		} else if STAGE == 8 {
+			if loadTiles {
+				ConvertStringToTiles("" +
+					"#########################" +
+					"#50000000000000000000005#" +
+					"#0##########0##########0#" +
+					"#0#*******************#0#" +
+					"#0#*###*###*#*###*###*#0#" +
+					"#0#*#***###*#*###***#*#0#" +
+					"#0#*#*#*###*#*###*#*#*#0#" +
+					"#0#***#***********#***#0#" +
+					"#0#*###*#########*###*#0#" +
+					"#0#*******************#0#" +
+					"#0#*#####*#####*#####*#0#" +
+					"#0#*******************#0#" +
+					"#0#####################0#" +
+					"#50000000000000000000005#" +
+					"#########################")
+			}
+
+			snakes = []*Snake{
+				stage.sprites.GetSnake(3, stageHeight-4, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(stageWidth-4, stageHeight-4, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(stageWidth-2, 1, 6, &ApproximatedAI{0, 5},
+					speed, 100/(speed+2), 10*4, 2, 16),
+				stage.sprites.GetSnake(1, 1, 6, &ApproximatedAI{0, 5},
+					speed, 100/(speed+2), 10*4, 2, 16)}
+
+			p1 = &Player{stage.sprites.GetEntity(stageWidth/2, stageHeight/2, Player1),
+				pspeed, score}
+		} else if STAGE == 9 {
+			if loadTiles {
+				ConvertStringToTiles("" +
+					"#########################" +
+					"#****####0004000####****#" +
+					"#*##**###0#####0###**##*#" +
+					"#*###**##0#####0##**###*#" +
+					"#*####**#0004000#**####*#" +
+					"#*#####*#0#####0#*#####*#" +
+					"#***###***********###***#" +
+					"###***######*######***###" +
+					"###*#***************#*###" +
+					"###*########*########*###" +
+					"###*##****##*##****##*###" +
+					"###*##*##*******##*##*###" +
+					"###*##*#####*#####*##*###" +
+					"#00*******************00#" +
+					"#########################")
+			}
+
+			snakes = []*Snake{
+				stage.sprites.GetSnake(stageWidth-2, stageHeight-2, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(stageWidth-2, 1, 3, &ApproximatedAI{0, 3},
+					speed, 100/(speed+2), 10*4, 1, 3),
+				stage.sprites.GetSnake(1, stageHeight-2, 6, &SimpleAI{},
 					speed, 100/(speed+2), 10*4, 2, 16),
 				stage.sprites.GetSnake(1, 1, 6, &SimpleAI{},
 					speed, 100/(speed+2), 10*4, 2, 16)}
@@ -301,7 +399,6 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				pspeed, score}
 		}
 	}
-
 	fmt.Println("Exited set-up of stage")
 
 	if loadTiles {
@@ -325,10 +422,14 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	return engine
 }
 
-func ConvertStringToTiles(s string) [][]Tile {
-	tiles := make([][]Tile, stageWidth)
+func ConvertStringToTiles(s string) {
+	if tiles == nil {
+		tiles = make([][]Tile, stageWidth)
+		for x := int32(0); x < stageWidth; x++ {
+			tiles[x] = make([]Tile, stageHeight)
+		}
+	}
 	for x := int32(0); x < stageWidth; x++ {
-		tiles[x] = make([]Tile, stageHeight)
 		for y := int32(0); y < stageHeight; y++ {
 			if x == 0 || y == 0 || x == stageWidth-1 ||
 				y == stageHeight-1 {
@@ -353,5 +454,4 @@ func ConvertStringToTiles(s string) [][]Tile {
 			}
 		}
 	}
-	return tiles
 }

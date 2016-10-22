@@ -106,13 +106,14 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 
 func (stage *Stage) Render(renderer *sdl.Renderer,
 	lives, score int32) {
+	defer renderer.Present()
 	if !stage.tiles.renderedOnce {
 		stage.tiles.Render(renderer)
 	}
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
-	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
+	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.Clear()
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
 	renderer.Copy(stage.sprites.texture, stage.sprites.src, stage.sprites.dst)
@@ -124,7 +125,6 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 		renderer.FillRect(stage.scoreField.lives)
 	}
 
-	renderer.Present()
 }
 
 func (tiles *TileStage) Render(renderer *sdl.Renderer) {
