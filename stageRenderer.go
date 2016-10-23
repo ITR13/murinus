@@ -110,6 +110,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 	if !stage.tiles.renderedOnce {
 		stage.tiles.Render(renderer)
 	}
+	return
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
 	renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
@@ -117,7 +118,6 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 	renderer.Clear()
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
 	renderer.Copy(stage.sprites.texture, stage.sprites.src, stage.sprites.dst)
-
 	for i := int32(0); i < lives; i++ {
 		renderer.SetDrawColor(255, 182, 193, 255)
 		stage.scoreField.lives.X = stage.scoreField.xOffset +
@@ -128,10 +128,10 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 }
 
 func (tiles *TileStage) Render(renderer *sdl.Renderer) {
-	renderer.SetRenderTarget(tiles.texture)
-	renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
-	renderer.SetDrawColor(0, 0, 0, 0)
-	renderer.Clear()
+	e(renderer.SetRenderTarget(nil)) //tiles.texture))
+	e(renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE))
+	e(renderer.SetDrawColor(0, 0, 0, 255))
+	e(renderer.Clear())
 	if tiles.tiles != nil {
 		for x := int32(0); x < tiles.w; x++ {
 			tiles.tileDst.X = x * blockSize
@@ -139,8 +139,8 @@ func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 				tiles.tileDst.Y = y * blockSize
 				tiles.tileDst.W = blockSize
 				tiles.tileDst.H = blockSize
-				renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
-					tiles.tileInfo.src[tiles.tiles[x][y]], tiles.tileDst)
+				e(renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
+					tiles.tileInfo.src[tiles.tiles[x][y]], tiles.tileDst))
 			}
 		}
 		tiles.renderedOnce = true

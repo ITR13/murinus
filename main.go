@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -22,6 +23,7 @@ var quit bool
 var lostLife bool
 
 func main() {
+	runtime.LockOSThread()
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	e(err)
 	fmt.Println("Init SDL")
@@ -34,7 +36,7 @@ func main() {
 	fmt.Println("Created window")
 
 	renderer, err := sdl.CreateRenderer(window, -1,
-		sdl.RENDERER_ACCELERATED)
+		sdl.RENDERER_SOFTWARE)
 	e(err)
 	defer renderer.Destroy()
 	renderer.Clear()
@@ -93,12 +95,13 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	quit = false
 	lostLife = false
-	for i := 0; i < 90 && !quit; i++ {
+	for i := 0; i < 5 && !quit; i++ {
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		sdl.Delay(17)
 		engine.Input.Poll()
 	}
 	fmt.Println("Finished starting animation")
+	return
 	for !quit {
 		sdl.Delay(17)
 		engine.Input.Poll()

@@ -359,9 +359,9 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				stage.sprites.GetSnake(stageWidth-4, stageHeight-4, 3, &ApproximatedAI{0, 3},
 					speed, 100/(speed+2), 10*4, 1, 3),
 				stage.sprites.GetSnake(stageWidth-2, 1, 6, &ApproximatedAI{0, 5},
-					speed, 100/(speed+2), 10*4, 2, 16),
+					speed, 100/(speed+2), 10*4, 2, 10),
 				stage.sprites.GetSnake(1, 1, 6, &ApproximatedAI{0, 5},
-					speed, 100/(speed+2), 10*4, 2, 16)}
+					speed, 100/(speed+2), 10*4, 2, 10)}
 
 			p1 = &Player{stage.sprites.GetEntity(stageWidth/2, stageHeight/2, Player1),
 				pspeed, score}
@@ -418,7 +418,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	}
 	fmt.Println("Getting engine")
 	engine := GetEngine(p1, p2, snakes, stage)
-	fmt.Println("Finished loading stage")
+	fmt.Println("Finished loading stage ", stage.ID)
 	return engine
 }
 
