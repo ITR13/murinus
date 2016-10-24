@@ -284,7 +284,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				}
 			} else if perpMove {
 				edge := engine.Graph.edge[e.x][e.y]
-				if edge != nil && edge.distance > 0 &&
+				if edge != nil && edge.me != nil && edge.distance > 0 &&
 					edge.distance < EdgeSlip {
 					if e.dir != edge.dir && edge.me != nil {
 						if edge.distance < (EdgeSlip-1)/2 {

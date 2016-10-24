@@ -50,17 +50,25 @@ func main() {
 	score := uint64(0)
 	score -= 1000
 	wonInARow := -2
+	extraLives := 0
+	extraLivesCounter := uint64(25000)
 	for !quit {
 		var engine *Engine
 		if lostLife {
 			wonInARow = -1
 			lostLife = false
 			lives--
+			if lives < extraLives {
+				extraLives = lives
+			}
 			if lives == 0 {
+				fmt.Printf("Game Over. Final score %d", score)
 				lives = 3
 				score = 0
 				score -= 1000
 				wonInARow = -2
+				extraLives = 0
+				extraLivesCounter = 50000
 				engine = stage.Load(0, true, 0)
 			} else {
 				engine = stage.Load(stage.ID, false, score)
@@ -70,12 +78,12 @@ func main() {
 		} else {
 			wonInARow++
 			if wonInARow == 3 {
-				if lives < 4 {
+				if lives-extraLives < 4 {
 					wonInARow = 0
 					lives++
 				}
 			} else if wonInARow == 10 {
-				if lives < 5 {
+				if lives-extraLives < 5 {
 					wonInARow = 0
 					lives++
 				}
@@ -86,6 +94,11 @@ func main() {
 		fmt.Printf("Lives: %d\n", lives)
 		Play(engine, window, renderer, int32(lives))
 		score = engine.p1.score
+		if score > extraLivesCounter {
+			extraLivesCounter *= 2
+			extraLives++
+			lives++
+		}
 		fmt.Printf("Score: %d\n", score)
 	}
 	fmt.Println("Exit")

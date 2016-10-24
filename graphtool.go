@@ -18,26 +18,17 @@ type Edge struct {
 }
 
 type Node struct {
+	//Not currently used, no need to for now
 	neighbours []*Node
 }
 
-var edges [][]*Edge
-
 func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 	fmt.Println("Making edge array")
-	if edges == nil {
-		edges = make([][]*Edge, stageWidth)
-		for x := int32(0); x < stageWidth; x++ {
-			edges[x] = make([]*Edge, screenHeight)
-		}
-	} else {
-
-		for x := int32(0); x < stageWidth; x++ {
-			for y := int32(0); y < stageHeight; y++ {
-				edges[x][y] = nil
-			}
-		}
+	edges := make([][]*Edge, stageWidth)
+	for x := int32(0); x < stageWidth; x++ {
+		edges[x] = make([]*Edge, screenHeight)
 	}
+
 	fmt.Println("Making GetEdge")
 	var getEdge func(int32, int32) *Edge
 	nodecount := 0
@@ -71,6 +62,15 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 					c++
 				}
 			}
+			if sides == 2 {
+				//Make courner cases to nodes for better movement
+				//Modula 4 shouldn't be needed, but is here just in case
+				if (edges[x][y].neighDir[0]+2)%4 != edges[x][y].neighDir[1] {
+					edges[x][y].me = &Node{nil}
+					edges[x][y].distance = 0
+					nodecount++
+				}
+			}
 		}
 		return edges[x][y]
 	}
@@ -88,6 +88,7 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 	}
 	fmt.Printf("The stagegraph has %d edges, and %d nodes\n", edgeCount, nodecount)
 
+	fmt.Println("Making SetEdge")
 	var setMe func(*Edge, int32, *Node)
 	setMe = func(edge *Edge, distance int32, node *Node) {
 		if edge.distance == -1 || edge.distance > distance {
@@ -104,6 +105,7 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 		}
 	}
 
+	fmt.Println("Using SetEdge")
 	nodes := make([]*Node, nodecount)
 	c := 0
 	for x := int32(0); x < stageWidth; x++ {
@@ -111,7 +113,16 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 			if edges[x][y] != nil && edges[x][y].distance == 0 {
 				edges[x][y].distance = -1
 				nodes[c] = edges[x][y].me
-				setMe(edges[x][y], 0, nodes[c])
+				if len(edges[x][y].neighbours) > 2 {
+					setMe(edges[x][y], 0, nodes[c])
+				} else {
+					if EdgeSlip < 4 {
+						setMe(edges[x][y], 0, nodes[c])
+					} else {
+						setMe(edges[x][y], EdgeSlip/2-2, nodes[c])
+					}
+					edges[x][y].me = nil
+				}
 				c++
 			}
 		}
@@ -121,7 +132,7 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 		for y := int32(1); y < stageHeight-1; y++ {
 			if edges[x][y] != nil && edges[x][y].me != nil &&
 				edges[x][y].distance > 0 {
-				for i := 0; i <= len(edges[x][y].neighbours); i++ {
+				for i := 0; i < len(edges[x][y].neighbours); i++ {
 					if edges[x][y].distance > edges[x][y].neighbours[i].distance {
 						edges[x][y].dir = edges[x][y].neighDir[i]
 						break
