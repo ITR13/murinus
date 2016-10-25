@@ -293,5 +293,5 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 		width * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
 		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
 
-	return &Stage{&tileStage, &spriteStage, &scoreField, -1, -1}
+	return &Stage{&tileStage, &spriteStage, &scoreField, -1, 9}
 }

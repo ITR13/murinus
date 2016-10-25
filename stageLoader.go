@@ -400,7 +400,6 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 		}
 	}
 	fmt.Println("Exited set-up of stage")
-
 	if loadTiles {
 		fmt.Println("Calculating points left")
 		stage.tiles.renderedOnce = false
