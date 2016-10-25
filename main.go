@@ -62,7 +62,7 @@ func main() {
 				extraLives = lives
 			}
 			if lives == 0 {
-				fmt.Printf("Game Over. Final score %d", score)
+				fmt.Printf("Game Over. Final score %d\n", score)
 				lives = 3
 				score = 0
 				score -= 1000
