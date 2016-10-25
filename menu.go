@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_ttf"
@@ -74,4 +75,4 @@ func GetMenuItem(text string, x, y int32, renderer *sdl.Renderer) *MenuItem {
 	src := &sdl.Rect{0, 0, textSurface.W, textSurface.H}
 	dst := &sdl.Rect{x, y - src.H/2, src.W, src.H}
 	return &MenuItem{texture, src, dst}
-}
+}*/

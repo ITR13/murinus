@@ -45,9 +45,9 @@ func main() {
 	stage := LoadTextures(stageWidth, stageHeight, renderer)
 	fmt.Println("Loaded stage-basis")
 
-	menus := GetMenus(renderer)
+	/*menus := GetMenus(renderer)
 	menus[0].Display(renderer)
-	sdl.Delay(20)
+	sdl.Delay(20)*/
 
 	lostLife = false
 	lives := 3

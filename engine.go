@@ -189,14 +189,16 @@ func (engine *Engine) CheckCollisions(player *Player) {
 		engine.Stage.tiles.tiles[x][y] = Empty
 		for i := 0; i < len(engine.snakes); i++ {
 			points := uint64(75)
-			for length := len(engine.snakes[i].body); length > 0; length /= 3 {
-				points *= 2
-			}
-			if engine.snakes[i].shrinking {
-				points /= 2
+			if len(engine.snakes[i].body) > engine.snakes[i].minLength {
+				for length := len(engine.snakes[i].body); length > 0; length /= 3 {
+					points *= 2
+				}
+				if engine.snakes[i].shrinking {
+					points /= 2
+				}
+				engine.snakes[i].shrinking = true
 			}
 			player.score += points
-			engine.snakes[i].shrinking = true
 		}
 		modified = true
 	}
