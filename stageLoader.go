@@ -7,10 +7,10 @@ import (
 const (
 	stageWidth  int32 = 25
 	stageHeight int32 = 15
-	difficulty  int   = 0
 )
 
 var tiles [][]Tile
+var difficulty int
 
 func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	var p1, p2 *Player

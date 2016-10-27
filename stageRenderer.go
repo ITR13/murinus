@@ -29,6 +29,7 @@ const (
 )
 
 type Stage struct {
+	input          *Input
 	tiles          *TileStage
 	sprites        *SpriteStage
 	scoreField     *ScoreField
@@ -180,7 +181,8 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	}
 }
 
-func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
+func LoadTextures(width, height int32, renderer *sdl.Renderer,
+	input *Input) *Stage {
 	gSize := int32(12)
 	rect8x8 := sdl.Rect{0, 0, gSize, gSize}
 	rect6x6 := sdl.Rect{gSize/4 - 1, gSize/4 - 1, gSize/2 + 2, gSize/2 + 2}
@@ -293,5 +295,5 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer) *Stage {
 		width * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
 		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
 
-	return &Stage{&tileStage, &spriteStage, &scoreField, -1, -1}
+	return &Stage{input, &tileStage, &spriteStage, &scoreField, -1, -1}
 }

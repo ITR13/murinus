@@ -36,12 +36,10 @@ type Snake struct {
 }
 
 func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
-	fmt.Println("Getting input")
-	input := GetInput(true)
 	fmt.Println("Making graph")
 	graph := stage.tiles.MakeGraph(false)
 	fmt.Println("Returning engine")
-	return &Engine{p1, p2, snakes, stage, input, graph}
+	return &Engine{p1, p2, snakes, stage, stage.input, graph}
 }
 
 func (engine *Engine) Advance() {

@@ -42,68 +42,109 @@ func main() {
 	renderer.Clear()
 	fmt.Println("Created renderer")
 
-	stage := LoadTextures(stageWidth, stageHeight, renderer)
+	input := GetInput()
+	fmt.Println("Got inputs")
+
+	stage := LoadTextures(stageWidth, stageHeight, renderer, input)
 	fmt.Println("Loaded stage-basis")
 
-	/*menus := GetMenus(renderer)
-	menus[0].Display(renderer)
-	sdl.Delay(20)*/
+	menus := GetMenus(renderer)
 
-	lostLife = false
-	lives := 3
-	score := uint64(0)
-	score -= 1000
-	wonInARow := -2
-	extraLives := 0
-	extraLivesCounter := uint64(25000)
 	for !quit {
-		var engine *Engine
-		if lostLife {
-			wonInARow = -1
-			lostLife = false
-			lives--
-			if lives < extraLives {
-				extraLives = lives
-			}
-			if lives == 0 {
-				fmt.Printf("Game Over. Final score %d\n", score)
-				lives = 3
-				score = 0
-				score -= 1000
-				wonInARow = -2
-				extraLives = 0
-				extraLivesCounter = 50000
-				engine = stage.Load(0, true, 0)
+		difficulty = -1
+		subMenu := -1
+		for difficulty == -1 {
+			subMenu = menus[0].Run(renderer, input)
+			if subMenu == -1 {
+				quit = Arcade
+				break
+			} else if subMenu == 0 || subMenu == 1 {
+				difficulty = menus[1].Run(renderer, input)
+			} else if subMenu == 2 {
+				fmt.Println("Not made yet")
+			} else if subMenu == 3 {
+				fmt.Println("Not made yet")
+			} else if subMenu == 4 {
+				quit = true
+				break
 			} else {
-				engine = stage.Load(stage.ID, false, score)
+				panic("Unknown menu option")
 			}
-			window.SetTitle("Score: " + strconv.Itoa(int(score)) +
-				" Lives: " + strconv.Itoa(lives))
-		} else {
-			wonInARow++
-			if wonInARow == 3 {
-				if lives-extraLives < 4 {
-					wonInARow = 0
-					lives++
+		}
+
+		stage.ID = -1
+		if subMenu == 0 || subMenu == 1 {
+			for !quit {
+				lostLife = false
+				lives := 3
+				score := uint64(0)
+				score -= 1000
+				wonInARow := -2
+				extraLives := 0
+				extraLivesCounter := uint64(25000)
+				for !quit && (lives != 1 || !lostLife) {
+					var engine *Engine
+					if lostLife {
+						wonInARow = -1
+						lostLife = false
+						lives--
+						if lives < extraLives {
+							extraLives = lives
+						}
+						if lives == 0 {
+						} else {
+							engine = stage.Load(stage.ID, false, score)
+						}
+						window.SetTitle("Score: " + strconv.Itoa(int(score)) +
+							" Lives: " + strconv.Itoa(lives))
+					} else {
+						wonInARow++
+						if wonInARow == 3 {
+							if lives-extraLives < 4 {
+								wonInARow = 0
+								lives++
+							}
+						} else if wonInARow == 10 {
+							if lives-extraLives < 5 {
+								wonInARow = 0
+								lives++
+							}
+						}
+						fmt.Printf("Won in a row counter: %d\n", wonInARow)
+						engine = stage.Load(stage.ID+1, true, score+1000)
+					}
+					fmt.Printf("Lives: %d\n", lives)
+					Play(engine, window, renderer, int32(lives))
+					score = engine.p1.score
+					if score > extraLivesCounter {
+						extraLivesCounter *= 2
+						extraLives++
+						lives++
+					}
+					fmt.Printf("Score: %d\n", score)
 				}
-			} else if wonInARow == 10 {
-				if lives-extraLives < 5 {
-					wonInARow = 0
-					lives++
+				fmt.Printf("Game Over. Final score %d\n", score)
+
+				menuChoice := -1
+				for !quit && menuChoice < 1 {
+					menuChoice = menus[2].Run(renderer, input)
+					if menuChoice == 0 {
+						fmt.Println("Not made yet")
+					}
+				}
+				if quit {
+					break
+				} else if menuChoice == 1 {
+					stage.ID--
+				} else if menuChoice == 2 {
+					stage.ID = -1
+				} else if menuChoice == 3 {
+					break
+				} else {
+					panic("Unknown menu option")
 				}
 			}
-			fmt.Printf("Won in a row counter: %d\n", wonInARow)
-			engine = stage.Load(stage.ID+1, true, score+1000)
 		}
-		fmt.Printf("Lives: %d\n", lives)
-		Play(engine, window, renderer, int32(lives))
-		score = engine.p1.score
-		if score > extraLivesCounter {
-			extraLivesCounter *= 2
-			extraLives++
-			lives++
-		}
-		fmt.Printf("Score: %d\n", score)
 	}
 	fmt.Println("Exit")
 }

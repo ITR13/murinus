@@ -1,6 +1,5 @@
 package main
 
-/*
 import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_ttf"
@@ -46,7 +45,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	e(ttf.Init())
 	font, err = ttf.OpenFont("./TITUSCBZ.ttf", 20)
 	e(err)
-	ret := make([]*Menu, 8)
+	ret := make([]*Menu, 3)
 
 	ret[0] = &Menu{[]*MenuItem{
 		GetMenuItem("1 Player", screenWidth/2-screenWidth/8,
@@ -55,9 +54,27 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 			screenHeight/2-40, renderer),
 		GetMenuItem("High-Scores", screenWidth/2-screenWidth/8,
 			screenHeight/2, renderer),
-		GetMenuItem("Options", screenWidth/2-screenWidth/8,
+		GetMenuItem("Info", screenWidth/2-screenWidth/8,
 			screenHeight/2+40, renderer),
 		GetMenuItem("Quit", screenWidth/2-screenWidth/8,
+			screenHeight/2+80, renderer),
+	}, 0}
+	ret[1] = &Menu{[]*MenuItem{
+		GetMenuItem("Easy", screenWidth/2-screenWidth/8,
+			screenHeight/2-40, renderer),
+		GetMenuItem("Medium", screenWidth/2-screenWidth/8,
+			screenHeight/2, renderer),
+		GetMenuItem("Hard", screenWidth/2-screenWidth/8,
+			screenHeight/2+40, renderer),
+	}, 1}
+	ret[2] = &Menu{[]*MenuItem{
+		GetMenuItem("Store score", screenWidth/2-screenWidth/8,
+			screenHeight/2-80, renderer),
+		GetMenuItem("Continue", screenWidth/2-screenWidth/8,
+			screenHeight/2-27, renderer),
+		GetMenuItem("Retry", screenWidth/2-screenWidth/8,
+			screenHeight/2+27, renderer),
+		GetMenuItem("Exit to menu", screenWidth/2-screenWidth/8,
 			screenHeight/2+80, renderer),
 	}, 0}
 
@@ -75,4 +92,40 @@ func GetMenuItem(text string, x, y int32, renderer *sdl.Renderer) *MenuItem {
 	src := &sdl.Rect{0, 0, textSurface.W, textSurface.H}
 	dst := &sdl.Rect{x, y - src.H/2, src.W, src.H}
 	return &MenuItem{texture, src, dst}
-}*/
+}
+
+func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
+	prevVal := int32(0)
+	step := 0
+	repeat := true
+	input.mono.a.down = false
+	input.mono.b.down = false
+	for !input.mono.a.down && !quit {
+		if input.mono.b.down {
+			return -1
+		}
+		menu.Display(renderer)
+		sdl.Delay(17)
+		input.Poll()
+		val := input.mono.upDown.Val()
+		if val != prevVal || repeat {
+			repeat = false
+			if prevVal != val {
+				step = 0
+			}
+			prevVal = val
+			if val > 0 {
+				menu.selectedElement = (menu.selectedElement +
+					1) % len(menu.menuItems)
+			} else if val < 0 {
+				menu.selectedElement = (menu.selectedElement +
+					len(menu.menuItems) - 1) % len(menu.menuItems)
+			}
+		}
+		step++
+		if step > 20 && step%3 == 0 {
+			repeat = true
+		}
+	}
+	return menu.selectedElement
+}
