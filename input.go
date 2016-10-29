@@ -11,7 +11,7 @@ const (
 type Input struct {
 	mono   *Controller
 	p1, p2 *Controller
-	//mute *[]Key
+	exit   *DurationKey
 
 	allInputs []*Key
 }
@@ -25,6 +25,11 @@ type Controller struct {
 
 type Axis struct {
 	up, down *Key
+}
+
+type DurationKey struct {
+	key      *Key
+	timeHeld int
 }
 
 type Key struct {
@@ -49,7 +54,7 @@ func GetKey(keyCode ...sdl.Keycode) *Key {
 
 func GetInput() *Input {
 	ipc := Direction(6)
-	allInputs := make([]*Key, ipc*3)
+	allInputs := make([]*Key, ipc*3+1)
 	if Arcade {
 		panic("Make this")
 	} else {
@@ -73,6 +78,7 @@ func GetInput() *Input {
 		allInputs[ipc*2+Left] = GetKey(sdl.K_DOWN)
 		allInputs[ipc*2+4] = GetKey(sdl.K_RETURN)
 		allInputs[ipc*2+5] = GetKey(sdl.K_RSHIFT)
+		allInputs[ipc*3] = GetKey(sdl.K_ESCAPE)
 	}
 	mono := Controller{
 		&Axis{allInputs[Up], allInputs[Down]},
@@ -89,10 +95,17 @@ func GetInput() *Input {
 		&Axis{allInputs[ipc*2+Left], allInputs[ipc*2+Right]},
 		allInputs[ipc*2+4], allInputs[ipc*2+5],
 	}
-	return &Input{&mono, &p1, &p2, allInputs}
+	escape := DurationKey{allInputs[ipc*3], 9}
+	return &Input{&mono, &p1, &p2, &escape, allInputs}
 }
 
+var noKeysTouched int
+
 func (input *Input) Poll() {
+	noKeysTouched++
+	if Arcade && noKeysTouched > 60*60*15 {
+		quit = true
+	}
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) { //Add window resizing
 		case *sdl.QuitEvent:
@@ -118,6 +131,11 @@ func (input *Input) Poll() {
 				}
 			}
 		}
+	}
+	if input.exit.key.down {
+		input.exit.timeHeld++
+	} else {
+		input.exit.timeHeld = 0
 	}
 }
 

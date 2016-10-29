@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/gob"
+	"os"
 	"sort"
 	"strconv"
 
@@ -13,26 +15,21 @@ type HighscoreList struct {
 }
 
 type ScoreData struct {
-	score         uint64
-	name          string
-	levelsCleared int
+	Score         uint64
+	Name          string
+	LevelsCleared int
+	Difficulty    int
 }
 
-func GetHighscoreList() HighscoreList {
-	return HighscoreList{
-		make([]*ScoreData, 0),
-		make([]*ScoreData, 0),
-	}
-}
-
-func GetName(characters int32, renderer *sdl.Renderer, input *Input) string {
+func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
+	characters := int32(len(defaultName))
 	input.mono.a.down = false
 	input.mono.b.down = false
 	currentCharacter := int32(0)
 	charList := make([][13]byte, characters)
 	for i := 0; i < len(charList); i++ {
 		for j := 0; j < 13; j++ {
-			charList[i][j] = byte(86 + j)
+			charList[i][j] = defaultName[i] + byte(j-6)
 		}
 	}
 
@@ -128,11 +125,11 @@ func GetName(characters int32, renderer *sdl.Renderer, input *Input) string {
 func (list *HighscoreList) Add(score *ScoreData) {
 	list.scores = append(list.scores, score)
 	for i := range list.uniqueScores {
-		if list.uniqueScores[i].name == score.name {
-			if list.uniqueScores[i].score < score.score {
+		if list.uniqueScores[i].Name == score.Name {
+			if list.uniqueScores[i].Score < score.Score {
 				list.uniqueScores[i] = score
-			} else if list.uniqueScores[i].score == score.score {
-				if list.uniqueScores[i].levelsCleared < score.levelsCleared {
+			} else if list.uniqueScores[i].Score == score.Score {
+				if list.uniqueScores[i].LevelsCleared < score.LevelsCleared {
 					list.uniqueScores[i] = score
 				}
 			}
@@ -179,7 +176,7 @@ func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
 		input.Poll()
 		dir := -input.mono.upDown.Val()
 		if dir != 0 {
-			subPixel += scrollMult * dir * textureHeight / (12 * 210)
+			subPixel += scrollMult * dir * textureHeight / (5 * 210)
 			scrollMult++
 			for subPixel < 0 {
 				subPixel += textureHeight
@@ -255,35 +252,79 @@ func (score *ScoreData) Render(i int, renderer *sdl.Renderer) *sdl.Texture {
 	for len(text) < 5 {
 		text += " "
 	}
-	text += score.name + " | "
+	text += score.Name + " | "
 
-	for v := uint64(10000000000000000000); v > score.score; v /= 1000 {
-		text += "000."
-	}
-	for v := score.score; v > 999; v /= 1000 {
-		val := int(score.score % 1000)
-		if val < 10 {
-			text += "00"
-		} else if val < 100 {
-			text += "0"
+	for v := uint64(1000000000000000000); v > 0; v /= 1000 {
+		if v > score.Score {
+			text += "000"
+		} else {
+			val := int((score.Score / v) % 1000)
+			if val < 10 {
+				text += "00"
+			} else if val < 100 {
+				text += "0"
+			}
+			text += strconv.Itoa(val)
 		}
-		text += strconv.Itoa(val) + "."
+		if v > 999 {
+			text += "."
+		}
 	}
-	val := int(score.score % 1000)
-	if val < 10 {
-		text += "00"
-	} else if val < 100 {
-		text += "0"
+	text += " | " + strconv.Itoa(score.LevelsCleared)
+
+	r, g, b := 255, 255, 255
+	if i == 0 {
+		r, g, b = 255, 255, 51
+	} else if i == 1 {
+		r, g, b = 255, 0, 0
+	} else if i == 2 {
+		r, g, b = 0, 190, 0
 	}
-	text += strconv.Itoa(val) + " | " + strconv.Itoa(score.levelsCleared)
+
+	r = r * (score.Difficulty + 2) / 4
+	g = g * (score.Difficulty + 2) / 4
+	if score.Difficulty == 0 {
+		b = b * (score.Difficulty + 3) / 5
+	} else {
+		b = b * (score.Difficulty + 2) / 4
+	}
 
 	surface, err := font.RenderUTF8_Solid(text,
-		sdl.Color{255, 255, 255, 255})
+		sdl.Color{uint8(r), uint8(g), uint8(b), 255})
 	e(err)
 	defer surface.Free()
 	texture, err := renderer.CreateTextureFromSurface(surface)
 	e(err)
 	return texture
+}
+
+func Read(path string) *HighscoreList {
+	list := HighscoreList{
+		make([]*ScoreData, 0),
+		make([]*ScoreData, 0),
+	}
+	if _, err := os.Stat(path); err == nil {
+		file, err := os.Open(path)
+		e(err)
+		defer file.Close()
+		decoder := gob.NewDecoder(file)
+		datas := make([]*ScoreData, 0)
+		e(decoder.Decode(&datas))
+		for i := 0; i < len(datas); i++ {
+			list.Add(datas[i])
+		}
+		sort.Sort(SortByScore(list.scores))
+		sort.Sort(SortByScore(list.uniqueScores))
+	}
+	return &list
+}
+
+func (list *HighscoreList) Write(path string) {
+	file, err := os.Create(path)
+	e(err)
+	defer file.Close()
+	encoder := gob.NewEncoder(file)
+	e(encoder.Encode(list.scores))
 }
 
 func (list *HighscoreList) Sort() {
@@ -298,10 +339,10 @@ func (s SortByScore) Len() int {
 }
 
 func (s SortByScore) Less(i, j int) bool {
-	if s[i].score == s[j].score {
-		return s[i].levelsCleared > s[j].levelsCleared
+	if s[i].Score == s[j].Score {
+		return s[i].LevelsCleared > s[j].LevelsCleared
 	}
-	return s[i].score > s[j].score
+	return s[i].Score > s[j].Score
 }
 
 func (s SortByScore) Swap(i, j int) {

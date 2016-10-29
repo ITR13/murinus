@@ -11,6 +11,9 @@ import (
 const (
 	sizeMult int32 = 1 //27
 	sizeDiv  int32 = 2 //20
+
+	timeExitHasToBeHeldBeforeGameEnd   int = 60 * 5
+	timeExitHasToBeHeldBeforeCloseGame int = 90
 )
 
 const (
@@ -50,7 +53,9 @@ func main() {
 
 	menus := GetMenus(renderer)
 
-	higscores := GetHighscoreList()
+	higscores := Read("singleplayer.hs")
+
+	defaultName := "\\\\\\"
 
 	for !quit {
 		difficulty = -1
@@ -82,7 +87,7 @@ func main() {
 				lostLife = false
 				lives := 3
 				score := uint64(0)
-				score -= 1000
+				score -= 500 * (uint64(difficulty*difficulty) + 1)
 				wonInARow := -2
 				extraLives := 0
 				extraLivesCounter := uint64(25000)
@@ -117,11 +122,16 @@ func main() {
 							}
 						}
 						fmt.Printf("Won in a row counter: %d\n", wonInARow)
-						engine = stage.Load(stage.ID+1, true, score+1000)
+						engine = stage.Load(stage.ID+1, true, score+500*
+							(uint64(difficulty*difficulty)+1))
 					}
 					fmt.Printf("Lives: %d\n", lives)
 					Play(engine, window, renderer, int32(lives))
 					score = engine.p1.score
+					if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+						fmt.Println("Game was quit with exit key")
+						break
+					}
 					if score > extraLivesCounter {
 						extraLivesCounter *= 2
 						extraLives++
@@ -130,21 +140,24 @@ func main() {
 					fmt.Printf("Score: %d\n", score)
 				}
 				fmt.Printf("Game Over. Final score %d\n", score)
+				input.exit.timeHeld = 0
 
 				menuChoice := -1
 				var scoreData *ScoreData
+				menus[2].selectedElement = 0
 				for !quit && menuChoice < 2 {
 					menuChoice = menus[2].Run(renderer, input)
 					if menuChoice == 0 {
-						name := GetName(3, renderer, input)
+						name := GetName(defaultName, renderer, input)
 						if name != "" {
+							defaultName = name
 							if scoreData == nil {
-								fmt.Println(scoreData)
-								scoreData = &ScoreData{score, name, levelsCleared}
+								scoreData = &ScoreData{score, name,
+									levelsCleared, difficulty}
 								higscores.Add(scoreData)
 								higscores.Sort()
 							} else {
-								scoreData.name = name
+								scoreData.Name = name
 							}
 						}
 					} else if menuChoice == 1 {
@@ -153,7 +166,6 @@ func main() {
 						menuChoice = 4
 					}
 				}
-				menus[2].selectedElement = 0
 				if quit {
 					break
 				} else if menuChoice == 2 {
@@ -169,6 +181,9 @@ func main() {
 		}
 	}
 	fmt.Println("Quit")
+	higscores.Write("singleplayer.hs")
+	fmt.Println("Saved Highscores")
+
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
@@ -179,11 +194,20 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		sdl.Delay(17)
 		engine.Input.Poll()
+		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+			fmt.Println("Round was quit with exit key")
+			return
+		}
 	}
 	fmt.Println("Finished starting animation")
 	for !quit {
 		sdl.Delay(17)
 		engine.Input.Poll()
+		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+			fmt.Println("Round was quit with exit key")
+			return
+		}
+
 		engine.Advance()
 		window.SetTitle("Murinus (score: " +
 			strconv.Itoa(int(engine.p1.score)) +
@@ -200,6 +224,10 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 				int32(engine.p1.score))
 			sdl.Delay(17)
 			engine.Input.Poll()
+			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+				fmt.Println("Round was quit with exit key")
+				return
+			}
 		}
 	} else {
 		for i := 0; i < 30 && !quit; i++ {
