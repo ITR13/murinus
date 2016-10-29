@@ -43,7 +43,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		panic("Should only be called once!")
 	}
 	e(ttf.Init())
-	font, err = ttf.OpenFont("./TITUSCBZ.ttf", 20)
+	font, err = ttf.OpenFont("./font/AverageMono.ttf", 20)
 	e(err)
 	ret := make([]*Menu, 3)
 
@@ -84,8 +84,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 }
 
 func GetMenuItem(text string, x, y int32, renderer *sdl.Renderer) *MenuItem {
-	textSurface, err := font.RenderUTF8_Solid(text,
-		sdl.Color{240, 230, 140, 255})
+	texture, src, dst := GetText(text, sdl.Color{240, 230, 140, 255},
+		x, y, renderer)
+	return &MenuItem{texture, src, dst}
+}
+
+func GetText(text string, color sdl.Color, x, y int32,
+	renderer *sdl.Renderer) (*sdl.Texture, *sdl.Rect, *sdl.Rect) {
+	textSurface, err := font.RenderUTF8_Solid(text, color)
 	e(err)
 	defer textSurface.Free()
 
@@ -93,7 +99,7 @@ func GetMenuItem(text string, x, y int32, renderer *sdl.Renderer) *MenuItem {
 	e(err)
 	src := &sdl.Rect{0, 0, textSurface.W, textSurface.H}
 	dst := &sdl.Rect{x, y - src.H/2, src.W, src.H}
-	return &MenuItem{texture, src, dst}
+	return texture, src, dst
 }
 
 func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {

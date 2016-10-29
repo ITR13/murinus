@@ -51,13 +51,6 @@ func main() {
 	menus := GetMenus(renderer)
 
 	higscores := GetHighscoreList()
-	higscores.Add(&ScoreData{0, "---", 0})
-	higscores.Add(&ScoreData{0, "---", 0})
-	higscores.Add(&ScoreData{0, "---", 0})
-	higscores.Add(&ScoreData{0, "---", 0})
-	higscores.Add(&ScoreData{0, "---", 0})
-	higscores.Add(&ScoreData{0, "---", 0})
-	higscores.Display(renderer, input)
 
 	for !quit {
 		difficulty = -1
@@ -70,7 +63,7 @@ func main() {
 			} else if subMenu == 0 || subMenu == 1 {
 				difficulty = menus[1].Run(renderer, input)
 			} else if subMenu == 2 {
-				fmt.Println("Not made yet")
+				higscores.Display(renderer, input)
 			} else if subMenu == 3 {
 				fmt.Println("Not made yet")
 			} else if subMenu == 4 {
@@ -139,15 +132,19 @@ func main() {
 				fmt.Printf("Game Over. Final score %d\n", score)
 
 				menuChoice := -1
+				var scoreData *ScoreData
 				for !quit && menuChoice < 2 {
-					var scoreData *ScoreData
 					menuChoice = menus[2].Run(renderer, input)
 					if menuChoice == 0 {
-						if scoreData == nil {
-							scoreData = &ScoreData{score, "---", levelsCleared}
-							higscores.Add(scoreData)
+						name := GetName(3, renderer, input)
+						if name != "" {
+							if scoreData == nil {
+								fmt.Println(scoreData)
+								scoreData = &ScoreData{score, "---", levelsCleared}
+								higscores.Add(scoreData)
+							}
+							scoreData.name = name
 						}
-						fmt.Println("Not made yet")
 					} else if menuChoice == 1 {
 						higscores.Display(renderer, input)
 					}
@@ -172,7 +169,7 @@ func main() {
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	quit = false
-	lostLife = false
+	lostLife = true //false
 	for i := 0; i < 90 && !quit; i++ {
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		sdl.Delay(17)
