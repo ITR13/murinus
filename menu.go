@@ -19,7 +19,7 @@ type MenuItem struct {
 
 func (menu *Menu) Display(renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(nil)
-	renderer.SetDrawColor(0, 0, 0, 255)
+	renderer.SetDrawColor(25, 25, 112, 255)
 	renderer.Clear()
 	for i := range menu.menuItems {
 		item := menu.menuItems[i]
@@ -84,7 +84,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 }
 
 func GetMenuItem(text string, x, y int32, renderer *sdl.Renderer) *MenuItem {
-	texture, src, dst := GetText(text, sdl.Color{240, 230, 140, 255},
+	texture, src, dst := GetText(text, sdl.Color{0, 190, 0, 255},
 		x, y, renderer)
 	return &MenuItem{texture, src, dst}
 }

@@ -127,7 +127,6 @@ func GetName(characters int32, renderer *sdl.Renderer, input *Input) string {
 
 func (list *HighscoreList) Add(score *ScoreData) {
 	list.scores = append(list.scores, score)
-	sort.Sort(SortByScore(list.scores))
 	for i := range list.uniqueScores {
 		if list.uniqueScores[i].name == score.name {
 			if list.uniqueScores[i].score < score.score {
@@ -137,12 +136,10 @@ func (list *HighscoreList) Add(score *ScoreData) {
 					list.uniqueScores[i] = score
 				}
 			}
-			sort.Sort(SortByScore(list.uniqueScores))
 			return
 		}
 	}
 	list.uniqueScores = append(list.uniqueScores, score)
-	sort.Sort(SortByScore(list.uniqueScores))
 }
 
 func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
@@ -287,6 +284,11 @@ func (score *ScoreData) Render(i int, renderer *sdl.Renderer) *sdl.Texture {
 	texture, err := renderer.CreateTextureFromSurface(surface)
 	e(err)
 	return texture
+}
+
+func (list *HighscoreList) Sort() {
+	sort.Sort(SortByScore(list.scores))
+	sort.Sort(SortByScore(list.uniqueScores))
 }
 
 type SortByScore []*ScoreData

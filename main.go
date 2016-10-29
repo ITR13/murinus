@@ -140,15 +140,20 @@ func main() {
 						if name != "" {
 							if scoreData == nil {
 								fmt.Println(scoreData)
-								scoreData = &ScoreData{score, "---", levelsCleared}
+								scoreData = &ScoreData{score, name, levelsCleared}
 								higscores.Add(scoreData)
+								higscores.Sort()
+							} else {
+								scoreData.name = name
 							}
-							scoreData.name = name
 						}
 					} else if menuChoice == 1 {
 						higscores.Display(renderer, input)
+					} else if menuChoice == -1 {
+						menuChoice = 4
 					}
 				}
+				menus[2].selectedElement = 0
 				if quit {
 					break
 				} else if menuChoice == 2 {
@@ -169,7 +174,7 @@ func main() {
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	quit = false
-	lostLife = true //false
+	lostLife = false
 	for i := 0; i < 90 && !quit; i++ {
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		sdl.Delay(17)

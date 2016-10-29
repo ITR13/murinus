@@ -165,23 +165,58 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	if engine.Stage.tiles.tiles[x][y] == Point {
 		engine.Stage.tiles.tiles[x][y] = Empty
 		engine.Stage.pointsLeft--
-		player.score += 10
+		points := uint64(10)
+		if difficulty == 0 {
+			player.score += points / 2
+		} else if difficulty == 1 {
+			player.score += points
+		} else if difficulty == 2 {
+			player.score += points * 5
+		}
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p200 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		player.score += 200
+		points := uint64(200)
+		if difficulty == 0 {
+			player.score += points / 2
+		} else if difficulty == 1 {
+			player.score += points
+		} else if difficulty == 2 {
+			player.score += points * 5
+		}
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p500 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		player.score += 500
+		points := uint64(500)
+		if difficulty == 0 {
+			player.score += points / 2
+		} else if difficulty == 1 {
+			player.score += points
+		} else if difficulty == 2 {
+			player.score += points * 5
+		}
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p1000 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		player.score += 1000
+		points := uint64(1000)
+		if difficulty == 0 {
+			player.score += points / 2
+		} else if difficulty == 1 {
+			player.score += points
+		} else if difficulty == 2 {
+			player.score += points * 5
+		}
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p2000 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		player.score += 2000
+		points := uint64(2000)
+		if difficulty == 0 {
+			player.score += points / 2
+		} else if difficulty == 1 {
+			player.score += points
+		} else if difficulty == 2 {
+			player.score += points * 5
+		}
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == Powerup {
 		engine.Stage.tiles.tiles[x][y] = Empty
@@ -196,7 +231,13 @@ func (engine *Engine) CheckCollisions(player *Player) {
 				}
 				engine.snakes[i].shrinking = true
 			}
-			player.score += points
+			if difficulty == 0 {
+				player.score += points / 2
+			} else if difficulty == 1 {
+				player.score += points
+			} else if difficulty == 2 {
+				player.score += points * 5
+			}
 		}
 		modified = true
 	}
