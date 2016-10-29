@@ -50,12 +50,21 @@ func main() {
 
 	menus := GetMenus(renderer)
 
+	higscores := GetHighscoreList()
+	higscores.Add(&ScoreData{0, "---", 0})
+	higscores.Add(&ScoreData{0, "---", 0})
+	higscores.Add(&ScoreData{0, "---", 0})
+	higscores.Add(&ScoreData{0, "---", 0})
+	higscores.Add(&ScoreData{0, "---", 0})
+	higscores.Add(&ScoreData{0, "---", 0})
+	higscores.Display(renderer, input)
+
 	for !quit {
 		difficulty = -1
 		subMenu := -1
-		for difficulty == -1 {
+		for difficulty == -1 && !quit {
 			subMenu = menus[0].Run(renderer, input)
-			if subMenu == -1 {
+			if subMenu == -1 && !quit {
 				quit = Arcade
 				break
 			} else if subMenu == 0 || subMenu == 1 {
@@ -66,10 +75,12 @@ func main() {
 				fmt.Println("Not made yet")
 			} else if subMenu == 4 {
 				quit = true
-				break
 			} else {
 				panic("Unknown menu option")
 			}
+		}
+		if quit {
+			break
 		}
 
 		stage.ID = -1
@@ -82,6 +93,7 @@ func main() {
 				wonInARow := -2
 				extraLives := 0
 				extraLivesCounter := uint64(25000)
+				levelsCleared := 0
 				for !quit && (lives != 1 || !lostLife) {
 					var engine *Engine
 					if lostLife {
@@ -92,12 +104,13 @@ func main() {
 							extraLives = lives
 						}
 						if lives == 0 {
-						} else {
-							engine = stage.Load(stage.ID, false, score)
+							panic("Should not reach this statement")
 						}
+						engine = stage.Load(stage.ID, false, score)
 						window.SetTitle("Score: " + strconv.Itoa(int(score)) +
 							" Lives: " + strconv.Itoa(lives))
 					} else {
+						levelsCleared++
 						wonInARow++
 						if wonInARow == 3 {
 							if lives-extraLives < 4 {
@@ -126,19 +139,26 @@ func main() {
 				fmt.Printf("Game Over. Final score %d\n", score)
 
 				menuChoice := -1
-				for !quit && menuChoice < 1 {
+				for !quit && menuChoice < 2 {
+					var scoreData *ScoreData
 					menuChoice = menus[2].Run(renderer, input)
 					if menuChoice == 0 {
+						if scoreData == nil {
+							scoreData = &ScoreData{score, "---", levelsCleared}
+							higscores.Add(scoreData)
+						}
 						fmt.Println("Not made yet")
+					} else if menuChoice == 1 {
+						higscores.Display(renderer, input)
 					}
 				}
 				if quit {
 					break
-				} else if menuChoice == 1 {
-					stage.ID--
 				} else if menuChoice == 2 {
-					stage.ID = -1
+					stage.ID--
 				} else if menuChoice == 3 {
+					stage.ID = -1
+				} else if menuChoice == 4 {
 					break
 				} else {
 					panic("Unknown menu option")
@@ -146,7 +166,7 @@ func main() {
 			}
 		}
 	}
-	fmt.Println("Exit")
+	fmt.Println("Quit")
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,

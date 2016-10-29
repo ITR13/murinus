@@ -68,12 +68,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 			screenHeight/2+40, renderer),
 	}, 1}
 	ret[2] = &Menu{[]*MenuItem{
-		GetMenuItem("Store score", screenWidth/2-screenWidth/8,
+		GetMenuItem("Set Name", screenWidth/2-screenWidth/8,
 			screenHeight/2-80, renderer),
+		GetMenuItem("Highscores", screenWidth/2-screenWidth/8,
+			screenHeight/2-40, renderer),
 		GetMenuItem("Continue", screenWidth/2-screenWidth/8,
-			screenHeight/2-27, renderer),
+			screenHeight/2, renderer),
 		GetMenuItem("Retry", screenWidth/2-screenWidth/8,
-			screenHeight/2+27, renderer),
+			screenHeight/2+40, renderer),
 		GetMenuItem("Exit to menu", screenWidth/2-screenWidth/8,
 			screenHeight/2+80, renderer),
 	}, 0}
