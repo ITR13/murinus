@@ -29,7 +29,6 @@ type Snake struct {
 	ai                                 AI
 	shrinking                          bool
 	moveTimer, moveTimerMax            int
-	speedUpTimer, speedUpTimerMax      int
 	growTimer, growTimerMax            int
 	normalLengthGrowTimer              int
 	minLength, normalLength, maxLength int
@@ -146,16 +145,6 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		snake.head.x, snake.head.y = x, y
 		snake.growTimer--
 		snake.normalLengthGrowTimer--
-		snake.speedUpTimer--
-		if snake.speedUpTimer <= 0 && snake.moveTimerMax > 0 {
-			if snake.moveTimerMax > 1 {
-				snake.speedUpTimerMax = (snake.moveTimerMax*300)/
-					(snake.moveTimerMax-1) + snake.speedUpTimerMax/2
-			}
-			snake.speedUpTimer = snake.speedUpTimerMax
-			snake.moveTimerMax--
-			fmt.Printf("Sped up to %d!\tNext speed up: %d\n", snake.moveTimerMax, snake.speedUpTimer)
-		}
 	}
 }
 

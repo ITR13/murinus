@@ -33,6 +33,7 @@ type Stage struct {
 	tiles          *TileStage
 	sprites        *SpriteStage
 	scoreField     *ScoreField
+	levels         []*PreStageData
 	pointsLeft, ID int
 }
 
@@ -91,7 +92,7 @@ func (spriteStage *SpriteStage) GetEntity(x, y int32, id SpriteID) *Entity {
 }
 
 func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
-	moveTimerMax, speedUpTimerMax, growTimerMax,
+	moveTimerMax, growTimerMax,
 	minLength, maxLength int) *Snake {
 	length += 2
 	entities := make([]*Entity, length)
@@ -101,7 +102,7 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 	}
 	return &Snake{
 		entities[0], entities[1 : length-1], entities[length-1], ai, false,
-		moveTimerMax / 2, moveTimerMax, speedUpTimerMax, speedUpTimerMax,
+		moveTimerMax / 2, moveTimerMax,
 		growTimerMax / 3, growTimerMax, 0, minLength, length - 2, maxLength}
 }
 
@@ -295,5 +296,6 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 		width * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
 		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
 
-	return &Stage{input, &tileStage, &spriteStage, &scoreField, -1, -1}
+	return &Stage{input, &tileStage, &spriteStage,
+		&scoreField, GetPreStageDatas(), -1, -1}
 }
