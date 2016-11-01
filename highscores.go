@@ -64,7 +64,6 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	for !quit && currentCharacter != characters {
 		draw()
 		renderer.Present()
-		sdl.Delay(17)
 		input.Poll()
 		ud := input.mono.upDown.Val()
 		if ud != prevUD {
@@ -172,7 +171,6 @@ func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
 			}
 		}
 		renderer.Present()
-		sdl.Delay(17)
 		input.Poll()
 		dir := -input.mono.upDown.Val()
 		if dir != 0 {

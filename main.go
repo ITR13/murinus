@@ -192,7 +192,6 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lostLife = false
 	for i := 0; i < 90 && !quit; i++ {
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
-		sdl.Delay(17)
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 			fmt.Println("Round was quit with exit key")
@@ -201,7 +200,6 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	}
 	fmt.Println("Finished starting animation")
 	for !quit {
-		sdl.Delay(17)
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 			fmt.Println("Round was quit with exit key")
@@ -222,7 +220,6 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		for i := 0; i < 90 && !quit; i++ {
 			engine.Stage.Render(renderer, lives-int32(i/15%2),
 				int32(engine.p1.score))
-			sdl.Delay(17)
 			engine.Input.Poll()
 			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 				fmt.Println("Round was quit with exit key")
@@ -232,7 +229,6 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	} else {
 		for i := 0; i < 30 && !quit; i++ {
 			engine.Stage.Render(renderer, lives, int32(engine.p1.score))
-			sdl.Delay(17)
 			engine.Input.Poll()
 		}
 	}

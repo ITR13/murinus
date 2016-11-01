@@ -102,10 +102,13 @@ func GetInput() *Input {
 var noKeysTouched int
 
 func (input *Input) Poll() {
+	sdl.Delay(17)
+
 	noKeysTouched++
 	if Arcade && noKeysTouched > 60*60*15 {
 		quit = true
 	}
+
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) { //Add window resizing
 		case *sdl.QuitEvent:
@@ -132,6 +135,7 @@ func (input *Input) Poll() {
 			}
 		}
 	}
+
 	if input.exit.key.down {
 		input.exit.timeHeld++
 	} else {

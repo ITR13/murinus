@@ -113,7 +113,6 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 			return -1
 		}
 		menu.Display(renderer)
-		sdl.Delay(17)
 		input.Poll()
 		val := input.mono.upDown.Val()
 		if val != prevVal || repeat {

@@ -40,6 +40,7 @@ func (engine *Engine) LegalDir(x, y int32, d Direction) int {
 
 type AI interface {
 	Move(snakeID int, engine *Engine) Direction
+	Reset()
 }
 
 type SimpleAI struct {
@@ -128,6 +129,12 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 	return simpleAI.lastDirection
 }
 
+func (simpleAI *SimpleAI) Reset() {
+	simpleAI.lastDirection = Up
+	simpleAI.turnedRight = false
+	simpleAI.ignore = 0
+}
+
 type ApproximatedAI struct {
 	divertTimer, divertTimerMax int
 }
@@ -167,10 +174,13 @@ func (approx *ApproximatedAI) Move(snakeID int, engine *Engine) Direction {
 	}
 	approx.divertTimer--
 	if approx.divertTimer < 0 {
+		UpDownDir = (UpDownDir + 2) % 2
+		LeftRightDir = (LeftRightDir + 2) % 2
+		dx, dy = dy, dx
 		approx.divertTimer = approx.divertTimerMax
 	}
 
-	if (dx > dy) != (approx.divertTimer == 0) {
+	if dx > dy {
 		if options[LeftRightDir] > 0 {
 			return LeftRightDir
 		}
@@ -194,8 +204,13 @@ func (approx *ApproximatedAI) Move(snakeID int, engine *Engine) Direction {
 	return Up
 }
 
+func (approx *ApproximatedAI) Reset() {
+	approx.divertTimer = approx.divertTimerMax
+}
+
 type RandomAI struct {
-	r *rand.Rand
+	seed int64
+	r    *rand.Rand
 }
 
 func (randAI *RandomAI) Move(snakeID int, engine *Engine) Direction {
@@ -229,4 +244,8 @@ func (randAI *RandomAI) Move(snakeID int, engine *Engine) Direction {
 		}
 	}
 	return Up
+}
+
+func (randAI *RandomAI) Reset() {
+	randAI.r = rand.New(rand.NewSource(randAI.seed))
 }
