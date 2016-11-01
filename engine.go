@@ -44,12 +44,20 @@ func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
 func (engine *Engine) Advance() {
 	if engine.p1 != nil {
 		player := engine.p1
-		player.Control(engine.Input.p1, engine)
+		if engine.p2 != nil {
+			player.Control(engine.Input.p1, engine)
+		} else {
+			player.Control(engine.Input.mono, engine)
+		}
 		engine.CheckCollisions(player)
 	}
 	if engine.p2 != nil {
 		player := engine.p2
-		player.Control(engine.Input.p2, engine)
+		if engine.p1 != nil {
+			player.Control(engine.Input.p2, engine)
+		} else {
+			player.Control(engine.Input.mono, engine)
+		}
 		engine.CheckCollisions(player)
 	}
 
