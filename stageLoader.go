@@ -55,9 +55,9 @@ func GetPreStageData(stage string, px, py int32,
 	return &PreStageData{stage, px, py, diffData}
 }
 
-func GetPreStageDatas() []*PreStageData {
+func GetPreStageDatas() ([]*PreStageData, [3][][2]int) {
 	pSpeed := PrecisionMax / 4
-	return []*PreStageData{
+	data := []*PreStageData{
 		GetPreStageData(""+
 			"#########################"+
 			"#########################"+
@@ -114,6 +114,7 @@ func GetPreStageDatas() []*PreStageData {
 			[]PreSnakeData{{stageWidth - 6, stageHeight - 6,
 				1, &SimpleAI{}, 20, 1, 1, 6}},
 			[][]int32{{pSpeed}, {pSpeed * 2}}),
+		nil,
 		GetPreStageData(""+
 			"#########################"+
 			"#*******0000400000000003#"+
@@ -252,6 +253,7 @@ func GetPreStageDatas() []*PreStageData {
 			[][]int32{{pSpeed, 9, 9},
 				{pSpeed * 3 / 2, 5, 5},
 				{pSpeed * 2, 3, 3}}),
+		nil,
 		GetPreStageData(""+
 			"#########################"+
 			"#0**********#00000000000#"+
@@ -308,6 +310,7 @@ func GetPreStageDatas() []*PreStageData {
 			[][]int32{{pSpeed, 11, 11, 9, 9},
 				{pSpeed * 3 / 2, 7, 7, 5, 5},
 				{pSpeed * 2, 5, 5, 3, 3}}),
+		nil,
 		GetPreStageData(""+
 			"#########################"+
 			"#50000000000%00000000005#"+
@@ -365,6 +368,88 @@ func GetPreStageDatas() []*PreStageData {
 				{pSpeed * 3 / 2, 7, 7, 5, 5},
 				{pSpeed * 2, 5, 5, 3, 3}}),
 	}
+	totalLevels := 0
+	firstNonIntro := 0
+	for i := 0; data[i] != nil; i++ {
+		totalLevels++
+		firstNonIntro++
+	}
+	hardLevels := totalLevels
+	easyLevels := totalLevels
+
+	parts := 1
+	for i := firstNonIntro + 1; i < len(data); i++ {
+		if data[i] != nil {
+			v := len(data[i].difficultyData)
+			if v == 1 {
+				totalLevels++
+				easyLevels++
+			} else {
+				totalLevels += v
+				easyLevels += v - 1
+			}
+			hardLevels++
+		} else {
+			parts++
+		}
+	}
+
+	levels := [3][][2]int{
+		make([][2]int, easyLevels),
+		make([][2]int, totalLevels),
+		make([][2]int, hardLevels),
+	}
+
+	for i := 0; i < firstNonIntro; i++ {
+		levels[0][i] = [2]int{i, 0}
+		levels[1][i] = [2]int{i, 0}
+		levels[2][i] = [2]int{i, 1}
+	}
+
+	diff := make([]int, parts)
+	c1 := firstNonIntro
+	c2 := firstNonIntro
+	c3 := firstNonIntro
+	for c1 < easyLevels || c2 < totalLevels || c3 < hardLevels {
+		level := 0
+		for i := firstNonIntro + 1; i < len(data); i++ {
+			if data[i] != nil {
+				v := len(data[i].difficultyData)
+				if diff[level] < v {
+					if v == 1 {
+						levels[0][c1] = [2]int{i, 0}
+						levels[1][c2] = [2]int{i, 0}
+						levels[2][c3] = [2]int{i, 0}
+						c1++
+						c2++
+						c3++
+					} else {
+						levels[1][c2] = [2]int{i, diff[level]}
+						c2++
+						if diff[level] == v-1 {
+							levels[2][c3] = [2]int{i, diff[level]}
+							c3++
+						} else {
+							levels[0][c1] = [2]int{i, diff[level]}
+							c1++
+						}
+					}
+				}
+			} else {
+				if diff[level] == 0 {
+					diff[level]++
+					level = -1
+					i = firstNonIntro
+				} else {
+					diff[level]++
+				}
+				level++
+			}
+		}
+		diff[level]++
+	}
+
+	return data, levels
 }
 
 func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
@@ -373,55 +458,12 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	stage.sprites.entities = make([]*Entity, 0)
 
 	stage.ID = ID
-	fmt.Printf("Loading stage %d, Tiles: %t\n", ID, loadTiles)
+	fmt.Printf("Loading level %d, Tiles: %t\n", ID, loadTiles)
 
-	levelIndex := ID
-	diffIndex := 0
-	if ID < 3 {
-		diffIndex = difficulty / 2
-	} else {
-		if difficulty == 2 {
-			if ID >= len(stage.levels) {
-				stage.ID = 0
-				ID = 0
-				levelIndex = 0
-			}
-			diffIndex = len(stage.levels[levelIndex].difficultyData) - 1
-		} else {
-			if ID < 9 {
+	levelIndex := stage.levels[difficulty][ID][0]
+	diffIndex := stage.levels[difficulty][ID][1]
 
-			} else if ID < 15 {
-				diffIndex = 1
-				levelIndex = ID - 6
-			} else if ID < 16 {
-				levelIndex = ID - 6
-			} else if ID < 22 {
-				levelIndex = ID - 13
-				diffIndex = 2
-			} else if ID < 23 {
-				levelIndex = ID - 13
-				diffIndex = 1
-			} else if ID < 26 {
-				levelIndex = ID - 13
-			} else if ID < 27 {
-				levelIndex = ID - 17
-				diffIndex = 2
-			} else if ID < 30 {
-				levelIndex = ID - 17
-				diffIndex = 1
-			} else if ID < 33 {
-				levelIndex = ID - 20
-				diffIndex = 2
-			} else {
-				levelIndex = 0
-				diffIndex = 1
-				stage.ID = 0
-				ID = 0
-			}
-		}
-	}
-
-	level := stage.levels[levelIndex]
+	level := stage.stages[levelIndex]
 	diffData := level.difficultyData[diffIndex]
 
 	if loadTiles {
@@ -452,15 +494,14 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				}
 			}
 		}
-
 		stage.tiles.tiles = tiles
 		fmt.Printf("Replacing tiles\tPoints: %d\n", stage.pointsLeft)
 	}
 	fmt.Println("Getting engine")
 
 	engine := GetEngine(p1, p2, snakes, stage)
-	fmt.Println("Finished loading stage ", stage.ID)
-	fmt.Printf("Level: %d\tDifficulty: %d\n", levelIndex, diffIndex)
+	fmt.Println("Finished loading level ", stage.ID)
+	fmt.Printf("Stage: %d\tDifficulty: %d\n", levelIndex, diffIndex)
 	return engine
 }
 

@@ -33,7 +33,8 @@ type Stage struct {
 	tiles          *TileStage
 	sprites        *SpriteStage
 	scoreField     *ScoreField
-	levels         []*PreStageData
+	stages         []*PreStageData
+	levels         [3][][2]int
 	pointsLeft, ID int
 }
 
@@ -296,6 +297,7 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 		width * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
 		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
 
+	data, levels := GetPreStageDatas()
 	return &Stage{input, &tileStage, &spriteStage,
-		&scoreField, GetPreStageDatas(), -1, -1}
+		&scoreField, data, levels, -1, -1}
 }

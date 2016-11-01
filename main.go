@@ -198,6 +198,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 			return
 		}
 	}
+
 	fmt.Println("Finished starting animation")
 	for !quit {
 		engine.Input.Poll()
