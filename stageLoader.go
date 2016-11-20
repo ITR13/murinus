@@ -206,7 +206,7 @@ func GetPreStageDatas() ([]*PreStageData, [3][][2]int) {
 					&ApproximatedAI{0, 3}, 1, 10 * 4, 2, 14}},
 			[][]int32{{pSpeed, 9, 7},
 				{pSpeed * 3 / 2, 4, 3},
-				{pSpeed * 2, 1, 1}}),
+				{pSpeed * 2, 2, 1}}),
 		GetPreStageData(""+
 			"#########################"+
 			"#########################"+

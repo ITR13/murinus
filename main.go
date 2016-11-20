@@ -10,7 +10,7 @@ import (
 
 const (
 	sizeMult int32 = 1 //27
-	sizeDiv  int32 = 1 //20
+	sizeDiv  int32 = 2 //20
 
 	timeExitHasToBeHeldBeforeGameEnd   int = 60 * 5
 	timeExitHasToBeHeldBeforeCloseGame int = 90
