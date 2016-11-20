@@ -157,7 +157,7 @@ func GetPreStageDatas() ([]*PreStageData, [3][][2]int) {
 			"#########################",
 			stageWidth/2, stageHeight/2-3,
 			[]PreSnakeData{{stageWidth/2 + 1, stageHeight - 5, 4,
-				&ApproximatedAI{0, 3}, 1, 10 * 4, 2, 4}},
+				&ApproximatedAI{0, 1000}, 1, 10 * 4, 2, 4}},
 			[][]int32{{pSpeed, 9},
 				{pSpeed * 3 / 2, 4},
 				{pSpeed * 3 / 2, 2}}),

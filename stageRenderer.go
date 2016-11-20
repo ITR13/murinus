@@ -186,6 +186,7 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 func LoadTextures(width, height int32, renderer *sdl.Renderer,
 	input *Input) *Stage {
 	gSize := int32(12)
+	textureSize := 16
 	rect8x8 := sdl.Rect{0, 0, gSize, gSize}
 	rect6x6 := sdl.Rect{gSize/4 - 1, gSize/4 - 1, gSize/2 + 2, gSize/2 + 2}
 	rect4x4 := sdl.Rect{gSize / 4, gSize / 4, gSize / 2, gSize / 2}
@@ -203,7 +204,7 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 		make([]*sdl.Rect, SnakeWall+1)}
 	for i := Empty; i < SnakeWall; i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-			sdl.TEXTUREACCESS_TARGET, 16, 16)
+			sdl.TEXTUREACCESS_TARGET, textureSize, textureSize)
 		e(err)
 		tileInfo.textures[i] = texture
 		tileInfo.src[i] = &rect8x8
@@ -269,15 +270,17 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 	spriteDatas := make([]*Sprite, 8)
 	for i := 0; i < len(spriteDatas); i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-			sdl.TEXTUREACCESS_TARGET, 4, 4)
+			sdl.TEXTUREACCESS_TARGET, textureSize, textureSize)
 		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 		e(err)
 		spriteDatas[i] = &Sprite{texture, []*sdl.Rect{&rect8x8}, 1, 0}
 	}
 
 	renderer.SetRenderTarget(spriteDatas[Player1].texture)
-	renderer.SetDrawColor(255, 182, 193, 255)
+	renderer.SetDrawColor(216, 75, 139, 255)
 	renderer.Clear()
+	renderer.SetDrawColor(255, 182, 193, 255)
+	renderer.FillRect(&rect6x6)
 	spriteDatas[Player1].priority = 5
 
 	renderer.SetRenderTarget(spriteDatas[SnakeHead].texture)
