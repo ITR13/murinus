@@ -47,6 +47,7 @@ type SimpleAI struct {
 	lastDirection Direction
 	turnedRight   bool
 	ignore        int
+	ignoreMax     int
 }
 
 func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
@@ -81,6 +82,11 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 		}
 	}
 
+	simpleAI.ignore++
+	if simpleAI.ignore == simpleAI.ignoreMax {
+		simpleAI.ignore = 0
+		simpleAI.turnedRight = !simpleAI.turnedRight
+	}
 	if simpleAI.turnedRight {
 		dir := (simpleAI.lastDirection + Left) % 4
 		for i := 2; i > 0; i-- {
