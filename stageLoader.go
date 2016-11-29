@@ -279,28 +279,30 @@ func GetPreStageDatas() ([]*PreStageData, [3][][2]int) {
 				{pSpeed * 2, 0, 0}}),
 		GetPreStageData(""+
 			"#########################"+
-			"#*******0000400000000003#"+
-			"#*#####*#########0#####0#"+
-			"#*#0000***************#0#"+
-			"#*#0########*########*#0#"+
-			"#*#0#***************#*#0#"+
-			"#*#0#*######%######*#*#0#"+
-			"#***#*%*****0*****%*#***#"+
-			"#0#*#*######%######*#0#*#"+
-			"#0#*#***************#0#*#"+
-			"#0#*########*########0#*#"+
-			"#0#***************0000#*#"+
-			"#0#####0#########*#####*#"+
-			"#3000000000040000*******#"+
+			"#########################"+
+			"############%############"+
+			"###########*4*###########"+
+			"##########**#**##########"+
+			"#########**###**#########"+
+			"########**#####**########"+
+			"#######**##*0*##**#######"+
+			"######**#***#***#**######"+
+			"#####**##*#####*##**#####"+
+			"#####*###*******###*#####"+
+			"#####**#####%#####**#####"+
+			"######*************######"+
+			"#########################"+
 			"#########################",
 			stageWidth/2, stageHeight/2,
-			[]PreSnakeData{{1, stageHeight - 2, 6, &SimpleAI{},
-				0, 10 * 4, 2, 16},
-				{stageWidth - 2, 1, 6, &SimpleAI{},
-					0, 10 * 4, 2, 16}},
-			[][]int32{{pSpeed, 9, 9},
-				{pSpeed * 3 / 2, 4, 4},
-				{pSpeed * 2, 0, 0}}),
+			[]PreSnakeData{{stageWidth - 7, stageHeight - 3, 6, &SimpleAI{},
+				0, 10 * 4, 2, 4},
+				{5, stageHeight - 4, 6, &SimpleAI{0, false, 0, 0, Right},
+					0, 10 * 4, 2, 4},
+				{stageWidth / 2, 3, 6, &SimpleAI{},
+					0, 10 * 4, 2, 4}},
+			[][]int32{{pSpeed, 10, 10, 10},
+				{pSpeed * 3 / 2, 6, 6, 6},
+				{pSpeed * 2, 2, 2, 2}}),
 		nil,
 		GetPreStageData(""+
 			"#########################"+
@@ -887,24 +889,29 @@ func GetPreStageDatas() ([]*PreStageData, [3][][2]int) {
 		for i := firstNonIntro + 1; i < len(data); i++ {
 			if data[i] != nil {
 				v := len(data[i].difficultyData)
-				if diff[level] < v {
-					if v == 1 {
+				if v == 1 {
+					if diff[level] == 0 {
 						levels[0][c1] = [2]int{i, 0}
 						levels[1][c2] = [2]int{i, 0}
 						levels[2][c3] = [2]int{i, 0}
 						c1++
 						c2++
 						c3++
-					} else {
-						levels[1][c2] = [2]int{i, diff[level]}
+					}
+				} else {
+					mhDiff := diff[level] / 2
+					if diff[level]%2 == 0 && mhDiff < v {
+						levels[1][c2] = [2]int{i, mhDiff}
 						c2++
-						if diff[level] == v-1 {
-							levels[2][c3] = [2]int{i, diff[level]}
+						if diff[level]/2 == v-1 {
+							levels[2][c3] = [2]int{i, mhDiff}
 							c3++
-						} else {
-							levels[0][c1] = [2]int{i, diff[level]}
-							c1++
 						}
+					}
+					eDiff := diff[level] / 3
+					if diff[level]%3 == 0 && eDiff < v-1 {
+						levels[0][c1] = [2]int{i, eDiff}
+						c1++
 					}
 				}
 			} else {
@@ -929,9 +936,6 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	var snakes []*Snake
 	stage.sprites.entities = make([]*Entity, 0)
 
-	if ID == 0 {
-		ID = 9
-	}
 	stage.ID = ID
 	fmt.Printf("Loading level %d, Tiles: %t\n", ID, loadTiles)
 
