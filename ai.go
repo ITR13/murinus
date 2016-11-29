@@ -44,10 +44,11 @@ type AI interface {
 }
 
 type SimpleAI struct {
-	lastDirection Direction
-	turnedRight   bool
-	ignore        int
-	ignoreMax     int
+	lastDirection     Direction
+	turnedRight       bool
+	ignore            int
+	ignoreMax         int
+	startingDirection Direction
 }
 
 func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
@@ -136,7 +137,7 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 }
 
 func (simpleAI *SimpleAI) Reset() {
-	simpleAI.lastDirection = Up
+	simpleAI.lastDirection = simpleAI.startingDirection
 	simpleAI.turnedRight = false
 	simpleAI.ignore = 0
 }
