@@ -63,7 +63,7 @@ func GetInput() *Input {
 		allInputs[Down] = GetKey(sdl.K_s, sdl.K_DOWN)
 		allInputs[Left] = GetKey(sdl.K_a, sdl.K_LEFT)
 		allInputs[4] = GetKey(sdl.K_SPACE, sdl.K_RETURN)
-		allInputs[5] = GetKey(sdl.K_LSHIFT, sdl.K_RSHIFT)
+		allInputs[5] = GetKey(sdl.K_LSHIFT, sdl.K_RSHIFT, sdl.K_BACKSPACE)
 
 		allInputs[ipc+Up] = GetKey(sdl.K_w)
 		allInputs[ipc+Right] = GetKey(sdl.K_d)
@@ -77,7 +77,7 @@ func GetInput() *Input {
 		allInputs[ipc*2+Down] = GetKey(sdl.K_LEFT)
 		allInputs[ipc*2+Left] = GetKey(sdl.K_DOWN)
 		allInputs[ipc*2+4] = GetKey(sdl.K_RETURN)
-		allInputs[ipc*2+5] = GetKey(sdl.K_RSHIFT)
+		allInputs[ipc*2+5] = GetKey(sdl.K_RSHIFT, sdl.K_BACKSPACE)
 		allInputs[ipc*3] = GetKey(sdl.K_ESCAPE)
 	}
 	mono := Controller{
