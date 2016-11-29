@@ -199,8 +199,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		}
 	}
 
-	for engine.Input.mono.upDown.Val() == 0 &&
-		engine.Input.mono.leftRight.Val() == 0 && !quit {
+	for noKeysTouched >= 5 && !quit {
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		engine.Input.Poll()
 	}

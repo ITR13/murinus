@@ -32,6 +32,7 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 			charList[i][j] = defaultName[i] + byte(j-6)
 		}
 	}
+	curCharUnderline := &sdl.Rect{0, screenHeight/2 + 12, 12, 4}
 
 	draw := func() {
 		renderer.SetRenderTarget(nil)
@@ -57,6 +58,10 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 				texture.Destroy()
 			}
 		}
+		renderer.SetDrawColor(215, 10, 10, 255)
+		curCharUnderline.X = currentCharacter*40 - 40*characters/2 +
+			screenWidth/2
+		renderer.FillRect(curCharUnderline)
 	}
 
 	prevLR := int32(0)

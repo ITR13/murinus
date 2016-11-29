@@ -119,6 +119,7 @@ func (input *Input) Poll() {
 				for k := 0; k < len(key.keyCode); k++ {
 					if key.keyCode[k] == t.Keysym.Sym {
 						key.down = true
+						noKeysTouched = 0
 						break
 					}
 				}
