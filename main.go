@@ -190,13 +190,19 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	quit = false
 	lostLife = false
-	for i := 0; i < 90 && !quit; i++ {
+	for i := 0; i < 30 && !quit; i++ {
 		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 			fmt.Println("Round was quit with exit key")
 			return
 		}
+	}
+
+	for engine.Input.mono.upDown.Val() == 0 &&
+		engine.Input.mono.leftRight.Val() == 0 && !quit {
+		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+		engine.Input.Poll()
 	}
 
 	fmt.Println("Finished starting animation")
