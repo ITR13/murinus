@@ -5,6 +5,7 @@ import "fmt"
 const (
 	PrecisionMax int32 = 255 * 4
 	EdgeSlip     int32 = 5
+	BetterSlip   bool  = true
 )
 
 type Engine struct {
@@ -258,7 +259,8 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 		step = (step * 2) / 3
 	}
 
-	if e.precision > 15*PrecisionMax/16 || controller.IsDirection(e.dir) {
+	if e.precision > 15*PrecisionMax/16 ||
+		(controller.IsDirection(e.dir) && e.precision != 0) {
 		e.precision += controller.Dir(e.dir) * step
 	} else {
 		checkDir := false
@@ -320,10 +322,53 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 						e.precision = 0
 					}
 				}
-			} else if perpMove {
+			} else {
 				edge := engine.Graph.edge[e.x][e.y]
-				if edge != nil && edge.distance > 0 &&
-					edge.distance < EdgeSlip {
+				if BetterSlip {
+					for i := Up; i <= Left; i++ {
+						if controller.IsDirection(i) {
+							rr := (i + 1) % 4
+							lr := (i + 3) % 4
+							x, y := NewPos(e.x, e.y, i)
+							rx, ry := NewPos(x, y, rr)
+							lx, ly := NewPos(x, y, lr)
+							if engine.LegalPos(rx, ry, false) {
+								if !engine.LegalPos(lx, ly, false) {
+									x, y = NewPos(e.x, e.y, rr)
+									if engine.LegalPos(x, y, false) {
+										if e.dir == rr {
+											e.precision += step
+										} else {
+											e.precision -= step
+											if e.precision < 0 {
+												e.dir = rr
+												e.precision = -e.precision
+											}
+										}
+										perpMove = false
+										break
+									}
+								}
+							} else if engine.LegalPos(lx, ly, false) {
+								x, y = NewPos(e.x, e.y, lr)
+								if engine.LegalPos(x, y, false) {
+									if e.dir == lr {
+										e.precision += step
+									} else {
+										e.precision -= step
+										if e.precision < 0 {
+											e.dir = lr
+											e.precision = -e.precision
+										}
+									}
+									perpMove = false
+									break
+								}
+							}
+						}
+					}
+				}
+				if perpMove && edge.distance < EdgeSlip && edge.distance > 0 {
 					if e.dir != edge.dir && edge.me != nil {
 						if edge.distance < (EdgeSlip-1)/2 {
 							e.precision -= step
