@@ -5,7 +5,7 @@ import "fmt"
 const (
 	PrecisionMax int32 = 255 * 4
 	EdgeSlip     int   = 7
-	BetterSlip   bool  = true
+	BetterSlip   int32 = PrecisionMax * 13 / 40
 )
 
 type Engine struct {
@@ -345,6 +345,12 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				e.precision -= step
 				if e.precision < 0 {
 					e.precision = 0
+				}
+			} else if dir == 5 {
+				if priority*2 < EdgeSlip {
+					if e.precision >= BetterSlip {
+						e.precision += step
+					}
 				}
 			}
 		}
