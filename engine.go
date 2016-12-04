@@ -4,7 +4,7 @@ import "fmt"
 
 const (
 	PrecisionMax int32 = 255 * 4
-	EdgeSlip     int32 = 5
+	EdgeSlip     int   = 7
 	BetterSlip   bool  = true
 )
 
@@ -256,134 +256,100 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	e := player.entity
 	step := player.step
 	if controller.b.down {
-		step = (step * 2) / 3
+		step = (step * 3) / 5
+	}
+
+	if controller.leftRight.Val() == 0 && controller.upDown.Val() == 0 {
+		return
 	}
 
 	if e.precision > 15*PrecisionMax/16 ||
 		(controller.IsDirection(e.dir) && e.precision != 0) {
-		e.precision += controller.Dir(e.dir) * step
+		e.precision += step
 	} else {
-		checkDir := false
-		perpMove := false
+		node := engine.Graph.nodes[e.x][e.y]
+		if node == nil {
+			panic("You are inside a wall")
+		}
+		useGraph := true
 		if e.dir == Up || e.dir == Down {
 			val := controller.leftRight.Val()
 			if val != 0 {
-				perpMove = true
-				if !engine.LegalPos(e.x+val, e.y, false) {
-					val = 0
-				}
-			}
-			if val != 0 {
-				e.precision -= step
-				if e.precision < 0 {
-					e.precision = -e.precision
-					if val < 0 {
-						e.dir = Left
-					} else {
-						e.dir = Right
+				if engine.Graph.nodes[e.x+val][e.y] != nil {
+					useGraph = false
+					e.precision -= step
+					if e.precision < 0 {
+						e.precision = -e.precision
+						e.dir = Direction(2 - val)
 					}
 				}
-			} else {
-				checkDir = true
 			}
-		} else if e.dir == Right || e.dir == Left {
+		} else {
 			val := controller.upDown.Val()
 			if val != 0 {
-				perpMove = true
-				if !engine.LegalPos(e.x, e.y+val, false) {
-					val = 0
-				}
-			}
-			if val != 0 {
-				e.precision -= step
-				if e.precision < 0 {
-					e.precision = -e.precision
-					if val < 0 {
-						e.dir = Up
-					} else {
-						e.dir = Down
+				if engine.Graph.nodes[e.x][e.y+val] != nil {
+					useGraph = false
+					e.precision -= step
+					if e.precision < 0 {
+						e.precision = -e.precision
+						e.dir = Direction((3 - val) % 4)
 					}
 				}
-			} else {
-				checkDir = true
 			}
 		}
-		if checkDir {
-			val := controller.Dir(e.dir)
-			if val != 0 {
-				e.precision += val * step
-				if e.precision < 0 {
-					dir := (e.dir + 2) % 4
-					x, y := NewPos(e.x, e.y, dir)
-					if engine.LegalPos(x, y, false) {
-						e.precision = -e.precision
-						e.dir = dir
-					} else {
-						e.precision = 0
-					}
-				}
-			} else {
-				edge := engine.Graph.edge[e.x][e.y]
-				if BetterSlip {
-					for i := Up; i <= Left; i++ {
-						if controller.IsDirection(i) {
-							rr := (i + 1) % 4
-							lr := (i + 3) % 4
-							x, y := NewPos(e.x, e.y, i)
-							rx, ry := NewPos(x, y, rr)
-							lx, ly := NewPos(x, y, lr)
-							if engine.LegalPos(rx, ry, false) {
-								if !engine.LegalPos(lx, ly, false) {
-									x, y = NewPos(e.x, e.y, rr)
-									if engine.LegalPos(x, y, false) {
-										if e.dir == rr {
-											e.precision += step
-										} else {
-											e.precision -= step
-											if e.precision < 0 {
-												e.dir = rr
-												e.precision = -e.precision
-											}
-										}
-										perpMove = false
-										break
-									}
-								}
-							} else if engine.LegalPos(lx, ly, false) {
-								x, y = NewPos(e.x, e.y, lr)
-								if engine.LegalPos(x, y, false) {
-									if e.dir == lr {
-										e.precision += step
-									} else {
-										e.precision -= step
-										if e.precision < 0 {
-											e.dir = lr
-											e.precision = -e.precision
-										}
-									}
-									perpMove = false
-									break
+
+		if useGraph {
+			dir := Direction(5)
+			priority := -1
+			for i := Up; i <= Left; i++ {
+				if controller.IsDirection(i) {
+					side := node.sides[i]
+					if side != nil {
+						if priority == -1 || (side.distance == 0 && priority != 0) {
+							dir = side.dirToPush
+							priority = side.distance
+						} else if dir != 6 {
+							if (priority == 0) == (side.distance == 0) {
+								if dir != side.dirToPush {
+									dir = 6
 								}
 							}
 						}
+					} else if priority == -1 {
+						if (e.dir+2)%4 == i {
+							priority = 1
+							dir = i
+						}
+					} else if priority > 0 {
+						dir = 6
 					}
 				}
-				if perpMove && edge.distance < EdgeSlip && edge.distance > 0 {
-					if e.dir != edge.dir && edge.me != nil {
-						if edge.distance < (EdgeSlip-1)/2 {
-							e.precision -= step
-							if e.precision < 0 {
-								e.precision = -e.precision
-								e.dir = edge.dir
-							}
-						}
-					} else {
+			}
+			if dir < 5 {
+				if e.dir == dir {
+					if priority*2 < EdgeSlip {
 						e.precision += step
 					}
+				} else {
+					e.precision -= step
+					if e.precision < 0 {
+						if priority*2+1 < EdgeSlip {
+							e.precision = -e.precision
+							e.dir = dir
+						} else {
+							e.precision = 0
+						}
+					}
+				}
+			} else if dir == 6 || (dir == 5 && controller.Dir(e.dir) == -1) {
+				e.precision -= step
+				if e.precision < 0 {
+					e.precision = 0
 				}
 			}
 		}
 	}
+
 	x, y := NewPos(e.x, e.y, e.dir)
 	if engine.LegalPos(x, y, false) {
 		if e.precision > PrecisionMax/2 {
