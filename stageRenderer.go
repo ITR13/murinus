@@ -56,7 +56,7 @@ type TileInfo struct {
 
 type SpriteStage struct {
 	sprites   []*Sprite
-	entities  []*Entity
+	entities  [][]*Entity
 	texture   *sdl.Texture
 	src, dst  *sdl.Rect
 	spriteDst *sdl.Rect
@@ -88,7 +88,8 @@ func (spriteStage *SpriteStage) GetEntity(x, y int32, id SpriteID) *Entity {
 	entity := &Entity{
 		spriteStage.sprites[id],
 		x, y, 0, true, Right}
-	spriteStage.entities = append(spriteStage.entities, entity)
+	l := spriteStage.sprites[id].priority
+	spriteStage.entities[l] = append(spriteStage.entities[l], entity)
 	return entity
 }
 
@@ -156,9 +157,9 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
 	if sprites.entities != nil {
-		for priority := 0; priority <= 10; priority++ {
-			for i := 0; i < len(sprites.entities); i++ {
-				e := sprites.entities[i]
+		for priority := 0; priority < len(sprites.entities); priority++ {
+			for i := 0; i < len(sprites.entities[priority]); i++ {
+				e := sprites.entities[priority][i]
 				s := e.sprite
 				if s.priority == priority && e.display {
 					sprites.spriteDst.X = e.x * blockSize
@@ -281,17 +282,17 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 	renderer.Clear()
 	renderer.SetDrawColor(255, 182, 193, 255)
 	renderer.FillRect(&rect6x6)
-	spriteDatas[Player1].priority = 5
+	spriteDatas[Player1].priority = 1
 
 	renderer.SetRenderTarget(spriteDatas[SnakeHead].texture)
 	renderer.SetDrawColor(0, 95, 0, 255)
 	renderer.Clear()
-	spriteDatas[SnakeHead].priority = 6
+	spriteDatas[SnakeHead].priority = 2
 
 	renderer.SetRenderTarget(spriteDatas[SnakeBody].texture)
 	renderer.SetDrawColor(0, 127, 0, 255)
 	renderer.Clear()
-	spriteDatas[SnakeBody].priority = 4
+	spriteDatas[SnakeBody].priority = 0
 
 	spriteStage := SpriteStage{spriteDatas, nil, spriteTexture,
 		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}

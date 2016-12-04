@@ -934,7 +934,10 @@ func GetPreStageDatas() ([]*PreStageData, [3][][2]int) {
 func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	var p1, p2 *Player
 	var snakes []*Snake
-	stage.sprites.entities = make([]*Entity, 0)
+	stage.sprites.entities = make([][]*Entity, 4)
+	for i := 0; i < 4; i++ {
+		stage.sprites.entities[i] = make([]*Entity, 0)
+	}
 
 	stage.ID = ID
 	fmt.Printf("Loading level %d, Tiles: %t\n", ID, loadTiles)
