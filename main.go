@@ -26,6 +26,7 @@ var quit bool
 var lostLife bool
 
 func main() {
+
 	runtime.LockOSThread()
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	e(err)

@@ -138,13 +138,6 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 					(snake && tileStage.tiles[x][y] == SnakeWall) {
 					fmt.Printf("Illegal node on %d,%d, in wall\n", x, y)
 					panic("Illegal node position (In A Wall)")
-				} else {
-					for i := Up; i <= Left; i++ {
-						side := nodes[x][y].sides[i]
-						if side == nil {
-							//nodes[x][y].sides[i] = &Side{i, 2}
-						}
-					}
 				}
 			}
 		}

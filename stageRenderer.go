@@ -66,7 +66,7 @@ type SpriteStage struct {
 type Entity struct {
 	sprite    *Sprite
 	x, y      int32
-	precision int32 //Consider making uint8
+	precision int32
 	display   bool
 	dir       Direction
 }

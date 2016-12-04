@@ -18,9 +18,8 @@ type Engine struct {
 
 type Player struct {
 	entity *Entity
-	//timeout, max int
-	step  int32
-	score uint64
+	step   int32
+	score  uint64
 }
 
 type Snake struct {
