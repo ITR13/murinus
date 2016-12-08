@@ -4,7 +4,7 @@ import "fmt"
 
 const (
 	PrecisionMax int32 = 255 * 4
-	EdgeSlip     int   = 7
+	EdgeSlip     int   = 5
 	BetterSlip   int32 = PrecisionMax * 13 / 40
 )
 
