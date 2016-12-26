@@ -54,7 +54,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 			screenHeight/2-40, renderer),
 		GetMenuItem("High-Scores", screenWidth/2-screenWidth/8,
 			screenHeight/2, renderer),
-		GetMenuItem("Info", screenWidth/2-screenWidth/8,
+		GetMenuItem("Options", screenWidth/2-screenWidth/8,
 			screenHeight/2+40, renderer),
 		GetMenuItem("Quit", screenWidth/2-screenWidth/8,
 			screenHeight/2+80, renderer),
