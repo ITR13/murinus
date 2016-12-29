@@ -33,7 +33,7 @@ type DurationKey struct {
 }
 
 type Key struct {
-	keyCode []sdl.Keycode
+	KeyCode []sdl.Keycode
 	down    bool
 }
 
@@ -116,8 +116,8 @@ func (input *Input) Poll() {
 		case *sdl.KeyDownEvent:
 			for i := 0; i < len(input.allInputs); i++ {
 				key := input.allInputs[i]
-				for k := 0; k < len(key.keyCode); k++ {
-					if key.keyCode[k] == t.Keysym.Sym {
+				for k := 0; k < len(key.KeyCode); k++ {
+					if key.KeyCode[k] == t.Keysym.Sym {
 						key.down = true
 						noKeysTouched = 0
 						break
@@ -127,8 +127,8 @@ func (input *Input) Poll() {
 		case *sdl.KeyUpEvent:
 			for i := 0; i < len(input.allInputs); i++ {
 				key := input.allInputs[i]
-				for k := 0; k < len(key.keyCode); k++ {
-					if key.keyCode[k] == t.Keysym.Sym {
+				for k := 0; k < len(key.KeyCode); k++ {
+					if key.KeyCode[k] == t.Keysym.Sym {
 						key.down = false
 						break
 					}

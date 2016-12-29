@@ -203,7 +203,7 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 	tileInfo := TileInfo{&sdl.Rect{},
 		make([]*sdl.Texture, SnakeWall+1),
 		make([]*sdl.Rect, SnakeWall+1)}
-	for i := Empty; i < SnakeWall; i++ {
+	for i := Empty; i <= SnakeWall; i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 			sdl.TEXTUREACCESS_TARGET, textureSize, textureSize)
 		e(err)
@@ -257,7 +257,14 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.FillRect(&rect6x6)
 
-	tileInfo.textures[SnakeWall] = tileInfo.textures[Empty]
+	renderer.SetRenderTarget(tileInfo.textures[SnakeWall])
+	//renderer.SetDrawColor(45, 45, 132, 255)
+	renderer.SetDrawColor(65, 105, 225, 255)
+	renderer.Clear()
+	renderer.SetDrawColor(80, 120, 240, 255)
+	renderer.FillRect(&rect6x6)
+	renderer.SetDrawColor(95, 135, 255, 255)
+	renderer.FillRect(&rect4x4)
 
 	tileStage := TileStage{false, &tileInfo, nil,
 		tileTexture, &stageRect, &stageScreenRect,

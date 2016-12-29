@@ -3,9 +3,9 @@ package main
 import "fmt"
 
 const (
-	PrecisionMax int32 = 255 * 4
-	EdgeSlip     int   = 5
-	BetterSlip   int32 = PrecisionMax * 13 / 40
+	PrecisionMax      int32 = 255 * 4
+	EdgeSlipDefault   int   = 5
+	BetterSlipDefault int32 = PrecisionMax * 13 / 40
 )
 
 type Engine struct {

@@ -49,12 +49,17 @@ func main() {
 	input := GetInput()
 	fmt.Println("Got inputs")
 
+	ReadOptions("options.xml", input)
+	defer SaveOptions("options.xml", input)
+	fmt.Println("Created options")
+
 	stage := LoadTextures(stageWidth, stageHeight, renderer, input)
 	fmt.Println("Loaded stage-basis")
 
 	menus := GetMenus(renderer)
-
 	higscores := Read("singleplayer.hs")
+	defer higscores.Write("singleplayer.hs")
+	fmt.Println("Loaded Highscores")
 
 	defaultName := "\\\\\\"
 
@@ -182,9 +187,6 @@ func main() {
 		}
 	}
 	fmt.Println("Quit")
-	higscores.Write("singleplayer.hs")
-	fmt.Println("Saved Highscores")
-
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
