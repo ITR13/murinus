@@ -101,6 +101,7 @@ func GetInput() *Input {
 
 var noKeysTouched int
 var newScreenWidth, newScreenHeight int32
+var redrawTextures bool
 
 func (input *Input) Poll() {
 	sdl.Delay(17)
@@ -139,6 +140,9 @@ func (input *Input) Poll() {
 			if t.Event == sdl.WINDOWEVENT_SIZE_CHANGED {
 				newScreenWidth, newScreenHeight = t.Data1, t.Data2
 			}
+
+		case *sdl.RenderEvent:
+			redrawTextures = true
 		}
 	}
 

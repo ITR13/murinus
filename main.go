@@ -41,7 +41,7 @@ func main() {
 
 	window, err := sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
 		sdl.WINDOWPOS_UNDEFINED, int(screenWidth), int(screenHeight),
-		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
+		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE|sdl.RENDERER_PRESENTVSYNC)
 	e(err)
 	defer window.Destroy()
 	fmt.Println("Created window")

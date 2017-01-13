@@ -55,7 +55,7 @@ type TileInfo struct {
 }
 
 type SpriteStage struct {
-	sprites   []*Sprite
+	sprites   SpriteInfo
 	entities  [][]*Entity
 	texture   *sdl.Texture
 	src, dst  *sdl.Rect
@@ -77,6 +77,8 @@ type Sprite struct {
 	timeDiv  int64
 	priority int
 }
+
+type SpriteInfo []*Sprite
 
 type ScoreField struct {
 	rect           *sdl.Rect
@@ -111,12 +113,20 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 func (stage *Stage) Render(renderer *sdl.Renderer,
 	lives, score int32) {
 	defer renderer.Present()
-	if newScreenWidth != screenWidth || newScreenHeight != screenHeight {
-		SetWindowSize(newScreenWidth, newScreenHeight, stage)
-		stage.tiles.renderedOnce = false
+	renderedOnce := stage.tiles.renderedOnce
+
+	if redrawTextures {
+		stage.tiles.tileInfo.Draw(renderer)
+		stage.sprites.sprites.Draw(renderer)
+		renderedOnce = false
 	}
 
-	if !stage.tiles.renderedOnce {
+	if newScreenWidth != screenWidth || newScreenHeight != screenHeight {
+		SetWindowSize(newScreenWidth, newScreenHeight, stage)
+		renderedOnce = false
+	}
+
+	if !renderedOnce {
 		stage.tiles.Render(renderer)
 	}
 	stage.sprites.Render(renderer)
@@ -189,11 +199,14 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	}
 }
 
+//TODO Figure out if it's better to save these variables in Stage
+var rect8x8, rect6x6, rect4x4 sdl.Rect
+
 func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	w, h := stageWidth, stageHeight
-	rect8x8 := sdl.Rect{0, 0, gSize, gSize}
-	rect6x6 := sdl.Rect{gSize/4 - 1, gSize/4 - 1, gSize/2 + 2, gSize/2 + 2}
-	rect4x4 := sdl.Rect{gSize / 4, gSize / 4, gSize / 2, gSize / 2}
+	rect8x8 = sdl.Rect{0, 0, gSize, gSize}
+	rect6x6 = sdl.Rect{gSize/4 - 1, gSize/4 - 1, gSize/2 + 2, gSize/2 + 2}
+	rect4x4 = sdl.Rect{gSize / 4, gSize / 4, gSize / 2, gSize / 2}
 	stageRect := sdl.Rect{0, 0, w * gSize, h * gSize}
 	offsetFromScreenX := (screenWidth - w*blockSize) / 2
 	offsetFromScreenY := (screenHeight - h*(blockSize+2)) / 2
@@ -213,6 +226,40 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 		tileInfo.textures[i] = texture
 		tileInfo.src[i] = &rect8x8
 	}
+
+	tileInfo.Draw(renderer)
+	tileStage := TileStage{false, &tileInfo, nil,
+		tileTexture, &stageRect, &stageScreenRect,
+		&sdl.Rect{}, w, h}
+
+	spriteTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
+		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
+	e(err)
+	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
+
+	spriteInfo := make(SpriteInfo, 8)
+	for i := 0; i < len(spriteInfo); i++ {
+		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
+			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
+		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
+		e(err)
+		spriteInfo[i] = &Sprite{texture, []*sdl.Rect{&rect8x8}, 1, 0}
+	}
+
+	spriteInfo.Draw(renderer)
+	spriteStage := SpriteStage{spriteInfo, nil, spriteTexture,
+		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
+
+	scoreField := ScoreField{&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
+		w * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
+		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
+
+	data, levels := GetPreStageDatas()
+	return &Stage{input, &tileStage, &spriteStage,
+		&scoreField, data, levels, -1, -1}
+}
+
+func (tileInfo *TileInfo) Draw(renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(tileInfo.textures[Empty])
 	renderer.SetDrawColor(65, 105, 225, 255)
 	renderer.Clear()
@@ -269,51 +316,25 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	renderer.SetDrawColor(95, 135, 255, 255)
 	renderer.FillRect(&rect4x4)
 
-	tileStage := TileStage{false, &tileInfo, nil,
-		tileTexture, &stageRect, &stageScreenRect,
-		&sdl.Rect{}, w, h}
+}
 
-	spriteTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
-	e(err)
-	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
-
-	spriteDatas := make([]*Sprite, 8)
-	for i := 0; i < len(spriteDatas); i++ {
-		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
-		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
-		e(err)
-		spriteDatas[i] = &Sprite{texture, []*sdl.Rect{&rect8x8}, 1, 0}
-	}
-
-	renderer.SetRenderTarget(spriteDatas[Player1].texture)
+func (spriteInfo SpriteInfo) Draw(renderer *sdl.Renderer) {
+	renderer.SetRenderTarget(spriteInfo[Player1].texture)
 	renderer.SetDrawColor(216, 75, 139, 255)
 	renderer.Clear()
 	renderer.SetDrawColor(255, 182, 193, 255)
 	renderer.FillRect(&rect6x6)
-	spriteDatas[Player1].priority = 1
+	spriteInfo[Player1].priority = 1
 
-	renderer.SetRenderTarget(spriteDatas[SnakeHead].texture)
+	renderer.SetRenderTarget(spriteInfo[SnakeHead].texture)
 	renderer.SetDrawColor(0, 95, 0, 255)
 	renderer.Clear()
-	spriteDatas[SnakeHead].priority = 2
+	spriteInfo[SnakeHead].priority = 2
 
-	renderer.SetRenderTarget(spriteDatas[SnakeBody].texture)
+	renderer.SetRenderTarget(spriteInfo[SnakeBody].texture)
 	renderer.SetDrawColor(0, 127, 0, 255)
 	renderer.Clear()
-	spriteDatas[SnakeBody].priority = 0
-
-	spriteStage := SpriteStage{spriteDatas, nil, spriteTexture,
-		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
-
-	scoreField := ScoreField{&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
-		w * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
-		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
-
-	data, levels := GetPreStageDatas()
-	return &Stage{input, &tileStage, &spriteStage,
-		&scoreField, data, levels, -1, -1}
+	spriteInfo[SnakeBody].priority = 0
 }
 
 func SetWindowSize(w, h int32, stage *Stage) {
