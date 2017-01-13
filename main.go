@@ -10,7 +10,7 @@ import (
 
 const (
 	sizeMult int32 = 1 //27
-	sizeDiv  int32 = 1 //20
+	sizeDiv  int32 = 2 //20
 
 	timeExitHasToBeHeldBeforeGameEnd   int = 60 * 5
 	timeExitHasToBeHeldBeforeCloseGame int = 90
@@ -32,6 +32,7 @@ var lostLife bool
 func main() {
 	screenWidth, screenHeight, blockSize, blockSizeBigBoard =
 		screenWidthD, screenHeightD, blockSizeD, blockSizeBigBoardD
+	newScreenWidth, newScreenHeight = screenWidth, screenHeight
 
 	runtime.LockOSThread()
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -40,7 +41,7 @@ func main() {
 
 	window, err := sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
 		sdl.WINDOWPOS_UNDEFINED, int(screenWidth), int(screenHeight),
-		sdl.WINDOW_SHOWN)
+		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	e(err)
 	defer window.Destroy()
 	fmt.Println("Created window")

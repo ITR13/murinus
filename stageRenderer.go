@@ -111,6 +111,11 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 func (stage *Stage) Render(renderer *sdl.Renderer,
 	lives, score int32) {
 	defer renderer.Present()
+	if newScreenWidth != screenWidth || newScreenHeight != screenHeight {
+		SetWindowSize(newScreenWidth, newScreenHeight, stage)
+		stage.tiles.renderedOnce = false
+	}
+
 	if !stage.tiles.renderedOnce {
 		stage.tiles.Render(renderer)
 	}
@@ -311,17 +316,23 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 		&scoreField, data, levels, -1, -1}
 }
 
-func SetWindowSize(w, h int32, window *sdl.Window, stage *Stage) {
+func SetWindowSize(w, h int32, stage *Stage) {
 	maxSize := w * 5
 	if maxSize > h*8 {
 		maxSize = h * 8
 	}
 	screenWidth, screenHeight = w, h
-	div := gcd(maxSize, 1280*5)
-	mult := maxSize / div
+	lcm := (1280 * 5 / gcd(maxSize, 1280*5)) * maxSize
+	div := lcm / maxSize
+	mult := lcm / (1280 * 5)
 	blockSize = (48 * mult) / div
 	blockSizeBigBoard = (24 * mult) / div
 
+	offsetFromScreenX := (screenWidth - stageWidth*blockSize) / 2
+	offsetFromScreenY := (screenHeight - stageHeight*(blockSize+2)) / 2
+	stage.tiles.dst.X, stage.tiles.dst.Y, stage.tiles.dst.W, stage.tiles.dst.H =
+		offsetFromScreenX, blockSize+offsetFromScreenY,
+		stageWidth*blockSize, stageHeight*blockSize
 }
 
 //From rosettacode.org
