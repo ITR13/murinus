@@ -10,22 +10,28 @@ import (
 
 const (
 	sizeMult int32 = 1 //27
-	sizeDiv  int32 = 2 //20
+	sizeDiv  int32 = 1 //20
 
 	timeExitHasToBeHeldBeforeGameEnd   int = 60 * 5
 	timeExitHasToBeHeldBeforeCloseGame int = 90
 )
 
 const (
-	screenWidth  int32 = (1280 * sizeMult) / sizeDiv
-	screenHeight int32 = (800 * sizeMult) / sizeDiv
-	blockSize    int32 = (48 * sizeMult) / sizeDiv
+	screenWidthD       int32 = (1280 * sizeMult) / sizeDiv
+	screenHeightD      int32 = (800 * sizeMult) / sizeDiv
+	blockSizeD         int32 = (48 * sizeMult) / sizeDiv
+	blockSizeBigBoardD int32 = (24 * sizeMult) / sizeDiv
+	gSize              int32 = 12
 )
+
+var screenWidth, screenHeight, blockSize, blockSizeBigBoard int32
 
 var quit bool
 var lostLife bool
 
 func main() {
+	screenWidth, screenHeight, blockSize, blockSizeBigBoard =
+		screenWidthD, screenHeightD, blockSizeD, blockSizeBigBoardD
 
 	runtime.LockOSThread()
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -53,7 +59,7 @@ func main() {
 	defer SaveOptions("options.xml", input)
 	fmt.Println("Created options")
 
-	stage := LoadTextures(stageWidth, stageHeight, renderer, input)
+	stage := LoadTextures(renderer, input)
 	fmt.Println("Loaded stage-basis")
 
 	menus := GetMenus(renderer)

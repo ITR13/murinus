@@ -138,11 +138,11 @@ func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 	e(renderer.Clear())
 	if tiles.tiles != nil {
 		for x := int32(0); x < tiles.w; x++ {
-			tiles.tileDst.X = x * blockSize
+			tiles.tileDst.X = x * gSize
 			for y := int32(0); y < tiles.h; y++ {
-				tiles.tileDst.Y = y * blockSize
-				tiles.tileDst.W = blockSize
-				tiles.tileDst.H = blockSize
+				tiles.tileDst.Y = y * gSize
+				tiles.tileDst.W = gSize
+				tiles.tileDst.H = gSize
 				e(renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
 					tiles.tileInfo.src[tiles.tiles[x][y]], tiles.tileDst))
 			}
@@ -162,19 +162,19 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 				e := sprites.entities[priority][i]
 				s := e.sprite
 				if s.priority == priority && e.display {
-					sprites.spriteDst.X = e.x * blockSize
-					sprites.spriteDst.Y = e.y * blockSize
+					sprites.spriteDst.X = e.x * gSize
+					sprites.spriteDst.Y = e.y * gSize
 					if e.dir == Up {
-						sprites.spriteDst.Y -= e.precision * blockSize / PrecisionMax
+						sprites.spriteDst.Y -= e.precision * gSize / PrecisionMax
 					} else if e.dir == Right {
-						sprites.spriteDst.X += e.precision * blockSize / PrecisionMax
+						sprites.spriteDst.X += e.precision * gSize / PrecisionMax
 					} else if e.dir == Down {
-						sprites.spriteDst.Y += e.precision * blockSize / PrecisionMax
+						sprites.spriteDst.Y += e.precision * gSize / PrecisionMax
 					} else if e.dir == Left {
-						sprites.spriteDst.X -= e.precision * blockSize / PrecisionMax
+						sprites.spriteDst.X -= e.precision * gSize / PrecisionMax
 					}
-					sprites.spriteDst.W = blockSize
-					sprites.spriteDst.H = blockSize
+					sprites.spriteDst.W = gSize
+					sprites.spriteDst.H = gSize
 					t := (sprites.time / s.timeDiv) % int64(len(s.src))
 					renderer.Copy(s.texture,
 						s.src[t], sprites.spriteDst)
@@ -184,28 +184,26 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	}
 }
 
-func LoadTextures(width, height int32, renderer *sdl.Renderer,
-	input *Input) *Stage {
-	gSize := int32(12)
-	textureSize := 16
+func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
+	w, h := stageWidth, stageHeight
 	rect8x8 := sdl.Rect{0, 0, gSize, gSize}
 	rect6x6 := sdl.Rect{gSize/4 - 1, gSize/4 - 1, gSize/2 + 2, gSize/2 + 2}
 	rect4x4 := sdl.Rect{gSize / 4, gSize / 4, gSize / 2, gSize / 2}
-	stageRect := sdl.Rect{0, 0, width * blockSize, height * blockSize}
-	offsetFromScreenX := (screenWidth - width*blockSize) / 2
-	offsetFromScreenY := (screenHeight - height*(blockSize+2)) / 2
+	stageRect := sdl.Rect{0, 0, w * gSize, h * gSize}
+	offsetFromScreenX := (screenWidth - w*blockSize) / 2
+	offsetFromScreenY := (screenHeight - h*(blockSize+2)) / 2
 	stageScreenRect := sdl.Rect{offsetFromScreenX, blockSize + offsetFromScreenY,
-		width * blockSize, height * blockSize}
+		w * blockSize, h * blockSize}
 
 	tileTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-		sdl.TEXTUREACCESS_TARGET, int(width*blockSize), int(height*blockSize))
+		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
 	e(err)
 	tileInfo := TileInfo{&sdl.Rect{},
 		make([]*sdl.Texture, SnakeWall+1),
 		make([]*sdl.Rect, SnakeWall+1)}
 	for i := Empty; i <= SnakeWall; i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-			sdl.TEXTUREACCESS_TARGET, textureSize, textureSize)
+			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
 		e(err)
 		tileInfo.textures[i] = texture
 		tileInfo.src[i] = &rect8x8
@@ -268,17 +266,17 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 
 	tileStage := TileStage{false, &tileInfo, nil,
 		tileTexture, &stageRect, &stageScreenRect,
-		&sdl.Rect{}, width, height}
+		&sdl.Rect{}, w, h}
 
 	spriteTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-		sdl.TEXTUREACCESS_TARGET, int(width*blockSize), int(height*blockSize))
+		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
 	e(err)
 	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
 	spriteDatas := make([]*Sprite, 8)
 	for i := 0; i < len(spriteDatas); i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-			sdl.TEXTUREACCESS_TARGET, textureSize, textureSize)
+			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
 		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 		e(err)
 		spriteDatas[i] = &Sprite{texture, []*sdl.Rect{&rect8x8}, 1, 0}
@@ -305,10 +303,31 @@ func LoadTextures(width, height int32, renderer *sdl.Renderer,
 		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
 
 	scoreField := ScoreField{&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
-		width * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
+		w * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
 		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
 
 	data, levels := GetPreStageDatas()
 	return &Stage{input, &tileStage, &spriteStage,
 		&scoreField, data, levels, -1, -1}
+}
+
+func SetWindowSize(w, h int32, window *sdl.Window, stage *Stage) {
+	maxSize := w * 5
+	if maxSize > h*8 {
+		maxSize = h * 8
+	}
+	screenWidth, screenHeight = w, h
+	div := gcd(maxSize, 1280*5)
+	mult := maxSize / div
+	blockSize = (48 * mult) / div
+	blockSizeBigBoard = (24 * mult) / div
+
+}
+
+//From rosettacode.org
+func gcd(x, y int32) int32 {
+	for y != 0 {
+		x, y = y, x%y
+	}
+	return x
 }

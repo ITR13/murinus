@@ -24,16 +24,16 @@ type Side struct {
 
 func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 	fmt.Println("Making node array")
-	nodes := make([][]*Node, stageWidth)
-	for x := int32(0); x < stageWidth; x++ {
-		nodes[x] = make([]*Node, screenHeight)
+	nodes := make([][]*Node, tileStage.w) //stageWidth)
+	for x := int32(0); x < tileStage.w; x++ {
+		nodes[x] = make([]*Node, tileStage.h) //screenHeight)
 	}
 
 	nodeCount := 0
 	sideCount := 0
 
-	for x := int32(0); x < stageWidth; x++ {
-		for y := int32(0); y < stageHeight; y++ {
+	for x := int32(0); x < tileStage.w; x++ {
+		for y := int32(0); y < tileStage.h; y++ {
 			if tileStage.tiles[x][y] != Wall &&
 				(!snake || tileStage.tiles[x][y] != SnakeWall) {
 				nodes[x][y] = &Node{}
@@ -42,8 +42,8 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 		}
 	}
 
-	for x := int32(0); x < stageWidth; x++ {
-		for y := int32(0); y < stageHeight; y++ {
+	for x := int32(0); x < tileStage.w; x++ {
+		for y := int32(0); y < tileStage.h; y++ {
 			if nodes[x][y] != nil {
 				for i := Up; i <= Left; i++ {
 					x2, y2 := NewPos(x, y, i)
@@ -59,10 +59,9 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 	fmt.Printf("The stagegraph has %d nodes, and %d sides\n",
 		nodeCount, sideCount)
 
-	//TODO Try to find a way to do this more efficiently
-	//TODO (also more beautifully)
+	//TODO Make this more efficient and elegant
 	setSide := func(dir Direction, reverse bool) {
-		max1, max2 := int(stageHeight), int(stageWidth)
+		max1, max2 := int(tileStage.h), int(tileStage.w)
 		upDown := dir == Left || dir == Right
 		dirToSet := Right
 		if upDown {
@@ -125,8 +124,8 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 		setSide(i, true)
 	}
 
-	for x := int32(0); x < stageWidth; x++ {
-		for y := int32(0); y < stageHeight; y++ {
+	for x := int32(0); x < tileStage.w; x++ {
+		for y := int32(0); y < tileStage.h; y++ {
 			if nodes[x][y] == nil {
 				if tileStage.tiles[x][y] != Wall &&
 					(!snake || tileStage.tiles[x][y] != SnakeWall) {
@@ -145,8 +144,8 @@ func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 
 	for i := Up; i <= Left && DisplayStageGraph; i++ {
 		fmt.Println("----------------------")
-		for y := int32(0); y < stageHeight; y++ {
-			for x := int32(0); x < stageWidth; x++ {
+		for y := int32(0); y < tileStage.h; y++ {
+			for x := int32(0); x < tileStage.w; x++ {
 				node := nodes[x][y]
 				if node == nil {
 					fmt.Print("#")
