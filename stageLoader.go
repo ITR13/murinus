@@ -876,6 +876,17 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	}
 
 	stage.ID = ID
+	hideSnakes, hideWalls := false, false
+	if ID >= len(stage.levels[difficulty]) {
+		ID = len(stage.levels[difficulty])*2 - ID - 1
+		hideSnakes = true
+		if ID < len(stage.levels[difficulty])*2/3 {
+			hideWalls = true
+		}
+	} else {
+		stage.ID = len(stage.levels[difficulty])
+	}
+
 	fmt.Printf("Loading level %d, Tiles: %t\n", ID, loadTiles)
 
 	levelIndex := stage.levels[difficulty][ID][0]
@@ -893,8 +904,12 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 		snakes = make([]*Snake, len(diffData.snakes))
 		for i := 0; i < len(snakes); i++ {
 			snake := diffData.snakes[i]
+			ai := snake.ai
+			if hideSnakes {
+				ai = &HiddenAI{0, 200 / (snake.moveTimerMax + 5), false, ai}
+			}
 			snakes[i] = stage.sprites.GetSnake(snake.x, snake.y,
-				snake.length, snake.ai, snake.moveTimerMax,
+				snake.length, ai, snake.moveTimerMax,
 				snake.growTimerMax, snake.minLength, snake.maxLength)
 			snakes[i].ai.Reset()
 		}
@@ -904,6 +919,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	if loadTiles {
 		fmt.Println("Calculating points left")
 		stage.tiles.renderedOnce = false
+		stage.hideWalls = hideWalls
 		stage.pointsLeft = 0
 		for x := int32(0); x < stageWidth; x++ {
 			for y := int32(0); y < stageHeight; y++ {
@@ -923,6 +939,8 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	return engine
 }
 
+//Uses a global variable so it won't have to generate a ton of arrays
+//TODO Consider naming [][]Tile and pass it as a variable
 func ConvertStringToTiles(s string) {
 	if tiles == nil {
 		tiles = make([][]Tile, stageWidth)

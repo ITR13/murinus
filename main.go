@@ -201,7 +201,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	quit = false
 	lostLife = false
 	for i := 0; i < 30 && !quit; i++ {
-		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+		engine.Stage.Render(renderer, lives, int32(engine.p1.score), false)
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 			fmt.Println("Round was quit with exit key")
@@ -210,11 +210,12 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	}
 
 	for noKeysTouched >= 5 && !quit {
-		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+		engine.Stage.Render(renderer, lives, int32(engine.p1.score), false)
 		engine.Input.Poll()
 	}
-
 	fmt.Println("Finished starting animation")
+
+	engine.Stage.tiles.renderedOnce = false
 	for !quit {
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
@@ -226,16 +227,27 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		window.SetTitle("Murinus (score: " +
 			strconv.Itoa(int(engine.p1.score)) +
 			", left " + strconv.Itoa(engine.Stage.pointsLeft) + ")")
-		engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+		engine.Stage.Render(renderer, lives, int32(engine.p1.score), true)
 		if engine.Stage.pointsLeft <= 0 || lostLife {
 			break
 		}
 	}
 	fmt.Println("Exited play loop")
+
+	for i := 0; i < len(engine.snakes); i++ {
+		snake := engine.snakes[i]
+		snake.head.display = true
+		for j := 0; j < len(snake.body); j++ {
+			snake.body[j].display = true
+		}
+		snake.tail.display = true
+	}
+
+	engine.Stage.tiles.renderedOnce = false
 	if lostLife {
 		for i := 0; i < 90 && !quit; i++ {
 			engine.Stage.Render(renderer, lives-int32(i/15%2),
-				int32(engine.p1.score))
+				int32(engine.p1.score), false)
 			engine.Input.Poll()
 			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 				fmt.Println("Round was quit with exit key")
@@ -244,7 +256,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		}
 	} else {
 		for i := 0; i < 30 && !quit; i++ {
-			engine.Stage.Render(renderer, lives, int32(engine.p1.score))
+			engine.Stage.Render(renderer, lives, int32(engine.p1.score), false)
 			engine.Input.Poll()
 		}
 	}

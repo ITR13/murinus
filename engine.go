@@ -34,7 +34,8 @@ type Snake struct {
 	minLength, normalLength, maxLength int
 }
 
-func GetEngine(p1 *Player, p2 *Player, snakes []*Snake, stage *Stage) *Engine {
+func GetEngine(p1 *Player, p2 *Player, snakes []*Snake,
+	stage *Stage) *Engine {
 	fmt.Println("Making graph")
 	graph := stage.tiles.MakeGraph(false)
 	fmt.Println("Returning engine")
@@ -129,6 +130,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		if grow {
 			entity := engine.Stage.sprites.GetEntity(0, 0, SnakeBody)
 			snake.body = append(snake.body, entity)
+			entity.display = snake.body[last].display
 			last++
 		} else {
 			snake.tail.x, snake.tail.y = snake.body[last].x, snake.body[last].y

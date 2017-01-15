@@ -256,3 +256,30 @@ func (randAI *RandomAI) Move(snakeID int, engine *Engine) Direction {
 func (randAI *RandomAI) Reset() {
 	randAI.r = rand.New(rand.NewSource(randAI.seed))
 }
+
+type HiddenAI struct {
+	hideCounter, hideCounterMax int
+	hidden                      bool
+	ai                          AI
+}
+
+func (hiddenAI *HiddenAI) Move(snakeID int, engine *Engine) Direction {
+	hiddenAI.hideCounter++
+	if hiddenAI.hideCounter >= hiddenAI.hideCounterMax {
+		snake := engine.snakes[snakeID]
+		hiddenAI.hideCounter = 0
+		snake.head.display = hiddenAI.hidden
+		for i := 0; i < len(snake.body); i++ {
+			snake.body[i].display = hiddenAI.hidden
+		}
+		snake.tail.display = hiddenAI.hidden
+		hiddenAI.hidden = !hiddenAI.hidden
+	}
+	return hiddenAI.ai.Move(snakeID, engine)
+}
+
+func (hiddenAI *HiddenAI) Reset() {
+	hiddenAI.hidden = true
+	hiddenAI.hideCounter = hiddenAI.hideCounterMax
+	hiddenAI.ai.Reset()
+}

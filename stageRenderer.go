@@ -36,6 +36,7 @@ type Stage struct {
 	stages         []*PreStageData
 	levels         [3][][2]int
 	pointsLeft, ID int
+	hideWalls      bool
 }
 
 type TileStage struct {
@@ -111,7 +112,7 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 }
 
 func (stage *Stage) Render(renderer *sdl.Renderer,
-	lives, score int32) {
+	lives, score int32, hideWalls bool) {
 	defer renderer.Present()
 	renderedOnce := stage.tiles.renderedOnce
 
@@ -127,7 +128,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 	}
 
 	if !renderedOnce {
-		stage.tiles.Render(renderer)
+		stage.tiles.Render(renderer, hideWalls && stage.hideWalls)
 	}
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
@@ -146,7 +147,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 
 }
 
-func (tiles *TileStage) Render(renderer *sdl.Renderer) {
+func (tiles *TileStage) Render(renderer *sdl.Renderer, hideWalls bool) {
 	e(renderer.SetRenderTarget(tiles.texture))
 	e(renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE))
 	e(renderer.SetDrawColor(0, 0, 0, 255))
@@ -158,8 +159,13 @@ func (tiles *TileStage) Render(renderer *sdl.Renderer) {
 				tiles.tileDst.Y = y * gSize
 				tiles.tileDst.W = gSize
 				tiles.tileDst.H = gSize
-				e(renderer.Copy(tiles.tileInfo.textures[tiles.tiles[x][y]],
-					tiles.tileInfo.src[tiles.tiles[x][y]], tiles.tileDst))
+				tile := tiles.tiles[x][y]
+				if hideWalls && tile == Wall {
+					tile = Empty
+				}
+
+				e(renderer.Copy(tiles.tileInfo.textures[tile],
+					tiles.tileInfo.src[tile], tiles.tileDst))
 			}
 		}
 		tiles.renderedOnce = true
@@ -256,7 +262,7 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 
 	data, levels := GetPreStageDatas()
 	return &Stage{input, &tileStage, &spriteStage,
-		&scoreField, data, levels, -1, -1}
+		&scoreField, data, levels, -1, -1, false}
 }
 
 func (tileInfo *TileInfo) Draw(renderer *sdl.Renderer) {
