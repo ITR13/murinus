@@ -5,6 +5,11 @@ import (
 	"github.com/veandco/go-sdl2/sdl_ttf"
 )
 
+const (
+	MenuXOffset   int32 = 64
+	MenuArrowSize int32 = 1280 / 2
+)
+
 var font *ttf.Font
 
 type Menu struct {
@@ -18,19 +23,30 @@ type MenuItem struct {
 }
 
 func (menu *Menu) Display(renderer *sdl.Renderer) {
+
 	renderer.SetRenderTarget(nil)
 	renderer.SetDrawColor(25, 25, 112, 255)
 	renderer.Clear()
+
+	first, last := menu.menuItems[0].dst.Y,
+		menu.menuItems[len(menu.menuItems)-1].dst.Y
+	last = newScreenHeight - last
+
+	diff := (last + first) / 2
+	diff -= first
+
 	for i := range menu.menuItems {
 		item := menu.menuItems[i]
+		item.dst.X = newScreenWidth/2 - MenuXOffset
+		item.dst.Y += diff
 		renderer.Copy(item.texture, item.src, item.dst)
 	}
 
 	sel := menu.selectedElement % len(menu.menuItems)
-	x := menu.menuItems[sel].dst.X - (10*sizeMult)/sizeDiv
+	x := menu.menuItems[sel].dst.X - MenuXOffset/38
 	y := menu.menuItems[sel].dst.Y + menu.menuItems[sel].dst.H/2 - 2
 	renderer.SetDrawColor(255, 255, 255, 255)
-	for i := int32(0); i < (15*sizeMult)/sizeDiv; i++ {
+	for i := int32(0); i < MenuArrowSize/85; i++ {
 		renderer.DrawLine(int(x-i), int(y-i), int(x-i), int(y+i))
 	}
 
@@ -48,44 +64,31 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	ret := make([]*Menu, 3)
 
 	ret[0] = &Menu{[]*MenuItem{
-		GetMenuItem("1 Player", screenWidth/2-screenWidth/8,
-			screenHeight/2-80, renderer),
-		GetMenuItem("2 Players", screenWidth/2-screenWidth/8,
-			screenHeight/2-40, renderer),
-		GetMenuItem("High-Scores", screenWidth/2-screenWidth/8,
-			screenHeight/2, renderer),
-		GetMenuItem("Options", screenWidth/2-screenWidth/8,
-			screenHeight/2+40, renderer),
-		GetMenuItem("Quit", screenWidth/2-screenWidth/8,
-			screenHeight/2+80, renderer),
+		GetMenuItem("1 Player", screenHeight/2-80, renderer),
+		GetMenuItem("2 Players", screenHeight/2-40, renderer),
+		GetMenuItem("High-Scores", screenHeight/2, renderer),
+		GetMenuItem("Options", screenHeight/2+40, renderer),
+		GetMenuItem("Quit", screenHeight/2+80, renderer),
 	}, 0}
 	ret[1] = &Menu{[]*MenuItem{
-		GetMenuItem("Easy", screenWidth/2-screenWidth/8,
-			screenHeight/2-40, renderer),
-		GetMenuItem("Medium", screenWidth/2-screenWidth/8,
-			screenHeight/2, renderer),
-		GetMenuItem("Hard", screenWidth/2-screenWidth/8,
-			screenHeight/2+40, renderer),
+		GetMenuItem("Easy", screenHeight/2-40, renderer),
+		GetMenuItem("Medium", screenHeight/2, renderer),
+		GetMenuItem("Hard", screenHeight/2+40, renderer),
 	}, 1}
 	ret[2] = &Menu{[]*MenuItem{
-		GetMenuItem("Set Name", screenWidth/2-screenWidth/8,
-			screenHeight/2-80, renderer),
-		GetMenuItem("Highscores", screenWidth/2-screenWidth/8,
-			screenHeight/2-40, renderer),
-		GetMenuItem("Continue", screenWidth/2-screenWidth/8,
-			screenHeight/2, renderer),
-		GetMenuItem("Retry", screenWidth/2-screenWidth/8,
-			screenHeight/2+40, renderer),
-		GetMenuItem("Exit to menu", screenWidth/2-screenWidth/8,
-			screenHeight/2+80, renderer),
+		GetMenuItem("Set Name", screenHeight/2-80, renderer),
+		GetMenuItem("Highscores", screenHeight/2-40, renderer),
+		GetMenuItem("Continue", screenHeight/2, renderer),
+		GetMenuItem("Retry", screenHeight/2+40, renderer),
+		GetMenuItem("Exit to menu", screenHeight/2+80, renderer),
 	}, 0}
 
 	return ret
 }
 
-func GetMenuItem(text string, x, y int32, renderer *sdl.Renderer) *MenuItem {
+func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	texture, src, dst := GetText(text, sdl.Color{0, 190, 0, 255},
-		x, y, renderer)
+		screenWidth/2-screenWidth/8, y, renderer)
 	return &MenuItem{texture, src, dst}
 }
 
