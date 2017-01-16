@@ -883,8 +883,6 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 		if ID < len(stage.levels[difficulty])*2/3 {
 			hideWalls = true
 		}
-	} else {
-		stage.ID = len(stage.levels[difficulty])
 	}
 
 	fmt.Printf("Loading level %d, Tiles: %t\n", ID, loadTiles)
