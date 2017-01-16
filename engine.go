@@ -261,6 +261,10 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	}
 
 	if controller.leftRight.Val() == 0 && controller.upDown.Val() == 0 {
+		x, y := NewPos(e.x, e.y, e.dir)
+		if !engine.LegalPos(x, y, false) {
+			e.precision = 0
+		}
 		return
 	}
 
@@ -359,7 +363,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 
 	x, y := NewPos(e.x, e.y, e.dir)
 	if engine.LegalPos(x, y, false) {
-		if e.precision > PrecisionMax/2 {
+		if e.precision*2 > PrecisionMax {
 			e.precision = PrecisionMax - e.precision
 			e.x, e.y = x, y
 			e.dir = (e.dir + 2) % 4
