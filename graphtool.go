@@ -24,9 +24,9 @@ type Side struct {
 
 func (tileStage *TileStage) MakeGraph(snake bool) *Graph {
 	fmt.Println("Making node array")
-	nodes := make([][]*Node, tileStage.w) //stageWidth)
+	nodes := make([][]*Node, tileStage.w)
 	for x := int32(0); x < tileStage.w; x++ {
-		nodes[x] = make([]*Node, tileStage.h) //screenHeight)
+		nodes[x] = make([]*Node, tileStage.h)
 	}
 
 	nodeCount := 0

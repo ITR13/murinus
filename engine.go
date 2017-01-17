@@ -52,6 +52,7 @@ func (engine *Engine) Advance() {
 		}
 		engine.CheckCollisions(player)
 	}
+
 	if engine.p2 != nil {
 		player := engine.p2
 		if engine.p1 != nil {
