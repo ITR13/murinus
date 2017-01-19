@@ -343,6 +343,24 @@ func (spriteInfo SpriteInfo) Draw(renderer *sdl.Renderer) {
 	spriteInfo[SnakeBody].priority = 0
 }
 
+func (stage *Stage) Free() {
+	stage.scoreField = nil
+
+	tileStage := stage.tiles
+	tileStage.texture.Destroy()
+	for i := 0; i < len(tileStage.tileInfo.textures); i++ {
+		tileStage.tileInfo.textures[i].Destroy()
+	}
+	stage.tiles = nil
+
+	spriteStage := stage.sprites
+	spriteStage.texture.Destroy()
+	for i := 0; i < len(spriteStage.sprites); i++ {
+		spriteStage.sprites[i].texture.Destroy()
+	}
+	stage.sprites = nil
+}
+
 func SetWindowSize(w, h int32, stage *Stage) {
 	maxSize := w * 5
 	if maxSize > h*8 {

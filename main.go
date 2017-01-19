@@ -193,6 +193,10 @@ func main() {
 			}
 		}
 	}
+	for i := 0; i < len(menus); i++ {
+		menus[i].Free()
+	}
+	stage.Free()
 	fmt.Println("Quit")
 }
 

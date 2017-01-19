@@ -139,3 +139,12 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 	}
 	return menu.selectedElement
 }
+
+func (menu *Menu) Free() {
+	for i := 0; i < len(menu.menuItems); i++ {
+		if menu.menuItems[i].texture != nil {
+			menu.menuItems[i].texture.Destroy()
+		}
+	}
+	menu.menuItems = nil
+}
