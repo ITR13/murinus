@@ -145,7 +145,7 @@ func main() {
 						fmt.Println("Game was quit with exit key")
 						break
 					}
-					if score > extraLivesCounter {
+					for score > extraLivesCounter && extraLivesCounter*2 > extraLivesCounter {
 						extraLivesCounter *= 2
 						extraLives++
 						lives++

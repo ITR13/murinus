@@ -116,6 +116,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 	} else {
 		last := len(snake.body) - 1
 		grow := false
+
 		if !snake.shrinking {
 			if len(snake.body) < snake.normalLength {
 				if snake.normalLengthGrowTimer <= 0 {
@@ -128,6 +129,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 				grow = true
 			}
 		}
+
 		if grow {
 			entity := engine.Stage.sprites.GetEntity(0, 0, SnakeBody)
 			snake.body = append(snake.body, entity)
@@ -140,6 +142,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		for i := last; i > 0; i-- {
 			snake.body[i].x, snake.body[i].y = snake.body[i-1].x, snake.body[i-1].y
 		}
+
 		if snake.shrinking {
 			snake.body[0].display = false
 			snake.body = snake.body[1:]
@@ -162,68 +165,35 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 func (engine *Engine) CheckCollisions(player *Player) {
 	x, y := player.entity.x, player.entity.y
 	modified := false
+	var points uint64
 	if engine.Stage.tiles.tiles[x][y] == Point {
 		engine.Stage.tiles.tiles[x][y] = Empty
 		engine.Stage.pointsLeft--
-		points := uint64(10)
-		if difficulty == 0 {
-			player.score += points / 2
-		} else if difficulty == 1 {
-			player.score += points
-		} else if difficulty == 2 {
-			player.score += points * 5
-		}
+		points += uint64(10)
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p200 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points := uint64(200)
-		if difficulty == 0 {
-			player.score += points / 2
-		} else if difficulty == 1 {
-			player.score += points
-		} else if difficulty == 2 {
-			player.score += points * 5
-		}
+		points += uint64(200)
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p500 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points := uint64(500)
-		if difficulty == 0 {
-			player.score += points / 2
-		} else if difficulty == 1 {
-			player.score += points
-		} else if difficulty == 2 {
-			player.score += points * 5
-		}
+		points += uint64(500)
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p1000 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points := uint64(1000)
-		if difficulty == 0 {
-			player.score += points / 2
-		} else if difficulty == 1 {
-			player.score += points
-		} else if difficulty == 2 {
-			player.score += points * 5
-		}
+		points += uint64(1000)
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == p2000 {
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points := uint64(2000)
-		if difficulty == 0 {
-			player.score += points / 2
-		} else if difficulty == 1 {
-			player.score += points
-		} else if difficulty == 2 {
-			player.score += points * 5
-		}
+		points += uint64(2000)
 		modified = true
 	} else if engine.Stage.tiles.tiles[x][y] == Powerup {
 		engine.Stage.tiles.tiles[x][y] = Empty
 		for i := 0; i < len(engine.snakes); i++ {
-			points := uint64(75)
-			if len(engine.snakes[i].body) > engine.snakes[i].minLength {
-				for length := len(engine.snakes[i].body); length > 0; length /= 3 {
+			points += uint64(75)
+			snake := engine.snakes[i]
+			if len(snake.body) > snake.minLength {
+				for length := len(snake.body); length > 0; length /= 3 {
 					points *= 2
 				}
 				if engine.snakes[i].shrinking {
@@ -231,15 +201,16 @@ func (engine *Engine) CheckCollisions(player *Player) {
 				}
 				engine.snakes[i].shrinking = true
 			}
-			if difficulty == 0 {
-				player.score += points / 2
-			} else if difficulty == 1 {
-				player.score += points
-			} else if difficulty == 2 {
-				player.score += points * 5
-			}
 		}
 		modified = true
+	}
+
+	if difficulty == 0 {
+		player.score += points / 2
+	} else if difficulty == 1 {
+		player.score += points
+	} else if difficulty == 2 {
+		player.score += points * 5
 	}
 
 	if modified {
@@ -248,7 +219,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
-			lostLife = true
+			lostLife = engine.Input.mono.a.down
 			break
 		}
 	}
