@@ -232,7 +232,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 		step = (step * 3) / 5
 	}
 
-	if controller.leftRight.Val() == 0 && controller.upDown.Val() == 0 {
+	if controller.leftRight.Val() == 0 && controller.upDown.Val() == 0 && false {
 		x, y := NewPos(e.x, e.y, e.dir)
 		if !engine.LegalPos(x, y, false) {
 			e.precision = 0
@@ -240,8 +240,8 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 		return
 	}
 
-	if e.precision > 15*PrecisionMax/16 ||
-		(controller.IsDirection(e.dir) && e.precision != 0) {
+	if /*e.precision > 15*PrecisionMax/16 ||*/
+	controller.IsDirection(e.dir) && e.precision != 0 {
 		e.precision += step
 	} else {
 		node := engine.Graph.nodes[e.x][e.y]
@@ -249,6 +249,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 			panic("You are inside a wall")
 		}
 		useGraph := true
+
 		if e.dir == Up || e.dir == Down {
 			val := controller.leftRight.Val()
 			if val != 0 {
@@ -276,58 +277,102 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 		}
 
 		if useGraph {
+			//If a specific direction hasn't been found yet
+			//Note:	Sides have a node either directly 1 tile in that direction
+			//		of it, or if you can move sideways to reach such a tile.
+			//		Distance is how many tiles you have to move sideways, with
+			//		zero being the first type of situation described in the note
 			dir := Direction(5)
 			priority := -1
 			for i := Up; i <= Left; i++ {
 				if controller.IsDirection(i) {
 					side := node.sides[i]
 					if side != nil {
-						if priority == -1 || (side.distance == 0 && priority != 0) {
+						distance := side.distance
+
+						if distance != 0 {
+							distance *= 2
+							if e.dir == side.dirToPush {
+								if e.precision >= BetterSlip {
+									//If it's around a courner, apply BetterSlip
+									distance--
+								}
+							} else {
+								if e.precision > BetterSlip {
+									//if it's around an inner courner, apply
+									//BetterSlip (but since it would be - +
+									// due to being on the far end of the
+									// tile, we only have to add if it doesn't
+									// apply)
+									distance++
+								}
+							}
+							if distance >= EdgeSlip {
+								continue
+							}
+							distance /= 2
+						}
+
+						if priority == -1 ||
+							(distance == 0 && priority != 0) {
+							//If no node has been found yet, or this side leads
+							//directly to a node, and the found node hasn't
 							dir = side.dirToPush
 							priority = side.distance
 						} else if dir != 6 {
-							if (priority == 0) == (side.distance == 0) {
+							//Else if there isn't a conflict so far
+							if (priority == 0) == (distance == 0) {
+								//If it has the same priority as the previous
+								//found direction to move
 								if dir != side.dirToPush {
+									//If the found direction clashes with the
+									//previously found direction, then mark
+									//the conflict
 									dir = 6
 								}
 							}
 						}
 					} else if priority == -1 {
+						//Else if a valid direction hasn't been found yet
 						if (e.dir+2)%4 == i {
+							//If moving towards the center of the current tile
 							priority = 1
 							dir = i
 						}
 					} else if priority > 0 {
+						//Else if it has the same priority as a previously found
+						//direction, mark the conflict
 						dir = 6
 					}
 				}
 			}
+
+			//Note:	Dir is 5 if no side was found,
+			//		or if side.dirToPush is set to 5, which it is if the
+			//		sideways travel-distance is equal in both directions
 			if dir < 5 {
+				//If a direction to move was found
 				if e.dir == dir {
-					if priority*2 < EdgeSlip {
-						e.precision += step
-					}
+					//If it's already moving in that direction
+					e.precision += step
 				} else {
+					//Else if it's within the specified distance of the edge
+					//(Half a distance more due to being on the other side of
+					// the current tile)
 					e.precision -= step
 					if e.precision < 0 {
-						if priority*2+1 < EdgeSlip {
-							e.precision = -e.precision
-							e.dir = dir
-						} else {
-							e.precision = 0
-						}
+						//If it crossed the border follow the wall
+						e.precision = -e.precision
+						e.dir = dir
 					}
 				}
 			} else if dir == 6 || (dir == 5 && controller.Dir(e.dir) == -1) {
+				//If there was a conflict, or if dir is 5 (see prev note) and
+				//you are specifing a direction towards the middle of the tile
 				e.precision -= step
 				if e.precision < 0 {
+					//If it crossed the border then stop
 					e.precision = 0
-				}
-			} else if dir == 5 {
-				if priority*2 < EdgeSlip {
-					if e.precision >= BetterSlip {
-						e.precision += step
-					}
 				}
 			}
 		}
