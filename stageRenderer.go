@@ -72,7 +72,7 @@ type SpriteStage struct {
 }
 
 type Entity struct {
-	sprite    *Sprite
+	spriteID  SpriteID
 	x, y      int32
 	precision int32
 	display   bool
@@ -96,7 +96,7 @@ type ScoreField struct {
 
 func (spriteStage *SpriteStage) GetEntity(x, y int32, id SpriteID) *Entity {
 	entity := &Entity{
-		spriteStage.sprites[id],
+		id,
 		x, y, 0, true, Right}
 	l := spriteStage.sprites[id].priority
 	spriteStage.entities[l] = append(spriteStage.entities[l], entity)
@@ -120,16 +120,16 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 
 func (spriteStage *SpriteStage) switchSnakeSprite(entity *Entity, activate bool) {
 	if activate {
-		if entity.sprite == spriteStage.sprites[SnakeBody] {
-			entity.sprite = spriteStage.sprites[SnakeBodySig]
-		} else if entity.sprite == spriteStage.sprites[SnakeHead] {
-			entity.sprite = spriteStage.sprites[SnakeHeadSig]
+		if entity.spriteID == SnakeBody {
+			entity.spriteID = SnakeBodySig
+		} else if entity.spriteID == SnakeHead {
+			entity.spriteID = SnakeHeadSig
 		}
 	} else {
-		if entity.sprite == spriteStage.sprites[SnakeBodySig] {
-			entity.sprite = spriteStage.sprites[SnakeBody]
-		} else if entity.sprite == spriteStage.sprites[SnakeHeadSig] {
-			entity.sprite = spriteStage.sprites[SnakeHead]
+		if entity.spriteID == SnakeBodySig {
+			entity.spriteID = SnakeBody
+		} else if entity.spriteID == SnakeHeadSig {
+			entity.spriteID = SnakeHead
 		}
 	}
 }
@@ -212,7 +212,7 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 		for priority := 0; priority < len(sprites.entities); priority++ {
 			for i := 0; i < len(sprites.entities[priority]); i++ {
 				e := sprites.entities[priority][i]
-				s := e.sprite
+				s := sprites.sprites[e.spriteID]
 				if s.priority == priority && e.display {
 					sprites.spriteDst.X = e.x * gSize
 					sprites.spriteDst.Y = e.y * gSize

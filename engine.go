@@ -136,7 +136,7 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 		}
 
 		if grow {
-			entity := engine.Stage.sprites.GetEntity(0, 0, SnakeBody)
+			entity := engine.Stage.sprites.GetEntity(0, 0, snake.tail.spriteID)
 			snake.body = append(snake.body, entity)
 			entity.display = snake.body[last].display
 			last++
