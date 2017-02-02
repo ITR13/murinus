@@ -219,7 +219,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
-			lostLife = engine.Input.mono.a.down
+			lostLife = true
 			break
 		}
 	}
