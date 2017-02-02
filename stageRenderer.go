@@ -16,16 +16,23 @@ const (
 	p1000     Tile = iota
 	p2000     Tile = iota
 	SnakeWall Tile = iota
+
+	NumTiles int = iota
 )
 
 type SpriteID uint8
 
 const (
-	Player1   SpriteID = iota
-	Player2   SpriteID = iota
-	SnakeHead SpriteID = iota
-	SnakeBody SpriteID = iota
-	SnakeTail SpriteID = iota
+	Player1        SpriteID = iota
+	Player2        SpriteID = iota
+	SnakeHead      SpriteID = iota
+	SnakeBody      SpriteID = iota
+	SnakeHeadSig   SpriteID = iota
+	SnakeBodySig   SpriteID = iota
+	SnakeHeadGhost SpriteID = iota
+	SnakeBodyGhost SpriteID = iota
+
+	NumSprites int = iota
 )
 
 type Stage struct {
@@ -223,9 +230,9 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
 	e(err)
 	tileInfo := TileInfo{&sdl.Rect{},
-		make([]*sdl.Texture, SnakeWall+1),
-		make([]*sdl.Rect, SnakeWall+1)}
-	for i := Empty; i <= SnakeWall; i++ {
+		make([]*sdl.Texture, NumTiles),
+		make([]*sdl.Rect, NumTiles)}
+	for i := 0; i < NumTiles; i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
 		e(err)
@@ -243,7 +250,7 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	e(err)
 	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
-	spriteInfo := make(SpriteInfo, 8)
+	spriteInfo := make(SpriteInfo, NumSprites)
 	for i := 0; i < len(spriteInfo); i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
@@ -341,6 +348,27 @@ func (spriteInfo SpriteInfo) Draw(renderer *sdl.Renderer) {
 	renderer.SetDrawColor(0, 127, 0, 255)
 	renderer.Clear()
 	spriteInfo[SnakeBody].priority = 0
+
+	renderer.SetRenderTarget(spriteInfo[SnakeHeadSig].texture)
+	renderer.SetDrawColor(127, 0, 0, 255)
+	renderer.Clear()
+	spriteInfo[SnakeHeadSig].priority = 2
+
+	renderer.SetRenderTarget(spriteInfo[SnakeBodySig].texture)
+	renderer.SetDrawColor(159, 0, 0, 255)
+	renderer.Clear()
+	spriteInfo[SnakeBodySig].priority = 0
+
+	renderer.SetRenderTarget(spriteInfo[SnakeHeadGhost].texture)
+	renderer.SetDrawColor(255, 255, 255, 235)
+	renderer.Clear()
+	spriteInfo[SnakeHeadGhost].priority = 2
+
+	renderer.SetRenderTarget(spriteInfo[SnakeBodyGhost].texture)
+	renderer.SetDrawColor(235, 235, 235, 220)
+	renderer.Clear()
+	spriteInfo[SnakeBodyGhost].priority = 0
+
 }
 
 func (stage *Stage) Free() {
