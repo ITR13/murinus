@@ -903,6 +903,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 		for i := 0; i < len(snakes); i++ {
 			snake := diffData.snakes[i]
 			ai := snake.ai
+			fmt.Println("\n\n\n\n\n\n\n\n!!!!", snake.ai)
 			if hideSnakes {
 				ai = &HiddenAI{0, 200 / (snake.moveTimerMax + 5), false, ai}
 			}
@@ -910,6 +911,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				snake.length, ai, snake.moveTimerMax,
 				snake.growTimerMax, snake.minLength, snake.maxLength)
 			snakes[i].ai.Reset()
+			stage.sprites.SwitchSnakeSprites(snakes[i], false)
 		}
 	}
 	fmt.Println("Exited set-up of stage")

@@ -64,22 +64,27 @@ func (engine *Engine) Advance() {
 	}
 
 	if engine.snakes != nil {
-		newPos := make([][2]int32, len(engine.snakes))
-		for i := 0; i < len(engine.snakes); i++ {
-			snake := engine.snakes[i]
-			snake.moveTimer--
-			if snake.moveTimer < 0 && !snake.shrinking {
-				dir := snake.ai.Move(i, engine)
-				x, y := NewPos(snake.head.x, snake.head.y, dir)
-				newPos[i] = [2]int32{x, y}
-			}
+		engine.MoveSnakes()
+	}
+}
+
+func (engine *Engine) MoveSnakes() {
+	newPos := make([][2]int32, len(engine.snakes))
+	for i := 0; i < len(engine.snakes); i++ {
+		snake := engine.snakes[i]
+		snake.moveTimer--
+		if snake.moveTimer < 0 && !snake.shrinking {
+			dir := snake.ai.Move(i, engine)
+			engine.Stage.sprites.SwitchSnakeSprites(snake, snake.ai.CheckSignal())
+			x, y := NewPos(snake.head.x, snake.head.y, dir)
+			newPos[i] = [2]int32{x, y}
 		}
-		for i := 0; i < len(engine.snakes); i++ {
-			snake := engine.snakes[i]
-			if snake.moveTimer < 0 {
-				snake.moveTimer = snake.moveTimerMax
-				snake.Move(newPos[i][0], newPos[i][1], engine)
-			}
+	}
+	for i := 0; i < len(engine.snakes); i++ {
+		snake := engine.snakes[i]
+		if snake.moveTimer < 0 {
+			snake.moveTimer = snake.moveTimerMax
+			snake.Move(newPos[i][0], newPos[i][1], engine)
 		}
 	}
 }

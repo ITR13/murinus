@@ -118,6 +118,30 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 		growTimerMax / 3, growTimerMax, 0, minLength, length - 2, maxLength}
 }
 
+func (spriteStage *SpriteStage) switchSnakeSprite(entity *Entity, activate bool) {
+	if activate {
+		if entity.sprite == spriteStage.sprites[SnakeBody] {
+			entity.sprite = spriteStage.sprites[SnakeBodySig]
+		} else if entity.sprite == spriteStage.sprites[SnakeHead] {
+			entity.sprite = spriteStage.sprites[SnakeHeadSig]
+		}
+	} else {
+		if entity.sprite == spriteStage.sprites[SnakeBodySig] {
+			entity.sprite = spriteStage.sprites[SnakeBody]
+		} else if entity.sprite == spriteStage.sprites[SnakeHeadSig] {
+			entity.sprite = spriteStage.sprites[SnakeHead]
+		}
+	}
+}
+
+func (spriteStage *SpriteStage) SwitchSnakeSprites(snake *Snake, activate bool) {
+	spriteStage.switchSnakeSprite(snake.head, activate)
+	for i := 0; i < len(snake.body); i++ {
+		spriteStage.switchSnakeSprite(snake.body[i], activate)
+	}
+	spriteStage.switchSnakeSprite(snake.tail, activate)
+}
+
 func (stage *Stage) Render(renderer *sdl.Renderer,
 	lives, score int32, hideWalls bool) {
 	defer renderer.Present()

@@ -39,6 +39,7 @@ func (engine *Engine) LegalDir(x, y int32, d Direction) int {
 }
 
 type AI interface {
+	CheckSignal() bool
 	Move(snakeID int, engine *Engine) Direction
 	Reset()
 }
@@ -142,6 +143,10 @@ func (simpleAI *SimpleAI) Reset() {
 	simpleAI.ignore = 0
 }
 
+func (simpleAI *SimpleAI) CheckSignal() bool {
+	return simpleAI.ignore+1 == simpleAI.ignoreMax
+}
+
 type ApproximatedAI struct {
 	divertTimer, divertTimerMax int
 }
@@ -215,6 +220,10 @@ func (approx *ApproximatedAI) Reset() {
 	approx.divertTimer = approx.divertTimerMax
 }
 
+func (approx *ApproximatedAI) CheckSignal() bool {
+	return approx.divertTimer < 1
+}
+
 type RandomAI struct {
 	seed int64
 	r    *rand.Rand
@@ -257,6 +266,10 @@ func (randAI *RandomAI) Reset() {
 	randAI.r = rand.New(rand.NewSource(randAI.seed))
 }
 
+func (randAI *RandomAI) CheckSignal() bool {
+	return true
+}
+
 type HiddenAI struct {
 	hideCounter, hideCounterMax int
 	hidden                      bool
@@ -282,4 +295,8 @@ func (hiddenAI *HiddenAI) Reset() {
 	hiddenAI.hidden = true
 	hiddenAI.hideCounter = hiddenAI.hideCounterMax
 	hiddenAI.ai.Reset()
+}
+
+func (hiddenAI *HiddenAI) CheckSignal() bool {
+	return hiddenAI.ai.CheckSignal()
 }
