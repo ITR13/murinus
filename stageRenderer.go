@@ -277,10 +277,11 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	spriteInfo := make(SpriteInfo, NumSprites)
 	for i := 0; i < len(spriteInfo); i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
-			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
+			sdl.TEXTUREACCESS_TARGET, int(gSize)*2, int(gSize))
 		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 		e(err)
-		spriteInfo[i] = &Sprite{texture, []*sdl.Rect{&rect8x8}, 1, 0}
+		ownRect := rect8x8
+		spriteInfo[i] = &Sprite{texture, []*sdl.Rect{&rect8x8, &ownRect}, 60, 0}
 	}
 
 	spriteInfo.Draw(renderer)
@@ -356,12 +357,7 @@ func (tileInfo *TileInfo) Draw(renderer *sdl.Renderer) {
 }
 
 func (spriteInfo SpriteInfo) Draw(renderer *sdl.Renderer) {
-	renderer.SetRenderTarget(spriteInfo[Player1].texture)
-	renderer.SetDrawColor(216, 75, 139, 255)
-	renderer.Clear()
-	renderer.SetDrawColor(255, 182, 193, 255)
-	renderer.FillRect(&rect6x6)
-	spriteInfo[Player1].priority = 1
+	spriteInfo[Player1].DrawPlayer(renderer, options.Character)
 
 	renderer.SetRenderTarget(spriteInfo[SnakeHead].texture)
 	renderer.SetDrawColor(0, 95, 0, 255)
@@ -393,6 +389,59 @@ func (spriteInfo SpriteInfo) Draw(renderer *sdl.Renderer) {
 	renderer.Clear()
 	spriteInfo[SnakeBodyGhost].priority = 0
 
+}
+
+func (sprite *Sprite) DrawPlayer(renderer *sdl.Renderer, character uint8) {
+	renderer.SetRenderTarget(sprite.texture)
+
+	switch character {
+	case 0:
+		sprite.src[1].X, sprite.src[1].Y = 0, 0
+		renderer.SetDrawColor(216, 75, 139, 255)
+		renderer.Clear()
+		renderer.SetDrawColor(255, 182, 193, 255)
+		renderer.FillRect(&rect6x6)
+	case 1:
+		sprite.src[1].X, sprite.src[1].Y = gSize, gSize
+		detail := int32(6)
+		tempRect := sdl.Rect{0, 0, gSize / detail, gSize / detail}
+		for x0 := int32(0); x0 < detail; x0++ {
+			for y0 := int32(0); y0 < detail; y0++ {
+				tempRect.X = x0 * gSize / detail
+				tempRect.Y = y0 * gSize / detail
+				borderSubtract := uint8(0)
+				if x0 == 0 || y0 == 0 || x0 == detail-1 || y0 == detail-1 {
+					borderSubtract = 25
+				}
+				if (x0^y0)%2 == 0 {
+					renderer.SetDrawColor(0, 95-borderSubtract, 0, 255)
+				} else {
+					renderer.SetDrawColor(0, 127-borderSubtract*3, 0, 255)
+				}
+				renderer.FillRect(&tempRect)
+				tempRect.X = (detail + (x0+1)%detail) * gSize
+				renderer.FillRect(&tempRect)
+			}
+		}
+	case 2:
+		sprite.src[1].X, sprite.src[1].Y = 0, 0
+		renderer.SetDrawColor(0xff, 0xa5, 0x38, 255)
+		renderer.Clear()
+		renderer.SetDrawColor(255, 255, 0x38, 255)
+		renderer.FillRect(&rect6x6)
+	case 3:
+		sprite.src[1].X, sprite.src[1].Y = 0, 0
+		renderer.SetDrawColor(77, 2, 77, 255)
+		renderer.Clear()
+		renderer.SetDrawColor(77, 77, 2, 255)
+		renderer.FillRect(&rect6x6)
+	default:
+		sprite.src[1].X, sprite.src[1].Y = 0, 0
+		renderer.SetDrawColor(172, 172, 172, 255)
+		renderer.Clear()
+	}
+
+	sprite.priority = 1
 }
 
 func (stage *Stage) Free() {
