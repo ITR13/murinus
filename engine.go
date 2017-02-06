@@ -298,12 +298,12 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 						if distance != 0 {
 							distance *= 2
 							if e.dir == side.dirToPush {
-								if e.precision >= BetterSlip {
+								if e.precision >= options.BetterSlip {
 									//If it's around a courner, apply BetterSlip
 									distance--
 								}
 							} else {
-								if e.precision > BetterSlip {
+								if e.precision > options.BetterSlip {
 									//if it's around an inner courner, apply
 									//BetterSlip (but since it would be - +
 									// due to being on the far end of the
@@ -312,7 +312,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 									distance++
 								}
 							}
-							if distance >= EdgeSlip {
+							if distance >= options.EdgeSlip {
 								continue
 							}
 							distance /= 2
