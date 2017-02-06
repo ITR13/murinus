@@ -234,6 +234,7 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 			}
 		}
 	}
+	sprites.time++
 }
 
 //TODO Figure out if it's better to save these variables in Stage
@@ -402,7 +403,7 @@ func (sprite *Sprite) DrawPlayer(renderer *sdl.Renderer, character uint8) {
 		renderer.SetDrawColor(255, 182, 193, 255)
 		renderer.FillRect(&rect6x6)
 	case 1:
-		sprite.src[1].X, sprite.src[1].Y = gSize, gSize
+		sprite.src[1].X = gSize
 		detail := int32(6)
 		tempRect := sdl.Rect{0, 0, gSize / detail, gSize / detail}
 		for x0 := int32(0); x0 < detail; x0++ {
@@ -419,7 +420,8 @@ func (sprite *Sprite) DrawPlayer(renderer *sdl.Renderer, character uint8) {
 					renderer.SetDrawColor(0, 127-borderSubtract*3, 0, 255)
 				}
 				renderer.FillRect(&tempRect)
-				tempRect.X = (detail + (x0+1)%detail) * gSize
+				tempRect.X += gSize
+				tempRect.Y = gSize - tempRect.Y - gSize/detail
 				renderer.FillRect(&tempRect)
 			}
 		}
