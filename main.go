@@ -81,10 +81,14 @@ func main() {
 			} else if subMenu == 0 || subMenu == 1 {
 				difficulty = menus[1].Run(renderer, input)
 			} else if subMenu == 2 {
-				higscores.Display(renderer, input)
+				fmt.Println("Not made yet") //Training
 			} else if subMenu == 3 {
-				fmt.Println("Not made yet")
+				higscores.Display(renderer, input)
 			} else if subMenu == 4 {
+				fmt.Println("Not made yet") //Options
+			} else if subMenu == 5 {
+				fmt.Println("Not made yet") //Credits
+			} else if subMenu == 6 {
 				quit = true
 			} else {
 				panic("Unknown menu option")
