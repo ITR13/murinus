@@ -39,7 +39,7 @@ type Stage struct {
 	input          *Input
 	tiles          *TileStage
 	sprites        *SpriteStage
-	scoreField     *ScoreField
+	scores         *ScoreField
 	stages         []*PreStageData
 	levels         [3][][2]int
 	pointsLeft, ID int
@@ -89,8 +89,10 @@ type Sprite struct {
 type SpriteInfo []*Sprite
 
 type ScoreField struct {
-	rect           *sdl.Rect
-	lives          *sdl.Rect
+	score, lives   int32
+	texture        *sdl.Texture
+	src, dst       *sdl.Rect
+	lifeRect       *sdl.Rect
 	xOffset, xMult int32
 }
 
@@ -142,8 +144,7 @@ func (spriteStage *SpriteStage) SwitchSnakeSprites(snake *Snake, activate bool) 
 	spriteStage.switchSnakeSprite(snake.tail, activate)
 }
 
-func (stage *Stage) Render(renderer *sdl.Renderer,
-	lives, score int32, hideWalls bool) {
+func (stage *Stage) Render(renderer *sdl.Renderer, hideWalls bool) {
 	defer renderer.Present()
 	renderedOnce := stage.tiles.renderedOnce
 
@@ -160,6 +161,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 
 	if !renderedOnce {
 		stage.tiles.Render(renderer, hideWalls && stage.hideWalls)
+		stage.scores.Render(renderer)
 	}
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
@@ -169,12 +171,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer,
 	renderer.Copy(stage.tiles.texture, stage.tiles.src, stage.tiles.dst)
 	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 	renderer.Copy(stage.sprites.texture, stage.sprites.src, stage.sprites.dst)
-	for i := int32(0); i < lives; i++ {
-		renderer.SetDrawColor(255, 182, 193, 255)
-		stage.scoreField.lives.X = stage.scoreField.xOffset +
-			stage.scoreField.xMult*i
-		renderer.FillRect(stage.scoreField.lives)
-	}
+	renderer.Copy(stage.scores.texture, stage.scores.src, stage.scores.dst)
 
 }
 
@@ -237,6 +234,17 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	sprites.time++
 }
 
+func (scoreField *ScoreField) Render(renderer *sdl.Renderer) {
+	renderer.SetRenderTarget(scoreField.texture)
+	renderer.SetDrawColor(0, 0, 0, 255)
+	renderer.Clear()
+	for i := int32(0); i < scoreField.lives; i++ {
+		renderer.SetDrawColor(255, 182, 193, 255)
+		scoreField.lifeRect.X = scoreField.xOffset + scoreField.xMult*i
+		renderer.FillRect(scoreField.lifeRect)
+	}
+}
+
 //TODO Figure out if it's better to save these variables in Stage
 var rect8x8, rect6x6, rect4x4 sdl.Rect
 
@@ -289,9 +297,19 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	spriteStage := SpriteStage{spriteInfo, nil, spriteTexture,
 		&stageRect, &stageScreenRect, &sdl.Rect{}, 0}
 
-	scoreField := ScoreField{&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
-		w * blockSize, blockSize}, &sdl.Rect{0, 4 + offsetFromScreenY,
-		blockSize - 8, blockSize - 8}, 4 + offsetFromScreenX, blockSize}
+	scoreTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
+		sdl.TEXTUREACCESS_TARGET,
+		font.Height()*int(stageWidth), font.Height()+20)
+	e(err)
+	fontHeightDiv10 := int32(font.Height() / 5)
+	scoreField := ScoreField{-1, -1, scoreTexture,
+		&sdl.Rect{0, 0,
+			int32(font.Height()) * stageWidth, int32(font.Height() + 20)},
+		&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
+			w * blockSize, blockSize},
+		&sdl.Rect{0, fontHeightDiv10 / 2,
+			fontHeightDiv10 * 4, fontHeightDiv10 * 8},
+		fontHeightDiv10 / 2, fontHeightDiv10 * 5}
 
 	data, levels := GetPreStageDatas()
 	return &Stage{input, &tileStage, &spriteStage,
@@ -447,8 +465,6 @@ func (sprite *Sprite) DrawPlayer(renderer *sdl.Renderer, character uint8) {
 }
 
 func (stage *Stage) Free() {
-	stage.scoreField = nil
-
 	tileStage := stage.tiles
 	tileStage.texture.Destroy()
 	for i := 0; i < len(tileStage.tileInfo.textures); i++ {
@@ -462,6 +478,9 @@ func (stage *Stage) Free() {
 		spriteStage.sprites[i].texture.Destroy()
 	}
 	stage.sprites = nil
+
+	stage.scores.texture.Destroy()
+	stage.scores = nil
 }
 
 func SetWindowSize(w, h int32, stage *Stage) {
@@ -481,6 +500,12 @@ func SetWindowSize(w, h int32, stage *Stage) {
 	stage.tiles.dst.X, stage.tiles.dst.Y, stage.tiles.dst.W, stage.tiles.dst.H =
 		offsetFromScreenX, blockSize+offsetFromScreenY,
 		stageWidth*blockSize, stageHeight*blockSize
+
+	stage.scores.dst.X, stage.scores.dst.Y,
+
+		stage.scores.dst.W, stage.scores.dst.H =
+		offsetFromScreenX, offsetFromScreenY, stageWidth*blockSize, blockSize
+
 }
 
 //From rosettacode.org

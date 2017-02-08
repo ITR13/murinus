@@ -53,6 +53,8 @@ func main() {
 	renderer.Clear()
 	fmt.Println("Created renderer")
 
+	menus := GetMenus(renderer)
+
 	input := GetInput()
 	fmt.Println("Got inputs")
 
@@ -63,7 +65,6 @@ func main() {
 	stage := LoadTextures(renderer, input)
 	fmt.Println("Loaded stage-basis")
 
-	menus := GetMenus(renderer)
 	higscores := Read("singleplayer.hs")
 	defer higscores.Write("singleplayer.hs")
 	fmt.Println("Loaded Highscores")
@@ -208,8 +209,10 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	quit = false
 	lostLife = false
+	engine.Stage.scores.score,
+		engine.Stage.scores.lives = int32(engine.p1.score), lives
 	for i := 0; i < 30 && !quit; i++ {
-		engine.Stage.Render(renderer, lives, int32(engine.p1.score), false)
+		engine.Stage.Render(renderer, false)
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 			fmt.Println("Round was quit with exit key")
@@ -218,7 +221,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	}
 
 	for noKeysTouched >= 5 && !quit {
-		engine.Stage.Render(renderer, lives, int32(engine.p1.score), false)
+		engine.Stage.Render(renderer, false)
 		engine.Input.Poll()
 	}
 	fmt.Println("Finished starting animation")
@@ -235,7 +238,9 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		window.SetTitle("Murinus (score: " +
 			strconv.Itoa(int(engine.p1.score)) +
 			", left " + strconv.Itoa(engine.Stage.pointsLeft) + ")")
-		engine.Stage.Render(renderer, lives, int32(engine.p1.score), true)
+
+		engine.Stage.scores.score = int32(engine.p1.score)
+		engine.Stage.Render(renderer, true)
 		if engine.Stage.pointsLeft <= 0 || lostLife {
 			break
 		}
@@ -254,8 +259,8 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	engine.Stage.tiles.renderedOnce = false
 	if lostLife {
 		for i := 0; i < 90 && !quit; i++ {
-			engine.Stage.Render(renderer, lives-int32(i/15%2),
-				int32(engine.p1.score), false)
+			engine.Stage.scores.lives = lives - int32(i/15%2)
+			engine.Stage.Render(renderer, false)
 			engine.Input.Poll()
 			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 				fmt.Println("Round was quit with exit key")
@@ -264,7 +269,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		}
 	} else {
 		for i := 0; i < 30 && !quit; i++ {
-			engine.Stage.Render(renderer, lives, int32(engine.p1.score), false)
+			engine.Stage.Render(renderer, false)
 			engine.Input.Poll()
 		}
 	}
