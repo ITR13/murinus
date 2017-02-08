@@ -911,7 +911,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 				snake.length, ai, snake.moveTimerMax,
 				snake.growTimerMax, snake.minLength, snake.maxLength)
 			snakes[i].ai.Reset()
-			stage.sprites.SwitchSnakeSprites(snakes[i], false)
+			stage.sprites.AlertSnakes(snakes[i], false)
 		}
 	}
 	fmt.Println("Exited set-up of stage")

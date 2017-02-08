@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -14,7 +16,26 @@ type NumberData struct {
 var numbers *NumberData
 
 func InitNumbers(renderer *sdl.Renderer) {
-	textSurface, err := font.RenderUTF8_Solid("0123456789-",
+	dash, _, err := font.SizeUTF8("-")
+	e(err)
+	max := dash
+	space, _, err := font.SizeUTF8(" ")
+	e(err)
+	dist := space
+	middle := make([]int, 11)
+	for i := 0; i < 10; i++ {
+		c, _, err := font.SizeUTF8(strconv.Itoa(i))
+		e(err)
+		if c > max {
+			max = c
+		}
+
+		middle[i] = dist + c/2
+		dist += c + space
+	}
+	middle[10] = dist + dash/2
+
+	textSurface, err := font.RenderUTF8_Solid(" 0 1 2 3 4 5 6 7 8 9 - ",
 		sdl.Color{255, 255, 255, 255})
 	e(err)
 	defer textSurface.Free()
@@ -22,10 +43,10 @@ func InitNumbers(renderer *sdl.Renderer) {
 	texture, err := renderer.CreateTextureFromSurface(textSurface)
 	e(err)
 
-	W, H := textSurface.W/11, textSurface.H
+	W, H := int32(max), textSurface.H
 	src := make([]*sdl.Rect, 11)
 	for i := int32(0); i < 11; i++ {
-		src[i] = &sdl.Rect{i * W, 0, W, H}
+		src[i] = &sdl.Rect{int32(middle[i]) - W/2, 0, W, H}
 	}
 	dst := &sdl.Rect{0, 0, W, H}
 	numbers = &NumberData{texture, src, dst, W}
@@ -36,6 +57,9 @@ func (numberData *NumberData) WriteNumber(n int64, x, y int32, center bool,
 	renderer *sdl.Renderer) {
 	W := numberData.W
 	digits, negative := digitsIn(n)
+	if negative {
+		n = -n
+	}
 
 	if center {
 		x += W * digits / 2

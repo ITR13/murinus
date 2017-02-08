@@ -59,8 +59,11 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		panic("Should only be called once!")
 	}
 	e(ttf.Init())
-	font, err = ttf.OpenFont("./font/AverageMono.ttf", 20)
+	font, err = ttf.OpenFont("./font/Play-Bold.ttf", 20)
 	e(err)
+
+	InitNumbers(renderer)
+
 	ret := make([]*Menu, 3)
 
 	ret[0] = &Menu{[]*MenuItem{

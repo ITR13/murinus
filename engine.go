@@ -75,7 +75,7 @@ func (engine *Engine) MoveSnakes() {
 		snake.moveTimer--
 		if snake.moveTimer < 0 && !snake.shrinking {
 			dir := snake.ai.Move(i, engine)
-			engine.Stage.sprites.SwitchSnakeSprites(snake, snake.ai.CheckSignal())
+			engine.Stage.sprites.AlertSnakes(snake, snake.ai.CheckSignal())
 			x, y := NewPos(snake.head.x, snake.head.y, dir)
 			newPos[i] = [2]int32{x, y}
 		}

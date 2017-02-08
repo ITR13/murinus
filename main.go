@@ -54,6 +54,7 @@ func main() {
 	fmt.Println("Created renderer")
 
 	menus := GetMenus(renderer)
+	fmt.Println("Created menus")
 
 	input := GetInput()
 	fmt.Println("Got inputs")

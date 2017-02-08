@@ -120,7 +120,7 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 		growTimerMax / 3, growTimerMax, 0, minLength, length - 2, maxLength}
 }
 
-func (spriteStage *SpriteStage) switchSnakeSprite(entity *Entity, activate bool) {
+func (spriteStage *SpriteStage) alertSnake(entity *Entity, activate bool) {
 	if activate {
 		if entity.spriteID == SnakeBody {
 			entity.spriteID = SnakeBodySig
@@ -136,12 +136,12 @@ func (spriteStage *SpriteStage) switchSnakeSprite(entity *Entity, activate bool)
 	}
 }
 
-func (spriteStage *SpriteStage) SwitchSnakeSprites(snake *Snake, activate bool) {
-	spriteStage.switchSnakeSprite(snake.head, activate)
+func (spriteStage *SpriteStage) AlertSnakes(snake *Snake, activate bool) {
+	spriteStage.alertSnake(snake.head, activate)
 	for i := 0; i < len(snake.body); i++ {
-		spriteStage.switchSnakeSprite(snake.body[i], activate)
+		spriteStage.alertSnake(snake.body[i], activate)
 	}
-	spriteStage.switchSnakeSprite(snake.tail, activate)
+	spriteStage.alertSnake(snake.tail, activate)
 }
 
 func (stage *Stage) Render(renderer *sdl.Renderer, hideWalls bool) {
@@ -214,13 +214,17 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 					sprites.spriteDst.X = e.x * gSize
 					sprites.spriteDst.Y = e.y * gSize
 					if e.dir == Up {
-						sprites.spriteDst.Y -= e.precision * gSize / PrecisionMax
+						sprites.spriteDst.Y -= e.precision *
+							gSize / PrecisionMax
 					} else if e.dir == Right {
-						sprites.spriteDst.X += e.precision * gSize / PrecisionMax
+						sprites.spriteDst.X += e.precision *
+							gSize / PrecisionMax
 					} else if e.dir == Down {
-						sprites.spriteDst.Y += e.precision * gSize / PrecisionMax
+						sprites.spriteDst.Y += e.precision *
+							gSize / PrecisionMax
 					} else if e.dir == Left {
-						sprites.spriteDst.X -= e.precision * gSize / PrecisionMax
+						sprites.spriteDst.X -= e.precision *
+							gSize / PrecisionMax
 					}
 					sprites.spriteDst.W = gSize
 					sprites.spriteDst.H = gSize
@@ -243,6 +247,9 @@ func (scoreField *ScoreField) Render(renderer *sdl.Renderer) {
 		scoreField.lifeRect.X = scoreField.xOffset + scoreField.xMult*i
 		renderer.FillRect(scoreField.lifeRect)
 	}
+
+	numbers.WriteNumber(int64(scoreField.score),
+		scoreField.src.W/2, -2, true, renderer)
 }
 
 //TODO Figure out if it's better to save these variables in Stage
@@ -256,8 +263,8 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	stageRect := sdl.Rect{0, 0, w * gSize, h * gSize}
 	offsetFromScreenX := (screenWidth - w*blockSize) / 2
 	offsetFromScreenY := (screenHeight - h*(blockSize+2)) / 2
-	stageScreenRect := sdl.Rect{offsetFromScreenX, blockSize + offsetFromScreenY,
-		w * blockSize, h * blockSize}
+	stageScreenRect := sdl.Rect{offsetFromScreenX,
+		blockSize + offsetFromScreenY, w * blockSize, h * blockSize}
 
 	tileTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
@@ -290,7 +297,8 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 		e(err)
 		ownRect := rect8x8
-		spriteInfo[i] = &Sprite{texture, []*sdl.Rect{&rect8x8, &ownRect}, 60, 0}
+		spriteInfo[i] = &Sprite{texture,
+			[]*sdl.Rect{&rect8x8, &ownRect}, 60, 0}
 	}
 
 	spriteInfo.Draw(renderer)
@@ -304,12 +312,12 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	fontHeightDiv10 := int32(font.Height() / 5)
 	scoreField := ScoreField{-1, -1, scoreTexture,
 		&sdl.Rect{0, 0,
-			int32(font.Height()) * stageWidth, int32(font.Height() + 20)},
+			int32(font.Height()) * stageWidth, int32(font.Height())},
 		&sdl.Rect{offsetFromScreenX, offsetFromScreenY,
 			w * blockSize, blockSize},
-		&sdl.Rect{0, fontHeightDiv10 / 2,
-			fontHeightDiv10 * 4, fontHeightDiv10 * 8},
-		fontHeightDiv10 / 2, fontHeightDiv10 * 5}
+		&sdl.Rect{0, 0,
+			fontHeightDiv10 * 5, fontHeightDiv10 * 5},
+		fontHeightDiv10 / 2, fontHeightDiv10 * 6}
 
 	data, levels := GetPreStageDatas()
 	return &Stage{input, &tileStage, &spriteStage,
@@ -497,15 +505,14 @@ func SetWindowSize(w, h int32, stage *Stage) {
 
 	offsetFromScreenX := (screenWidth - stageWidth*blockSize) / 2
 	offsetFromScreenY := (screenHeight - stageHeight*(blockSize+2)) / 2
-	stage.tiles.dst.X, stage.tiles.dst.Y, stage.tiles.dst.W, stage.tiles.dst.H =
+	stage.tiles.dst.X, stage.tiles.dst.Y,
+		stage.tiles.dst.W, stage.tiles.dst.H =
 		offsetFromScreenX, blockSize+offsetFromScreenY,
 		stageWidth*blockSize, stageHeight*blockSize
 
 	stage.scores.dst.X, stage.scores.dst.Y,
-
 		stage.scores.dst.W, stage.scores.dst.H =
 		offsetFromScreenX, offsetFromScreenY, stageWidth*blockSize, blockSize
-
 }
 
 //From rosettacode.org
