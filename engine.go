@@ -359,6 +359,12 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 				}
 			}
 
+			//If following the wall makes you move against the controller's
+			//direction (courner where EdgeSlip ignores one direction)
+			if controller.Dir(dir) == -1 {
+				dir = 6
+			}
+
 			//Note:	Dir is 5 if no side was found,
 			//		or if side.dirToPush is set to 5, which it is if the
 			//		sideways travel-distance is equal in both directions
