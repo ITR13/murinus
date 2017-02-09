@@ -210,12 +210,19 @@ func (engine *Engine) CheckCollisions(player *Player) {
 		modified = true
 	}
 
-	if difficulty == 0 {
+	switch difficulty {
+	case 0:
+		player.score += 2 * points / 3
+	case 1:
+		player.score += 3 * points / 2
+	case 2:
+		player.score += points * 3
+	case 3:
 		player.score += points / 2
-	} else if difficulty == 1 {
+	case 4:
 		player.score += points
-	} else if difficulty == 2 {
-		player.score += points * 5
+	default:
+		panic("Should not be reached")
 	}
 
 	if modified {

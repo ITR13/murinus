@@ -134,11 +134,6 @@ func main() {
 								wonInARow = 0
 								lives++
 							}
-						} else if wonInARow == 10 {
-							if lives-extraLives < 5 {
-								wonInARow = 0
-								lives++
-							}
 						}
 						fmt.Printf("Won in a row counter: %d\n", wonInARow)
 						engine = stage.Load(stage.ID+1, true, score+500*
@@ -153,8 +148,8 @@ func main() {
 					}
 					for score > extraLivesCounter && extraLivesCounter*2 > extraLivesCounter {
 						extraLivesCounter *= 2
-						extraLives++
-						lives++
+						//extraLives++
+						//lives++
 					}
 					fmt.Printf("Score: %d\n", score)
 				}
@@ -257,10 +252,11 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		snake.tail.display = true
 	}
 
-	engine.Stage.tiles.renderedOnce = false
 	if lostLife {
 		for i := 0; i < 90 && !quit; i++ {
+			engine.Stage.tiles.renderedOnce = false
 			engine.Stage.scores.lives = lives - int32(i/15%2)
+			engine.p1.entity.display = (i / 15 % 2) == 0
 			engine.Stage.Render(renderer, false)
 			engine.Input.Poll()
 			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {

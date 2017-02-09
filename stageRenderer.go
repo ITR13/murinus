@@ -41,7 +41,7 @@ type Stage struct {
 	sprites        *SpriteStage
 	scores         *ScoreField
 	stages         []*PreStageData
-	levels         [3][][2]int
+	levels         [5][][2]int
 	pointsLeft, ID int
 	hideWalls      bool
 }
