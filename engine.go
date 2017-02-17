@@ -210,24 +210,11 @@ func (engine *Engine) CheckCollisions(player *Player) {
 		modified = true
 	}
 
-	switch difficulty {
-	case 0:
-		player.score += 2 * points / 3
-	case 1:
-		player.score += 3 * points / 2
-	case 2:
-		player.score += points * 3
-	case 3:
-		player.score += points / 2
-	case 4:
-		player.score += points
-	default:
-		panic("Should not be reached")
-	}
-
 	if modified {
 		engine.Stage.tiles.renderedOnce = false
 	}
+
+	player.score += ScoreMult(points)
 
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
@@ -409,4 +396,22 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	if e.precision < 0 {
 		panic("Should not reach this point")
 	}
+}
+
+func ScoreMult(points uint64) uint64 {
+	switch difficulty {
+	case 0:
+		return 2 * points / 3
+	case 1:
+		return 3 * points / 2
+	case 2:
+		return points * 3
+	case 3:
+		return points / 2
+	case 4:
+		return points
+	default:
+		panic("Should not be reached")
+	}
+
 }

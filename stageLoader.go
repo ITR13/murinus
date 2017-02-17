@@ -10,6 +10,7 @@ const (
 )
 
 var tiles [][]Tile
+
 var difficulty int
 
 type PreStageData struct {
@@ -870,7 +871,6 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 	c1, c2 = firstNonIntro, firstNonIntro
 	for diff := 0; diff < 3; diff++ {
 		for i := firstNonIntro; i < len(data); i++ {
-			fmt.Println(diff, i, len(levels[0]), len(levels[1]), c1, c2)
 			if data[i] != nil {
 				l := len(data[i].difficultyData)
 				if l == 1 && diff == 0 {
@@ -897,7 +897,6 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 			}
 		}
 	}
-	fmt.Println(4, 0, len(levels[0]), len(levels[1]), c1, c2)
 
 	return data, levels
 }

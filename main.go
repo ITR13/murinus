@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -106,7 +107,7 @@ func main() {
 				lostLife = false
 				lives := 3
 				score := uint64(0)
-				score -= 500 * (uint64(difficulty*difficulty) + 1)
+				score -= ScoreMult(500)
 				wonInARow := -2
 				extraLives := 0
 				extraLivesCounter := uint64(25000)
@@ -136,8 +137,8 @@ func main() {
 							}
 						}
 						fmt.Printf("Won in a row counter: %d\n", wonInARow)
-						engine = stage.Load(stage.ID+1, true, score+500*
-							(uint64(difficulty*difficulty)+1))
+						engine = stage.Load(stage.ID+1, true,
+							score+ScoreMult(500))
 					}
 					fmt.Printf("Lives: %d\n", lives)
 					Play(engine, window, renderer, int32(lives))
@@ -167,7 +168,7 @@ func main() {
 							defaultName = name
 							if scoreData == nil {
 								scoreData = &ScoreData{score, name,
-									levelsCleared, difficulty}
+									levelsCleared, difficulty, time.Now()}
 								higscores.Add(scoreData)
 								higscores.Sort()
 							} else {

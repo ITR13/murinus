@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"os"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -19,6 +21,7 @@ type ScoreData struct {
 	Name          string
 	LevelsCleared int
 	Difficulty    int
+	Date          time.Time
 }
 
 func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
@@ -154,7 +157,7 @@ func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
 	textureHeight := screenHeight / int32(l-2)
 	names := make([]*sdl.Texture, l)
 	for i := 0; i < len(names); i++ {
-		names[i] = list.RenderScore(i-1, false, renderer)
+		names[i] = list.RenderScore(i-1, false, true, renderer)
 	}
 	src := &sdl.Rect{0, 0, screenWidth, textureHeight}
 	dst := &sdl.Rect{0, 0, screenWidth, textureHeight}
@@ -218,10 +221,11 @@ func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
 			update = true
 		}
 		if update {
+			update = false
 			for i := 0; i < len(names); i++ {
 				names[i].Destroy()
 				names[i] = list.RenderScore(i+currentIndex,
-					unique, renderer)
+					unique, true, renderer)
 			}
 		}
 	}
@@ -232,7 +236,7 @@ func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
 	}
 }
 
-func (list *HighscoreList) RenderScore(index int, unique bool,
+func (list *HighscoreList) RenderScore(index int, unique, multi bool,
 	renderer *sdl.Renderer) *sdl.Texture {
 	if index < 0 {
 		return nil
@@ -241,23 +245,24 @@ func (list *HighscoreList) RenderScore(index int, unique bool,
 		if index >= len(list.uniqueScores) {
 			return nil
 		}
-		return list.uniqueScores[index].Render(index, renderer)
+		return list.uniqueScores[index].Render(index, multi, renderer)
 	} else {
 		if index >= len(list.scores) {
 			return nil
 		}
-		return list.scores[index].Render(index, renderer)
+		return list.scores[index].Render(index, multi, renderer)
 	}
 }
 
-func (score *ScoreData) Render(i int, renderer *sdl.Renderer) *sdl.Texture {
+func (score *ScoreData) Render(i int, multi bool,
+	renderer *sdl.Renderer) *sdl.Texture {
 	text := "[" + strconv.Itoa(i+1) + "]"
 	for len(text) < 5 {
 		text += " "
 	}
 	text += score.Name + " | "
 
-	for v := uint64(1000000000000000000); v > 0; v /= 1000 {
+	for v := uint64(1000000000); v > 0; v /= 1000 {
 		if v > score.Score {
 			text += "000"
 		} else {
@@ -273,7 +278,10 @@ func (score *ScoreData) Render(i int, renderer *sdl.Renderer) *sdl.Texture {
 			text += "."
 		}
 	}
-	text += " | " + strconv.Itoa(score.LevelsCleared)
+	text += fmt.Sprintf(" | %02d | %04d/%02d/%02d - %02d:%02d:%02d",
+		score.LevelsCleared,
+		score.Date.Year(), score.Date.Month(), score.Date.Day(),
+		score.Date.Hour(), score.Date.Minute(), score.Date.Second())
 
 	r, g, b := 255, 255, 255
 	if i == 0 {
@@ -284,12 +292,18 @@ func (score *ScoreData) Render(i int, renderer *sdl.Renderer) *sdl.Texture {
 		r, g, b = 0, 190, 0
 	}
 
-	r = r * (score.Difficulty + 2) / 4
-	g = g * (score.Difficulty + 2) / 4
-	if score.Difficulty == 0 {
-		b = b * (score.Difficulty + 3) / 5
-	} else {
-		b = b * (score.Difficulty + 2) / 4
+	if multi {
+		diff := score.Difficulty*2 + 2
+		if diff > 6 {
+			diff -= 5
+		}
+		r = r * (diff) / 8
+		g = g * (diff) / 8
+		if score.Difficulty == 0 {
+			b = b * (diff + 1) / 10
+		} else {
+			b = b * (diff) / 8
+		}
 	}
 
 	surface, err := font.RenderUTF8_Solid(text,
