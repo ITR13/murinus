@@ -902,13 +902,6 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 }
 
 func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
-	var p1, p2 *Player
-	var snakes []*Snake
-	stage.sprites.entities = make([][]*Entity, 4)
-	for i := 0; i < 4; i++ {
-		stage.sprites.entities[i] = make([]*Entity, 0)
-	}
-
 	stage.ID = ID
 	hideSnakes, hideWalls := false, false
 	if ID >= len(stage.levels[difficulty]) {
@@ -923,6 +916,20 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 
 	levelIndex := stage.levels[difficulty][ID][0]
 	diffIndex := stage.levels[difficulty][ID][1]
+
+	return stage.LoadSingleLevel(levelIndex, diffIndex,
+		hideSnakes, hideWalls, loadTiles, score)
+}
+
+func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int,
+	hideSnakes, hideWalls, loadTiles bool, score uint64) *Engine {
+
+	var p1, p2 *Player
+	var snakes []*Snake
+	stage.sprites.entities = make([][]*Entity, 4)
+	for i := 0; i < 4; i++ {
+		stage.sprites.entities[i] = make([]*Entity, 0)
+	}
 
 	level := stage.stages[levelIndex]
 	diffData := level.difficultyData[diffIndex]
