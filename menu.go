@@ -18,12 +18,19 @@ type Menu struct {
 }
 
 type MenuItem struct {
-	texture  *sdl.Texture
-	src, dst *sdl.Rect
+	texture     *sdl.Texture
+	src, dst    *sdl.Rect
+	numberField *NumberField
+}
+
+type NumberField struct {
+	Title             *sdl.Texture
+	Tsrc, Tdst        *sdl.Rect
+	numberRect        *sdl.Rect
+	Default, Min, Max int
 }
 
 func (menu *Menu) Display(renderer *sdl.Renderer) {
-
 	renderer.SetRenderTarget(nil)
 	renderer.SetDrawColor(25, 25, 112, 255)
 	renderer.Clear()
@@ -96,8 +103,13 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	texture, src, dst := GetText(text, sdl.Color{0, 190, 0, 255},
 		screenWidth/2-screenWidth/8, y, renderer)
-	return &MenuItem{texture, src, dst}
+	return &MenuItem{texture, src, dst, nil}
 }
+
+/*func GetNumberMenuItem(title string, value, min, max int, y int32, renderer *sdl.Renderer) {
+	title, tsrc, tdst := GetText(text, sdl.Color{0, 190, 0, 255},
+		0, 0, renderer)
+}*/
 
 func GetText(text string, color sdl.Color, x, y int32,
 	renderer *sdl.Renderer) (*sdl.Texture, *sdl.Rect, *sdl.Rect) {

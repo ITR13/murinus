@@ -14,11 +14,6 @@ type Options struct {
 	AllKeys    *[]*Key `xml:"Keys>Key"`
 }
 
-type NumberField struct {
-	Title             string
-	Default, Min, Max int
-}
-
 func ReadOptions(path string, input *Input) {
 	options = Options{0, EdgeSlipDefault, BetterSlipDefault, &input.allInputs}
 	if _, err := os.Stat(path); err == nil {

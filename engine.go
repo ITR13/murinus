@@ -169,30 +169,26 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 
 func (engine *Engine) CheckCollisions(player *Player) {
 	x, y := player.entity.x, player.entity.y
-	modified := false
+	modified := true
 	var points uint64
-	if engine.Stage.tiles.tiles[x][y] == Point {
+	switch engine.Stage.tiles.tiles[x][y] {
+	case Point:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		engine.Stage.pointsLeft--
 		points += uint64(10)
-		modified = true
-	} else if engine.Stage.tiles.tiles[x][y] == p200 {
+	case p200:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		points += uint64(200)
-		modified = true
-	} else if engine.Stage.tiles.tiles[x][y] == p500 {
+	case p500:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		points += uint64(500)
-		modified = true
-	} else if engine.Stage.tiles.tiles[x][y] == p1000 {
+	case p1000:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		points += uint64(1000)
-		modified = true
-	} else if engine.Stage.tiles.tiles[x][y] == p2000 {
+	case p2000:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		points += uint64(2000)
-		modified = true
-	} else if engine.Stage.tiles.tiles[x][y] == Powerup {
+	case Powerup:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		for i := 0; i < len(engine.snakes); i++ {
 			points += uint64(75)
@@ -207,7 +203,8 @@ func (engine *Engine) CheckCollisions(player *Player) {
 				engine.snakes[i].shrinking = true
 			}
 		}
-		modified = true
+	default:
+		modified = false
 	}
 
 	if modified {
