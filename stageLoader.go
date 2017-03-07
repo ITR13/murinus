@@ -923,7 +923,6 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 
 func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int,
 	hideSnakes, hideWalls, loadTiles bool, score uint64) *Engine {
-
 	var p1, p2 *Player
 	var snakes []*Snake
 	stage.sprites.entities = make([][]*Entity, 4)

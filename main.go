@@ -195,6 +195,8 @@ func main() {
 			}
 		}
 	}
+
+	numbers.Free()
 	for i := 0; i < len(menus); i++ {
 		menus[i].Free()
 	}

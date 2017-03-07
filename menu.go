@@ -106,10 +106,21 @@ func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	return &MenuItem{texture, src, dst, nil}
 }
 
-/*func GetNumberMenuItem(title string, value, min, max int, y int32, renderer *sdl.Renderer) {
+func GetNumberMenuItem(text string, value, min, max int,
+	y int32, renderer *sdl.Renderer) *MenuItem {
 	title, tsrc, tdst := GetText(text, sdl.Color{0, 190, 0, 255},
 		0, 0, renderer)
-}*/
+	numberRect := &sdl.Rect{tdst.W + 10, 0, 80, tdst.H}
+	numberField := &NumberField{title, tsrc, tdst, numberRect, value, min, max}
+
+	src := &sdl.Rect{0, 0, numberRect.X + numberRect.W, numberRect.H}
+	dst := &sdl.Rect{screenWidth/2 - screenWidth/8, y, src.W, src.H}
+	texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
+		sdl.TEXTUREACCESS_TARGET, int(src.W), int(src.H))
+	e(err)
+
+	return &MenuItem{texture, src, dst, numberField}
+}
 
 func GetText(text string, color sdl.Color, x, y int32,
 	renderer *sdl.Renderer) (*sdl.Texture, *sdl.Rect, *sdl.Rect) {
@@ -163,6 +174,12 @@ func (menu *Menu) Free() {
 	for i := 0; i < len(menu.menuItems); i++ {
 		if menu.menuItems[i].texture != nil {
 			menu.menuItems[i].texture.Destroy()
+			if menu.menuItems[i].numberField != nil {
+				if menu.menuItems[i].numberField.Title != nil {
+					menu.menuItems[i].numberField.Title.Destroy()
+				}
+				menu.menuItems[i].numberField = nil
+			}
 		}
 	}
 	menu.menuItems = nil

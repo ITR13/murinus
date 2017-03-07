@@ -92,3 +92,13 @@ func digitsIn(n int64) (int32, bool) {
 	}
 	return ret, negative
 }
+
+func (numberData *NumberData) Free() {
+	if numberData.texture != nil {
+		numberData.texture.Destroy()
+		numberData.texture = nil
+	}
+	numberData.src = nil
+	numberData.dst = nil
+	numberData.W = 0
+}
