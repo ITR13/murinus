@@ -76,24 +76,30 @@ func main() {
 	for !quit {
 		difficulty = -1
 		subMenu := -1
+	menuLoop:
 		for difficulty == -1 && !quit {
 			subMenu = menus[0].Run(renderer, input)
-			if subMenu == -1 && !quit {
-				quit = Arcade
-				break
-			} else if subMenu == 0 || subMenu == 1 {
+			switch subMenu {
+			case -1:
+				if !quit {
+					quit = Arcade
+				}
+				break menuLoop
+			case 0:
+				fallthrough
+			case 1:
 				difficulty = menus[1].Run(renderer, input)
-			} else if subMenu == 2 {
+			case 2:
 				fmt.Println("Not made yet") //Training
-			} else if subMenu == 3 {
+			case 3:
 				higscores.Display(renderer, input)
-			} else if subMenu == 4 {
-				fmt.Println("Not made yet") //Options
-			} else if subMenu == 5 {
+			case 4:
+				DoSettings(menus[3], renderer, input)
+			case 5:
 				fmt.Println("Not made yet") //Credits
-			} else if subMenu == 6 {
+			case 6:
 				quit = true
-			} else {
+			default:
 				panic("Unknown menu option")
 			}
 		}
@@ -274,6 +280,10 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		}
 	}
 	fmt.Println("Finished exit animation")
+}
+
+func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
+	menu.Run(renderer, input)
 }
 
 func e(err error) {

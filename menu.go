@@ -24,10 +24,10 @@ type MenuItem struct {
 }
 
 type NumberField struct {
-	Title             *sdl.Texture
-	Tsrc, Tdst        *sdl.Rect
-	numberRect        *sdl.Rect
-	Default, Min, Max int
+	Title           *sdl.Texture
+	Tsrc, Tdst      *sdl.Rect
+	numberRect      *sdl.Rect
+	Value, Min, Max int64
 }
 
 func (menu *Menu) Display(renderer *sdl.Renderer) {
@@ -60,6 +60,26 @@ func (menu *Menu) Display(renderer *sdl.Renderer) {
 	renderer.Present()
 }
 
+func (menu *MenuItem) SetNumber(n int64, renderer *sdl.Renderer) {
+	if menu.numberField != nil {
+		nf := menu.numberField
+		if n >= nf.Min && n <= nf.Max {
+			nf.Value = n
+
+			renderer.SetRenderTarget(menu.texture)
+			renderer.SetDrawColor(0, 0, 0, 0)
+			renderer.Clear()
+
+			renderer.Copy(nf.Title, nf.Tsrc, nf.Tdst)
+			renderer.SetDrawColor(0, 0, 0, 255)
+			renderer.DrawRect(nf.numberRect)
+
+			numbers.WriteNumber(n, (nf.numberRect.X+nf.numberRect.W)/2, 0,
+				true, renderer)
+		}
+	}
+}
+
 func GetMenus(renderer *sdl.Renderer) []*Menu {
 	var err error
 	if ttf.WasInit() || font != nil {
@@ -71,7 +91,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 
 	InitNumbers(renderer)
 
-	ret := make([]*Menu, 3)
+	ret := make([]*Menu, 4)
 
 	ret[0] = &Menu{[]*MenuItem{
 		GetMenuItem("1 Player", screenHeight/2-120, renderer),
@@ -96,6 +116,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetMenuItem("Retry", screenHeight/2+40, renderer),
 		GetMenuItem("Exit to menu", screenHeight/2+80, renderer),
 	}, 0}
+	ret[3] = &Menu{[]*MenuItem{
+		GetNumberMenuItem("Character", int64(options.Character), 0, 3,
+			screenHeight/2-80, renderer),
+		GetNumberMenuItem("EdgeSlip", int64(options.EdgeSlip), 0, 16,
+			screenHeight/2, renderer),
+		GetNumberMenuItem("BetterSlip", int64(options.BetterSlip), 0, 255,
+			screenHeight/2+80, renderer),
+	}, 0}
 
 	return ret
 }
@@ -106,7 +134,7 @@ func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	return &MenuItem{texture, src, dst, nil}
 }
 
-func GetNumberMenuItem(text string, value, min, max int,
+func GetNumberMenuItem(text string, value, min, max int64,
 	y int32, renderer *sdl.Renderer) *MenuItem {
 	title, tsrc, tdst := GetText(text, sdl.Color{0, 190, 0, 255},
 		0, 0, renderer)
@@ -119,7 +147,10 @@ func GetNumberMenuItem(text string, value, min, max int,
 		sdl.TEXTUREACCESS_TARGET, int(src.W), int(src.H))
 	e(err)
 
-	return &MenuItem{texture, src, dst, numberField}
+	menuItem := &MenuItem{texture, src, dst, numberField}
+	menuItem.SetNumber(value, renderer)
+
+	return menuItem
 }
 
 func GetText(text string, color sdl.Color, x, y int32,
