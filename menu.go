@@ -1,3 +1,20 @@
+/*
+    This file is part of Murinus.
+
+    Murinus is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Murinus is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
+*/
+	
 package main
 
 import (
@@ -27,7 +44,7 @@ type NumberField struct {
 	Title           *sdl.Texture
 	Tsrc, Tdst      *sdl.Rect
 	numberRect      *sdl.Rect
-	Value, Min, Max int64
+	Value, Min, Max int32
 }
 
 func (menu *Menu) Display(renderer *sdl.Renderer) {
@@ -60,27 +77,28 @@ func (menu *Menu) Display(renderer *sdl.Renderer) {
 	renderer.Present()
 }
 
-func (menu *MenuItem) SetNumber(n int64, renderer *sdl.Renderer) {
+func (menu *MenuItem) SetNumber(n int32, renderer *sdl.Renderer) {
 	if menu.numberField != nil {
 		nf := menu.numberField
 		if n >= nf.Min && n <= nf.Max {
 			nf.Value = n
-
 			renderer.SetRenderTarget(menu.texture)
+			defer renderer.SetRenderTarget(nil)
+
 			renderer.SetDrawColor(0, 0, 0, 0)
 			renderer.Clear()
 
 			renderer.Copy(nf.Title, nf.Tsrc, nf.Tdst)
 			renderer.SetDrawColor(0, 0, 0, 255)
-			renderer.DrawRect(nf.numberRect)
+			renderer.FillRect(nf.numberRect)
 
-			numbers.WriteNumber(n, (nf.numberRect.X+nf.numberRect.W)/2, 0,
-				true, renderer)
+			numbers.WriteNumber(int64(n),
+				nf.numberRect.X+nf.numberRect.W/2, 0, true, renderer)
 		}
 	}
 }
 
-func GetMenus(renderer *sdl.Renderer) []*Menu {
+func InitText(renderer *sdl.Renderer) {
 	var err error
 	if ttf.WasInit() || font != nil {
 		panic("Should only be called once!")
@@ -88,9 +106,9 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	e(ttf.Init())
 	font, err = ttf.OpenFont("./font/Play-Bold.ttf", 20)
 	e(err)
+}
 
-	InitNumbers(renderer)
-
+func GetMenus(renderer *sdl.Renderer) []*Menu {
 	ret := make([]*Menu, 4)
 
 	ret[0] = &Menu{[]*MenuItem{
@@ -117,11 +135,11 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetMenuItem("Exit to menu", screenHeight/2+80, renderer),
 	}, 0}
 	ret[3] = &Menu{[]*MenuItem{
-		GetNumberMenuItem("Character", int64(options.Character), 0, 3,
+		GetNumberMenuItem("Character", int32(options.Character), 0, 3,
 			screenHeight/2-80, renderer),
-		GetNumberMenuItem("EdgeSlip", int64(options.EdgeSlip), 0, 16,
+		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
 			screenHeight/2, renderer),
-		GetNumberMenuItem("BetterSlip", int64(options.BetterSlip), 0, 255,
+		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 255,
 			screenHeight/2+80, renderer),
 	}, 0}
 
@@ -134,18 +152,23 @@ func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	return &MenuItem{texture, src, dst, nil}
 }
 
-func GetNumberMenuItem(text string, value, min, max int64,
+func GetNumberMenuItem(text string, value, min, max int32,
 	y int32, renderer *sdl.Renderer) *MenuItem {
+
 	title, tsrc, tdst := GetText(text, sdl.Color{0, 190, 0, 255},
 		0, 0, renderer)
+
 	numberRect := &sdl.Rect{tdst.W + 10, 0, 80, tdst.H}
 	numberField := &NumberField{title, tsrc, tdst, numberRect, value, min, max}
 
 	src := &sdl.Rect{0, 0, numberRect.X + numberRect.W, numberRect.H}
-	dst := &sdl.Rect{screenWidth/2 - screenWidth/8, y, src.W, src.H}
+	dst := &sdl.Rect{screenWidth/2 - screenWidth/8, y + tdst.Y, src.W, src.H}
+	tdst.Y = 0
+
 	texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(src.W), int(src.H))
 	e(err)
+	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
 	menuItem := &MenuItem{texture, src, dst, numberField}
 	menuItem.SetNumber(value, renderer)
@@ -172,12 +195,24 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 	repeat := true
 	input.mono.a.down = false
 	input.mono.b.down = false
+
+	prevMod := int32(0)
 	for !input.mono.a.down && !quit {
 		if input.mono.b.down {
 			return -1
 		}
 		menu.Display(renderer)
 		input.Poll()
+		mod := input.mono.leftRight.Val()
+		if prevMod != mod {
+			prevMod = mod
+			selected := menu.menuItems[menu.selectedElement]
+			if selected.numberField != nil {
+				selected.SetNumber(selected.numberField.Value+mod,
+					renderer)
+			}
+		}
+
 		val := input.mono.upDown.Val()
 		if val != prevVal || repeat {
 			repeat = false
