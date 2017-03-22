@@ -54,19 +54,19 @@ func main() {
 
 	runtime.LockOSThread()
 	err := sdl.Init(sdl.INIT_EVERYTHING)
-	e(err)
+	PanicOnError(err)
 	fmt.Println("Init SDL")
 
 	window, err := sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
 		sdl.WINDOWPOS_UNDEFINED, int(screenWidth), int(screenHeight),
 		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE|sdl.RENDERER_PRESENTVSYNC)
-	e(err)
+	PanicOnError(err)
 	defer window.Destroy()
 	fmt.Println("Created window")
 
 	renderer, err := sdl.CreateRenderer(window, -1,
 		sdl.RENDERER_ACCELERATED)
-	e(err)
+	PanicOnError(err)
 	defer renderer.Destroy()
 	renderer.Clear()
 	fmt.Println("Created renderer")
@@ -130,7 +130,7 @@ func main() {
 				renderer.SetDrawColor(0, 0, 0, 255)
 				renderer.Clear()
 				dst.X -= dst.W / 2
-				e(renderer.Copy(creds, src, dst))
+				PanicOnError(renderer.Copy(creds, src, dst))
 				for !input.mono.a.down && !input.mono.b.down && !quit {
 					input.Poll()
 					renderer.Present()
@@ -368,7 +368,7 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	redrawTextures = true
 }
 
-func e(err error) {
+func PanicOnError(err error) {
 	if err != nil {
 		panic(err)
 	}
