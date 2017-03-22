@@ -120,7 +120,7 @@ func InitText(renderer *sdl.Renderer) {
 }
 
 func GetMenus(renderer *sdl.Renderer) []*Menu {
-	ret := make([]*Menu, 4)
+	ret := make([]*Menu, 5)
 
 	ret[0] = &Menu{[]*MenuItem{
 		GetMenuItem("1 Player", screenHeight/2-120, renderer),
@@ -157,6 +157,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetNumberMenuItem("Show Divert", int32(options.ShowDivert), 0, 1,
 			screenHeight/2+60, renderer),
 		GetMenuItem("Reset", screenHeight/2+100, renderer),
+	}, 0, true}
+	ret[4] = &Menu{[]*MenuItem{
+		GetNumberMenuItem("Level", 0, 0, 34,
+			screenHeight/2-40, renderer),
+		GetNumberMenuItem("Difficulty", 0, 0, 2,
+			screenHeight/2, renderer),
+		GetNumberMenuItem("Lives", 3, 1, 16,
+			screenHeight/2+40, renderer),
 	}, 0, true}
 
 	return ret

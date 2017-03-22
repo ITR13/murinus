@@ -795,6 +795,7 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 			stageWidth/2, stageHeight-2,
 			nil, [][]int32{{pSpeed}, {pSpeed * 3 / 2}, {pSpeed * 2}}),
 	}
+	fmt.Println(len(data))
 	firstNonIntro := 0
 	for i := 0; data[i] != nil; i++ {
 		firstNonIntro++
