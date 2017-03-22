@@ -18,8 +18,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_ttf"
 )
@@ -82,21 +80,24 @@ func (menu *Menu) Display(renderer *sdl.Renderer) {
 func (menu *MenuItem) SetNumber(n int32, renderer *sdl.Renderer) {
 	if menu.numberField != nil {
 		nf := menu.numberField
-		if n >= nf.Min && n <= nf.Max {
-			nf.Value = n
-			renderer.SetRenderTarget(menu.texture)
-			defer renderer.SetRenderTarget(nil)
-
-			renderer.SetDrawColor(0, 0, 0, 0)
-			renderer.Clear()
-
-			renderer.Copy(nf.Title, nf.Tsrc, nf.Tdst)
-			renderer.SetDrawColor(0, 0, 0, 255)
-			renderer.FillRect(nf.numberRect)
-
-			numbers.WriteNumber(int64(n),
-				nf.numberRect.X+nf.numberRect.W/2, 0, true, renderer)
+		if n < nf.Min {
+			n = nf.Min
+		} else if n > nf.Max {
+			n = nf.Max
 		}
+		nf.Value = n
+		renderer.SetRenderTarget(menu.texture)
+		defer renderer.SetRenderTarget(nil)
+
+		renderer.SetDrawColor(0, 0, 0, 0)
+		renderer.Clear()
+
+		renderer.Copy(nf.Title, nf.Tsrc, nf.Tdst)
+		renderer.SetDrawColor(0, 0, 0, 255)
+		renderer.FillRect(nf.numberRect)
+
+		numbers.WriteNumber(int64(n),
+			nf.numberRect.X+nf.numberRect.W/2, 0, true, renderer)
 	}
 }
 
@@ -137,12 +138,15 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetMenuItem("Exit to menu", screenHeight/2+80, renderer),
 	}, 0}
 	ret[3] = &Menu{[]*MenuItem{
-		GetNumberMenuItem("Character", int32(options.Character), 0, 3,
+		GetNumberMenuItem("Character (P1)", int32(options.CharacterP1), 0, 3,
 			screenHeight/2-80, renderer),
+		GetNumberMenuItem("Character (P2)", int32(options.CharacterP2), 0, 3,
+			screenHeight/2-40, renderer),
 		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
 			screenHeight/2, renderer),
 		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
-			screenHeight/2+80, renderer),
+			screenHeight/2+40, renderer),
+		GetMenuItem("Reset", screenHeight/2+80, renderer),
 	}, 0}
 
 	return ret
@@ -173,7 +177,6 @@ func GetNumberMenuItem(text string, value, min, max int32,
 	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
 	menuItem := &MenuItem{texture, src, dst, numberField}
-	menuItem.SetNumber(1, renderer)
 	menuItem.SetNumber(value, renderer)
 
 	return menuItem
@@ -193,30 +196,43 @@ func GetText(text string, color sdl.Color, x, y int32,
 }
 
 func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
-	for i := range menu.menuItems {
-		fmt.Println(menu.menuItems[i].texture)
-	}
-
-	prevVal := int32(0)
-	step := 0
-	repeat := true
+	prevVal, prevMod := int32(0), int32(0)
+	step, mStep := 0, 0
+	repeat, mRepeat := true, true
 	input.mono.a.down = false
 	input.mono.b.down = false
 
-	prevMod := int32(0)
-	for !input.mono.a.down && !quit {
+	for !quit {
+		selected := menu.menuItems[menu.selectedElement]
+		menu.Display(renderer)
+		input.Poll()
+
 		if input.mono.b.down {
 			return -1
 		}
-		menu.Display(renderer)
-		input.Poll()
+		if input.mono.a.down && selected.numberField == nil {
+			break
+		}
+
 		mod := input.mono.leftRight.Val()
-		if prevMod != mod {
+		if prevMod != mod || mRepeat {
+			mRepeat = false
+			if prevMod != mod {
+				mStep = 0
+			}
 			prevMod = mod
-			selected := menu.menuItems[menu.selectedElement]
 			if selected.numberField != nil {
+				if input.mono.a.down {
+					mod *= 10
+				}
 				selected.SetNumber(selected.numberField.Value+mod,
 					renderer)
+			}
+		}
+		if mod != 0 {
+			mStep++
+			if mStep > 20 && mStep%4 == 0 {
+				mRepeat = true
 			}
 		}
 
@@ -235,9 +251,12 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 					len(menu.menuItems) - 1) % len(menu.menuItems)
 			}
 		}
-		step++
-		if step > 20 && step%3 == 0 {
-			repeat = true
+
+		if val != 0 {
+			step++
+			if step > 20 && step%5 == 0 {
+				repeat = true
+			}
 		}
 	}
 	return menu.selectedElement

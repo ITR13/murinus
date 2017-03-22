@@ -25,14 +25,15 @@ import (
 var options Options
 
 type Options struct {
-	Character  uint8
-	EdgeSlip   int
-	BetterSlip int32
-	AllKeys    *[]*Key `xml:"Keys>Key"`
+	CharacterP1 uint8
+	CharacterP2 uint8
+	EdgeSlip    int
+	BetterSlip  int32
+	AllKeys     *[]*Key `xml:"Keys>Key"`
 }
 
 func ReadOptions(path string, input *Input) {
-	options = Options{0, EdgeSlipDefault, BetterSlipDefault, &input.allInputs}
+	options = Options{0, 2, EdgeSlipDefault, BetterSlipDefault, &input.allInputs}
 	if path == "" {
 		return
 	}
