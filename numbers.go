@@ -1,20 +1,20 @@
 /*
-    This file is part of Murinus.
+   This file is part of Murinus.
 
-    Murinus is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Murinus is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-    Murinus is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   Murinus is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
 */
-	
+
 package main
 
 import (
@@ -79,9 +79,14 @@ func (numberData *NumberData) WriteNumber(n int64, x, y int32, center bool,
 	}
 
 	if center {
-		x += W * digits / 2
+		x += W*(digits)/2 - W/4
 	} else {
-		x += W * digits
+		x += W*(digits) - W/4
+	}
+
+	if n == 0 {
+		numberData.dst.X, numberData.dst.Y = x, y
+		renderer.Copy(numberData.texture, numberData.src[0], numberData.dst)
 	}
 
 	for n > 0 {
@@ -94,9 +99,13 @@ func (numberData *NumberData) WriteNumber(n int64, x, y int32, center bool,
 		numberData.dst.X, numberData.dst.Y = x, y
 		renderer.Copy(numberData.texture, numberData.src[10], numberData.dst)
 	}
+
 }
 
 func digitsIn(n int64) (int32, bool) {
+	if n == 0 {
+		return 0, false
+	}
 	ret := int32(0)
 	negative := n < 0
 	if negative {

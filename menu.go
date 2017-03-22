@@ -25,6 +25,9 @@ import (
 const (
 	MenuXOffset   int32 = 64
 	MenuArrowSize int32 = 1280 / 2
+
+	NumberFieldX     int32 = 185
+	NumberFieldWidth int32 = 80
 )
 
 var font *ttf.Font
@@ -32,6 +35,7 @@ var font *ttf.Font
 type Menu struct {
 	menuItems       []*MenuItem
 	selectedElement int
+	centered        bool
 }
 
 type MenuItem struct {
@@ -61,7 +65,11 @@ func (menu *Menu) Display(renderer *sdl.Renderer) {
 
 	for i := range menu.menuItems {
 		item := menu.menuItems[i]
-		item.dst.X = newScreenWidth/2 - MenuXOffset
+		if menu.centered {
+			item.dst.X = newScreenWidth/2 - item.dst.W/2
+		} else {
+			item.dst.X = newScreenWidth/2 - MenuXOffset
+		}
 		item.dst.Y += diff
 		renderer.Copy(item.texture, item.src, item.dst)
 	}
@@ -122,21 +130,21 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetMenuItem("Options", screenHeight/2+40, renderer),
 		GetMenuItem("Credits", screenHeight/2+80, renderer),
 		GetMenuItem("Quit", screenHeight/2+120, renderer),
-	}, 0}
+	}, 0, false}
 	ret[1] = &Menu{[]*MenuItem{
 		GetMenuItem("Beginner", screenHeight/2-80, renderer),
 		GetMenuItem("Intermediate", screenHeight/2-40, renderer),
 		GetMenuItem("Advanced", screenHeight/2, renderer),
 		GetMenuItem("Beginner's Adventure", screenHeight/2+40, renderer),
 		GetMenuItem("Intermediate's Adventure", screenHeight/2+80, renderer),
-	}, 0}
+	}, 0, false}
 	ret[2] = &Menu{[]*MenuItem{
 		GetMenuItem("Set Name", screenHeight/2-80, renderer),
 		GetMenuItem("Highscores", screenHeight/2-40, renderer),
 		GetMenuItem("Continue", screenHeight/2, renderer),
 		GetMenuItem("Retry", screenHeight/2+40, renderer),
 		GetMenuItem("Exit to menu", screenHeight/2+80, renderer),
-	}, 0}
+	}, 0, false}
 	ret[3] = &Menu{[]*MenuItem{
 		GetNumberMenuItem("Character (P1)", int32(options.CharacterP1), 0, 3,
 			screenHeight/2-80, renderer),
@@ -147,14 +155,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
 			screenHeight/2+40, renderer),
 		GetMenuItem("Reset", screenHeight/2+80, renderer),
-	}, 0}
+	}, 0, true}
 
 	return ret
 }
 
 func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	texture, src, dst := GetText(text, sdl.Color{0, 190, 0, 255},
-		screenWidth/2-screenWidth/8, y, renderer)
+		-1, y, renderer)
 	return &MenuItem{texture, src, dst, nil}
 }
 
@@ -164,11 +172,11 @@ func GetNumberMenuItem(text string, value, min, max int32,
 	title, tsrc, tdst := GetText(text, sdl.Color{0, 190, 0, 255},
 		0, 0, renderer)
 
-	numberRect := &sdl.Rect{tdst.W + 10, 0, 80, tdst.H}
+	numberRect := &sdl.Rect{NumberFieldX, 0, NumberFieldWidth, tdst.H}
 	numberField := &NumberField{title, tsrc, tdst, numberRect, value, min, max}
 
 	src := &sdl.Rect{0, 0, numberRect.X + numberRect.W, numberRect.H}
-	dst := &sdl.Rect{screenWidth/2 - screenWidth/8, y + tdst.Y, src.W, src.H}
+	dst := &sdl.Rect{-1, y + tdst.Y, src.W, src.H}
 	tdst.Y = 0
 
 	texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
