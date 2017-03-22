@@ -138,7 +138,7 @@ func (spriteStage *SpriteStage) GetSnake(x, y int32, length int, ai AI,
 }
 
 func (spriteStage *SpriteStage) alertSnake(entity *Entity, activate bool) {
-	if activate {
+	if activate && options.showDivert {
 		if entity.spriteID == SnakeBody {
 			entity.spriteID = SnakeBodySig
 		} else if entity.spriteID == SnakeHead {

@@ -29,11 +29,14 @@ type Options struct {
 	CharacterP2 uint8
 	EdgeSlip    int
 	BetterSlip  int32
+	ShowDivert  uint8
+	showDivert  bool
 	AllKeys     *[]*Key `xml:"Keys>Key"`
 }
 
 func ReadOptions(path string, input *Input) {
-	options = Options{0, 2, EdgeSlipDefault, BetterSlipDefault, &input.allInputs}
+	options = Options{0, 2, EdgeSlipDefault, BetterSlipDefault,
+		ShowDivertDefault, ShowDivertDefault != 0, &input.allInputs}
 	if path == "" {
 		return
 	}
@@ -44,6 +47,7 @@ func ReadOptions(path string, input *Input) {
 		decoder := xml.NewDecoder(file)
 		e(decoder.Decode(&options))
 	}
+	options.showDivert = options.ShowDivert != 0
 }
 
 func SaveOptions(path string, input *Input) {

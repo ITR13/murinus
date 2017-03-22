@@ -330,12 +330,14 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 }
 
 func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
-	for v := menu.Run(renderer, input); v != -1 && !quit; v = menu.Run(renderer, input) {
+	for v := menu.Run(renderer, input); v != -1 &&
+		!quit; v = menu.Run(renderer, input) {
 		ReadOptions("", input)
 		menu.menuItems[0].SetNumber(int32(options.CharacterP1), renderer)
 		menu.menuItems[1].SetNumber(int32(options.CharacterP2), renderer)
 		menu.menuItems[2].SetNumber(int32(options.EdgeSlip), renderer)
 		menu.menuItems[3].SetNumber(int32(options.BetterSlip), renderer)
+		menu.menuItems[4].SetNumber(int32(options.ShowDivert), renderer)
 	}
 	if quit {
 		return
@@ -344,6 +346,8 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	options.CharacterP2 = uint8(menu.menuItems[1].numberField.Value)
 	options.EdgeSlip = int(menu.menuItems[2].numberField.Value)
 	options.BetterSlip = menu.menuItems[3].numberField.Value
+	options.ShowDivert = uint8(menu.menuItems[4].numberField.Value)
+	options.showDivert = options.ShowDivert != 0
 	redrawTextures = true
 }
 

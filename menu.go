@@ -147,12 +147,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	}, 0, false}
 	ret[3] = &Menu{[]*MenuItem{
 		GetNumberMenuItem("Character (P1)", int32(options.CharacterP1), 0, 3,
-			screenHeight/2-80, renderer),
+			screenHeight/2-100, renderer),
 		GetNumberMenuItem("Character (P2)", int32(options.CharacterP2), 0, 3,
-			screenHeight/2-40, renderer),
+			screenHeight/2-60, renderer),
 		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
-			screenHeight/2, renderer),
+			screenHeight/2-20, renderer),
 		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
+			screenHeight/2+40, renderer),
+		GetNumberMenuItem("Show Divert", int32(options.ShowDivert), 0, 1,
 			screenHeight/2+40, renderer),
 		GetMenuItem("Reset", screenHeight/2+80, renderer),
 	}, 0, true}
@@ -173,7 +175,8 @@ func GetNumberMenuItem(text string, value, min, max int32,
 		0, 0, renderer)
 
 	numberRect := &sdl.Rect{NumberFieldX, 0, NumberFieldWidth, tdst.H}
-	numberField := &NumberField{title, tsrc, tdst, numberRect, value, min, max}
+	numberField := &NumberField{title, tsrc, tdst, numberRect,
+		value, min, max}
 
 	src := &sdl.Rect{0, 0, numberRect.X + numberRect.W, numberRect.H}
 	dst := &sdl.Rect{-1, y + tdst.Y, src.W, src.H}
