@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	Arcade bool = false
+	Arcade bool = true
 )
 
 type Input struct {
@@ -77,22 +77,22 @@ func GetInput() *Input {
 		allInputs[Right] = GetKey(sdl.K_d, sdl.K_RIGHT)
 		allInputs[Down] = GetKey(sdl.K_s, sdl.K_DOWN)
 		allInputs[Left] = GetKey(sdl.K_a, sdl.K_LEFT)
-		allInputs[4] = GetKey(sdl.K_SPACE, sdl.K_RETURN, sdl.K_f, sdl.K_k)
-		allInputs[5] = GetKey(sdl.K_g, sdl.K_r, sdl.K_t, sdl.K_p)
+		allInputs[4] = GetKey(sdl.K_SPACE, sdl.K_RETURN, sdl.K_g, sdl.K_l)
+		allInputs[5] = GetKey(sdl.K_f, sdl.K_r, sdl.K_k, sdl.K_o)
 
 		allInputs[ipc+Up] = GetKey(sdl.K_w)
 		allInputs[ipc+Right] = GetKey(sdl.K_d)
 		allInputs[ipc+Down] = GetKey(sdl.K_s)
 		allInputs[ipc+Left] = GetKey(sdl.K_a)
-		allInputs[ipc+4] = GetKey(sdl.K_f, sdl.K_SPACE)
-		allInputs[ipc+5] = GetKey(sdl.K_g, sdl.K_r)
+		allInputs[ipc+4] = GetKey(sdl.K_g, sdl.K_SPACE)
+		allInputs[ipc+5] = GetKey(sdl.K_f, sdl.K_r)
 
 		allInputs[ipc*2+Up] = GetKey(sdl.K_UP)
 		allInputs[ipc*2+Right] = GetKey(sdl.K_RIGHT)
 		allInputs[ipc*2+Down] = GetKey(sdl.K_DOWN)
 		allInputs[ipc*2+Left] = GetKey(sdl.K_LEFT)
-		allInputs[ipc*2+4] = GetKey(sdl.K_k, sdl.K_RETURN)
-		allInputs[ipc*2+5] = GetKey(sdl.K_l, sdl.K_o)
+		allInputs[ipc*2+4] = GetKey(sdl.K_l, sdl.K_RETURN)
+		allInputs[ipc*2+5] = GetKey(sdl.K_k, sdl.K_o)
 		allInputs[ipc*3] = GetKey(sdl.K_t, sdl.K_p)
 	} else {
 		allInputs[Up] = GetKey(sdl.K_w, sdl.K_UP)

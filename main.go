@@ -96,7 +96,7 @@ func main() {
 
 	fmt.Println("Loaded Highscores")
 
-	defaultName := "\\\\\\"
+	defaultName := "\\\\\\\\\\"
 
 	for !quit {
 		difficulty = -1
@@ -126,14 +126,17 @@ func main() {
 					newScreenWidth/2, newScreenHeight/2, renderer)
 				input.mono.a.down = false
 				input.mono.b.down = false
-				renderer.SetRenderTarget(nil)
-				renderer.SetDrawColor(0, 0, 0, 255)
-				renderer.Clear()
-				dst.X -= dst.W / 2
-				e(renderer.Copy(creds, src, dst))
+				dst.X -= dst.W
+				dst.Y -= dst.H / 2
+				dst.W *= 2
+				dst.H *= 2
 				for !input.mono.a.down && !input.mono.b.down && !quit {
-					input.Poll()
+					renderer.SetRenderTarget(nil)
+					renderer.SetDrawColor(0, 0, 0, 255)
+					renderer.Clear()
+					e(renderer.Copy(creds, src, dst))
 					renderer.Present()
+					input.Poll()
 				}
 				creds.Destroy()
 			case 6:

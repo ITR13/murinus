@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	MenuXOffset   int32 = 64
-	MenuArrowSize int32 = 1280 / 2
+	MenuXOffset   int32 = 64 * 5
+	MenuArrowSize int32 = 1280 // / 2
 
 	NumberFieldX     int32 = 185
 	NumberFieldWidth int32 = 80
@@ -122,41 +122,46 @@ func InitText(renderer *sdl.Renderer) {
 func GetMenus(renderer *sdl.Renderer) []*Menu {
 	ret := make([]*Menu, 5)
 
+	mult := int32(1)
+	if Arcade {
+		mult = 2
+	}
+
 	ret[0] = &Menu{[]*MenuItem{
-		GetMenuItem("1 Player", screenHeight/2-120, renderer),
-		GetMenuItem("2 Players", screenHeight/2-80, renderer),
-		GetMenuItem("Training (not implemented)", screenHeight/2-40, renderer),
+		GetMenuItem("1 Player", screenHeight/2-120*mult, renderer),
+		GetMenuItem("2 Players", screenHeight/2-80*mult, renderer),
+		GetMenuItem("Training (not implemented)", screenHeight/2-40*mult, renderer),
 		GetMenuItem("High-Scores", screenHeight/2, renderer),
-		GetMenuItem("Options", screenHeight/2+40, renderer),
-		GetMenuItem("Credits", screenHeight/2+80, renderer),
-		GetMenuItem("Quit", screenHeight/2+120, renderer),
+		GetMenuItem("Options", screenHeight/2+40*mult, renderer),
+		GetMenuItem("Credits", screenHeight/2+80*mult, renderer),
+		GetMenuItem("Quit", screenHeight/2+120*mult, renderer),
 	}, 0, false}
 	ret[1] = &Menu{[]*MenuItem{
-		GetMenuItem("Beginner", screenHeight/2-80, renderer),
-		GetMenuItem("Intermediate", screenHeight/2-40, renderer),
+		GetMenuItem("Beginner", screenHeight/2-80*mult, renderer),
+		GetMenuItem("Intermediate", screenHeight/2-40*mult, renderer),
 		GetMenuItem("Advanced", screenHeight/2, renderer),
-		GetMenuItem("Beginner's Adventure", screenHeight/2+40, renderer),
-		GetMenuItem("Intermediate's Adventure", screenHeight/2+80, renderer),
+		GetMenuItem("Beginner's Adventure", screenHeight/2+40*mult, renderer),
+		GetMenuItem("Intermediate's Adventure", screenHeight/2+80*mult, renderer),
 	}, 0, false}
 	ret[2] = &Menu{[]*MenuItem{
-		GetMenuItem("Set Name", screenHeight/2-80, renderer),
-		GetMenuItem("Highscores", screenHeight/2-40, renderer),
+		GetMenuItem("Set Name", screenHeight/2-80*mult, renderer),
+		GetMenuItem("Highscores", screenHeight/2-40*mult, renderer),
 		GetMenuItem("Continue", screenHeight/2, renderer),
-		GetMenuItem("Restart", screenHeight/2+40, renderer),
-		GetMenuItem("Exit to menu", screenHeight/2+80, renderer),
+		GetMenuItem("Restart", screenHeight/2+40*mult, renderer),
+		GetMenuItem("Exit to menu", screenHeight/2+80*mult, renderer),
 	}, 0, false}
 	ret[3] = &Menu{[]*MenuItem{
 		GetNumberMenuItem("Character (P1)", int32(options.CharacterP1), 0, 3,
-			screenHeight/2-100, renderer),
+			screenHeight/2-100*mult, renderer),
 		GetNumberMenuItem("Character (P2)", int32(options.CharacterP2), 0, 3,
-			screenHeight/2-60, renderer),
+			screenHeight/2-60*mult, renderer),
 		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
-			screenHeight/2-20, renderer),
+			screenHeight/2-20*mult, renderer),
 		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
-			screenHeight/2+20, renderer),
+			screenHeight/2+20*mult, renderer),
 		GetNumberMenuItem("Show Divert", int32(options.ShowDivert), 0, 1,
-			screenHeight/2+60, renderer),
-		GetMenuItem("Reset", screenHeight/2+100, renderer),
+			screenHeight/2+60*mult, renderer),
+		GetMenuItem("Reset", screenHeight/2+100*mult, renderer),
 	}, 0, true}
 	ret[4] = &Menu{[]*MenuItem{
 		GetNumberMenuItem("Level", 0, 0, 34,
@@ -173,6 +178,9 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	texture, src, dst := GetText(text, sdl.Color{0, 190, 0, 255},
 		-1, y, renderer)
+	if Arcade {
+		dst.W, dst.H = dst.W*2, dst.H*2
+	}
 	return &MenuItem{texture, src, dst, nil}
 }
 
@@ -188,6 +196,9 @@ func GetNumberMenuItem(text string, value, min, max int32,
 
 	src := &sdl.Rect{0, 0, numberRect.X + numberRect.W, numberRect.H}
 	dst := &sdl.Rect{-1, y + tdst.Y, src.W, src.H}
+	if Arcade {
+		dst.W, dst.H = dst.W*2, dst.H*2
+	}
 	tdst.Y = 0
 
 	texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,

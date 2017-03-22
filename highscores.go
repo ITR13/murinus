@@ -58,8 +58,14 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	}
 	curCharUnderline := &sdl.Rect{0, screenHeight/2 + 12, 12, 4}
 
+	backTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565, sdl.TEXTUREACCESS_TARGET,
+		int(screenWidthD), int(screenHeightD))
+	e(err)
+	src, dst := &sdl.Rect{0, 0, screenWidth, screenHeight},
+		&sdl.Rect{-screenWidth / 2, -screenHeight / 2, screenWidth * 2, screenHeight * 2}
+	defer backTexture.Destroy()
 	draw := func() {
-		renderer.SetRenderTarget(nil)
+		renderer.SetRenderTarget(backTexture)
 		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.Clear()
 		for y := int32(0); y < 13; y++ {
@@ -86,6 +92,8 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 		curCharUnderline.X = currentCharacter*40 - 40*characters/2 +
 			screenWidth/2
 		renderer.FillRect(curCharUnderline)
+		renderer.SetRenderTarget(nil)
+		renderer.Copy(backTexture, src, dst)
 	}
 
 	prevLR := int32(0)
@@ -254,9 +262,15 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 		for i := 0; i < len(names); i++ {
 			if names[i] != nil {
 				y := textureHeight*int32(i) + subPixel
+				if Arcade {
+					y += textureHeight / 2
+				}
 				_, _, w, h, err := names[i].Query()
 				e(err)
 				dst.Y = y
+				if Arcade {
+					w, h = w*2, h*2
+				}
 				dst.W, dst.H = w, h
 				src.W, src.H = w, h
 				renderer.Copy(names[i], src, dst)
@@ -266,6 +280,9 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 			src.X, src.Y = 0, 0
 			_, _, w, h, err := header.Query()
 			e(err)
+			if Arcade {
+				w, h = w*2, h*2
+			}
 			src.W, src.H = w, h
 			fmt.Println(src)
 			renderer.Copy(header, src, src)
