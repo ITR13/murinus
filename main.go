@@ -89,8 +89,15 @@ func main() {
 	stage := LoadTextures(renderer, input)
 	fmt.Println("Loaded stage-basis")
 
-	higscores := Read("singleplayer.hs")
-	defer higscores.Write("singleplayer.hs")
+	highscores := Highscores{}
+
+	for i := range highscores[0] {
+		highscores[0][i] = Read(fmt.Sprintf("singleplayer-%d.hs", i))
+		defer highscores[0][i].Write(fmt.Sprintf("singleplayer-%d.hs", i))
+		highscores[1][i] = Read(fmt.Sprintf("multiplayer-%d.hs", i))
+		defer highscores[1][i].Write(fmt.Sprintf("multiplayer-%d.hs", i))
+	}
+
 	fmt.Println("Loaded Highscores")
 
 	defaultName := "\\\\\\"
@@ -114,7 +121,7 @@ func main() {
 			case 2:
 				fmt.Println("Not made yet") //Training
 			case 3:
-				higscores.Display(renderer, input)
+				highscores.Display(-1, false, renderer, input)
 			case 4:
 				DoSettings(menus[3], renderer, input)
 			case 5:
@@ -203,14 +210,14 @@ func main() {
 							if scoreData == nil {
 								scoreData = &ScoreData{score, name,
 									levelsCleared, difficulty, time.Now()}
-								higscores.Add(scoreData)
-								higscores.Sort()
+								highscores.Add(scoreData, subMenu != 0)
 							} else {
 								scoreData.Name = name
 							}
 						}
 					} else if menuChoice == 1 {
-						higscores.Display(renderer, input)
+						highscores.Display(difficulty, subMenu != 0,
+							renderer, input)
 					} else if menuChoice == -1 {
 						menuChoice = 4
 					}

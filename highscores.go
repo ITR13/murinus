@@ -28,6 +28,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type Highscores [2][6]*HighscoreList
+
 type HighscoreList struct {
 	scores       []*ScoreData
 	uniqueScores []*ScoreData
@@ -146,6 +148,66 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	return name
 }
 
+func (highscores *Highscores) Add(score *ScoreData, multiplayer bool) {
+	if multiplayer {
+		highscores[1][0].Add(score)
+		highscores[1][score.Difficulty+1].Add(score)
+		highscores[1][0].Sort()
+		highscores[1][score.Difficulty+1].Sort()
+	} else {
+		highscores[0][0].Add(score)
+		highscores[0][score.Difficulty+1].Add(score)
+		highscores[0][0].Sort()
+		highscores[0][score.Difficulty+1].Sort()
+	}
+}
+
+func (highscores *Highscores) Display(diff int, multiplayer bool,
+	renderer *sdl.Renderer, input *Input) {
+	if diff == -1 {
+		diff++
+		input.mono.b.down = false
+		for !input.mono.b.down && !quit {
+			if multiplayer {
+				highscores[1][diff].Display(diff == 0, renderer, input)
+			} else {
+				highscores[0][diff].Display(diff == 0, renderer, input)
+			}
+			if input.mono.a.down {
+				diff++
+				if diff >= len(highscores[0]) {
+					diff = 0
+					multiplayer = !multiplayer
+				}
+			}
+		}
+	} else {
+		if multiplayer {
+			input.mono.b.down = false
+			for !input.mono.b.down && !quit {
+				highscores[1][diff+1].Display(false, renderer, input)
+				if input.mono.a.down {
+					input.mono.a.down = false
+					for !input.mono.b.down && !input.mono.a.down && !quit {
+						highscores[1][0].Display(true, renderer, input)
+					}
+				}
+			}
+		} else {
+			input.mono.b.down = false
+			for !input.mono.b.down && !quit {
+				highscores[0][diff+1].Display(false, renderer, input)
+				if input.mono.a.down {
+					input.mono.a.down = false
+					for !input.mono.b.down && !input.mono.a.down && !quit {
+						highscores[0][0].Display(true, renderer, input)
+					}
+				}
+			}
+		}
+	}
+}
+
 func (list *HighscoreList) Add(score *ScoreData) {
 	list.scores = append(list.scores, score)
 	for i := range list.uniqueScores {
@@ -163,7 +225,8 @@ func (list *HighscoreList) Add(score *ScoreData) {
 	list.uniqueScores = append(list.uniqueScores, score)
 }
 
-func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
+func (list *HighscoreList) Display(displayDifficulty bool,
+	renderer *sdl.Renderer, input *Input) {
 	input.mono.a.down = false
 	input.mono.b.down = false
 	subPixel := int32(0)
@@ -174,7 +237,7 @@ func (list *HighscoreList) Display(renderer *sdl.Renderer, input *Input) {
 	textureHeight := screenHeight / int32(l-2)
 	names := make([]*sdl.Texture, l)
 	for i := 0; i < len(names); i++ {
-		names[i] = list.RenderScore(i-1, false, true, renderer)
+		names[i] = list.RenderScore(i-1, false, displayDifficulty, renderer)
 	}
 	src := &sdl.Rect{0, 0, screenWidth, textureHeight}
 	dst := &sdl.Rect{0, 0, screenWidth, textureHeight}
