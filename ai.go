@@ -1,20 +1,20 @@
 /*
-    This file is part of Murinus.
+   This file is part of Murinus.
 
-    Murinus is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Murinus is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-    Murinus is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   Murinus is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
 */
-	
+
 package main
 
 import (
@@ -191,8 +191,12 @@ func (approx *ApproximatedAI) Move(snakeID int, engine *Engine) Direction {
 
 	UpDownDir := Up
 	LeftRightDir := Left
-	dx := X - engine.p1.entity.x
-	dy := Y - engine.p1.entity.y
+	target := engine.p1
+	if target == nil || (engine.p2 != nil && snakeID%2 != 0) {
+		target = engine.p2
+	}
+	dx := X - target.entity.x
+	dy := Y - target.entity.y
 	if dx < 0 {
 		dx = -dx
 		LeftRightDir = Right
