@@ -1,23 +1,25 @@
 /*
-    This file is part of Murinus.
+   This file is part of Murinus.
 
-    Murinus is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Murinus is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-    Murinus is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   Murinus is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
 */
-	
+
 package main
 
 import (
+	"fmt"
+
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/sdl_ttf"
 )
@@ -139,7 +141,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 			screenHeight/2-80, renderer),
 		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
 			screenHeight/2, renderer),
-		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 255,
+		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
 			screenHeight/2+80, renderer),
 	}, 0}
 
@@ -171,6 +173,7 @@ func GetNumberMenuItem(text string, value, min, max int32,
 	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
 	menuItem := &MenuItem{texture, src, dst, numberField}
+	menuItem.SetNumber(1, renderer)
 	menuItem.SetNumber(value, renderer)
 
 	return menuItem
@@ -190,6 +193,10 @@ func GetText(text string, color sdl.Color, x, y int32,
 }
 
 func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
+	for i := range menu.menuItems {
+		fmt.Println(menu.menuItems[i].texture)
+	}
+
 	prevVal := int32(0)
 	step := 0
 	repeat := true
