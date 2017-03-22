@@ -153,10 +153,10 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
 			screenHeight/2-20, renderer),
 		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
-			screenHeight/2+40, renderer),
+			screenHeight/2+20, renderer),
 		GetNumberMenuItem("Show Divert", int32(options.ShowDivert), 0, 1,
-			screenHeight/2+40, renderer),
-		GetMenuItem("Reset", screenHeight/2+80, renderer),
+			screenHeight/2+60, renderer),
+		GetMenuItem("Reset", screenHeight/2+100, renderer),
 	}, 0, true}
 
 	return ret

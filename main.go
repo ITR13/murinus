@@ -80,7 +80,9 @@ func main() {
 	fmt.Println("Got inputs")
 
 	ReadOptions("options.xml", input)
-	defer SaveOptions("options.xml", input)
+	if !Arcade {
+		defer SaveOptions("options.xml", input)
+	}
 	fmt.Println("Created options")
 
 	menus := GetMenus(renderer)
