@@ -32,12 +32,12 @@ type Engine struct {
 	Stage  *Stage
 	Input  *Input
 	Graph  *Graph
+	Score  int64
 }
 
 type Player struct {
 	entity *Entity
 	step   int32
-	score  uint64
 }
 
 type Snake struct {
@@ -52,12 +52,12 @@ type Snake struct {
 	minLength, normalLength, maxLength int
 }
 
-func GetEngine(p1 *Player, p2 *Player, snakes []*Snake,
+func GetEngine(p1 *Player, p2 *Player, score int64, snakes []*Snake,
 	stage *Stage) *Engine {
 	fmt.Println("Making graph")
 	graph := stage.tiles.MakeGraph(false)
 	fmt.Println("Returning engine")
-	return &Engine{p1, p2, snakes, stage, stage.input, graph}
+	return &Engine{p1, p2, snakes, stage, stage.input, graph, score}
 }
 
 func (engine *Engine) Advance() {
@@ -188,28 +188,28 @@ func (snake *Snake) Move(x, y int32, engine *Engine) {
 func (engine *Engine) CheckCollisions(player *Player) {
 	x, y := player.entity.x, player.entity.y
 	modified := true
-	var points uint64
+	var points int64
 	switch engine.Stage.tiles.tiles[x][y] {
 	case Point:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		engine.Stage.pointsLeft--
-		points += uint64(10)
+		points += int64(10)
 	case p200:
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points += uint64(200)
+		points += int64(200)
 	case p500:
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points += uint64(500)
+		points += int64(500)
 	case p1000:
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points += uint64(1000)
+		points += int64(1000)
 	case p2000:
 		engine.Stage.tiles.tiles[x][y] = Empty
-		points += uint64(2000)
+		points += int64(2000)
 	case Powerup:
 		engine.Stage.tiles.tiles[x][y] = Empty
 		for i := 0; i < len(engine.snakes); i++ {
-			points += uint64(75)
+			points += int64(75)
 			snake := engine.snakes[i]
 			if len(snake.body) > snake.minLength {
 				for length := len(snake.body); length > 0; length /= 3 {
@@ -229,7 +229,7 @@ func (engine *Engine) CheckCollisions(player *Player) {
 		engine.Stage.tiles.renderedOnce = false
 	}
 
-	player.score += ScoreMult(points)
+	engine.Score += ScoreMult(points)
 
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
@@ -413,7 +413,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 	}
 }
 
-func ScoreMult(points uint64) uint64 {
+func ScoreMult(points int64) int64 {
 	switch difficulty {
 	case 0:
 		return 2 * points / 3

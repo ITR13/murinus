@@ -134,11 +134,10 @@ func main() {
 			for !quit {
 				lostLife = false
 				lives := 3
-				score := uint64(0)
-				score -= ScoreMult(500)
+				score := -ScoreMult(500)
 				wonInARow := -2
 				extraLives := 0
-				extraLivesCounter := uint64(25000)
+				extraLivesCounter := int64(25000)
 				levelsCleared := 0
 				for !quit && (lives != 1 || !lostLife) {
 					var engine *Engine
@@ -170,12 +169,14 @@ func main() {
 					}
 					fmt.Printf("Lives: %d\n", lives)
 					Play(engine, window, renderer, int32(lives))
-					score = engine.p1.score
-					if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+					score = engine.Score
+					if engine.Input.exit.timeHeld >
+						timeExitHasToBeHeldBeforeCloseGame {
 						fmt.Println("Game was quit with exit key")
 						break
 					}
-					for score > extraLivesCounter && extraLivesCounter*2 > extraLivesCounter {
+					for score > extraLivesCounter &&
+						extraLivesCounter*2 > extraLivesCounter {
 						extraLivesCounter *= 2
 						//extraLives++
 						//lives++
@@ -244,13 +245,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	quit = false
 	lostLife = false
 	score := int32(0)
-	if engine.p1 != nil {
-		score += int32(engine.p1.score)
-	}
-	if engine.p2 != nil {
-		score += int32(engine.p2.score)
-	}
-	engine.Stage.scores.score, engine.Stage.scores.lives = score, lives
+	engine.Stage.scores.score, engine.Stage.scores.lives = engine.Score, lives
 	for i := 0; i < 30 && !quit; i++ {
 		engine.Stage.Render(p1C, p2C, renderer, false)
 		engine.Input.Poll()
@@ -276,10 +271,10 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 
 		engine.Advance()
 		window.SetTitle("Murinus (score: " +
-			strconv.Itoa(int(engine.p1.score)) +
+			strconv.Itoa(int(score)) +
 			", left " + strconv.Itoa(engine.Stage.pointsLeft) + ")")
 
-		engine.Stage.scores.score = int32(engine.p1.score)
+		engine.Stage.scores.score = engine.Score
 		engine.Stage.Render(p1C, p2C, renderer, true)
 		if engine.Stage.pointsLeft <= 0 || lostLife {
 			break

@@ -918,7 +918,7 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 	return data, levels
 }
 
-func (stage *Stage) Load(ID int, loadTiles bool, score uint64,
+func (stage *Stage) Load(ID int, loadTiles bool, score int64,
 	players int) *Engine {
 	stage.ID = ID
 	hideSnakes, hideWalls := false, false
@@ -940,7 +940,7 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64,
 }
 
 func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int, hideSnakes,
-	hideWalls, loadTiles bool, score uint64, players int) *Engine {
+	hideWalls, loadTiles bool, score int64, players int) *Engine {
 	var p1, p2 *Player
 	var snakes []*Snake
 	stage.sprites.entities = make([][]*Entity, 4)
@@ -954,14 +954,11 @@ func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int, hideSnakes,
 	if loadTiles {
 		ConvertStringToTiles(level.stage)
 	}
-	if players == 0 {
-		p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
-			diffData.playerSpeed, score}
-	} else {
-		p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
-			diffData.playerSpeed, score / 2}
+	p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
+		diffData.playerSpeed}
+	if players != 0 {
 		p2 = &Player{stage.sprites.GetEntity(level.px, level.py, Player2),
-			diffData.playerSpeed, score - score/2}
+			diffData.playerSpeed}
 	}
 	if diffData.snakes != nil {
 		snakes = make([]*Snake, len(diffData.snakes))
@@ -998,7 +995,7 @@ func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int, hideSnakes,
 
 	fmt.Println("Getting engine")
 
-	engine := GetEngine(p1, p2, snakes, stage)
+	engine := GetEngine(p1, p2, score, snakes, stage)
 	fmt.Println("Finished loading level ", stage.ID)
 	fmt.Printf("Stage: %d\tDifficulty: %d\n", levelIndex, diffIndex)
 	return engine

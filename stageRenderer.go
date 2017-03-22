@@ -106,7 +106,8 @@ type Sprite struct {
 type SpriteInfo []*Sprite
 
 type ScoreField struct {
-	score, lives   int32
+	score          int64
+	lives          int32
 	texture        *sdl.Texture
 	src, dst       *sdl.Rect
 	lifeRect       *sdl.Rect
