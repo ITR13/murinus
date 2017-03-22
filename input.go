@@ -1,20 +1,20 @@
 /*
-    This file is part of Murinus.
+   This file is part of Murinus.
 
-    Murinus is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Murinus is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-    Murinus is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   Murinus is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
 */
-	
+
 package main
 
 import (
@@ -91,8 +91,8 @@ func GetInput() *Input {
 
 		allInputs[ipc*2+Up] = GetKey(sdl.K_UP)
 		allInputs[ipc*2+Right] = GetKey(sdl.K_RIGHT)
-		allInputs[ipc*2+Down] = GetKey(sdl.K_LEFT)
-		allInputs[ipc*2+Left] = GetKey(sdl.K_DOWN)
+		allInputs[ipc*2+Down] = GetKey(sdl.K_DOWN)
+		allInputs[ipc*2+Left] = GetKey(sdl.K_LEFT)
 		allInputs[ipc*2+4] = GetKey(sdl.K_RETURN)
 		allInputs[ipc*2+5] = GetKey(sdl.K_RSHIFT, sdl.K_BACKSPACE)
 		allInputs[ipc*3] = GetKey(sdl.K_ESCAPE)
