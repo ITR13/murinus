@@ -152,7 +152,7 @@ func main() {
 						if lives == 0 {
 							panic("Should not reach this statement")
 						}
-						engine = stage.Load(stage.ID, false, score)
+						engine = stage.Load(stage.ID, false, score, subMenu)
 						window.SetTitle("Score: " + strconv.Itoa(int(score)) +
 							" Lives: " + strconv.Itoa(lives))
 					} else {
@@ -166,7 +166,7 @@ func main() {
 						}
 						fmt.Printf("Won in a row counter: %d\n", wonInARow)
 						engine = stage.Load(stage.ID+1, true,
-							score+ScoreMult(500))
+							score+ScoreMult(500), subMenu)
 					}
 					fmt.Printf("Lives: %d\n", lives)
 					Play(engine, window, renderer, int32(lives))
@@ -236,8 +236,14 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	quit = false
 	lostLife = false
-	engine.Stage.scores.score,
-		engine.Stage.scores.lives = int32(engine.p1.score), lives
+	score := int32(0)
+	if engine.p1 != nil {
+		score += int32(engine.p1.score)
+	}
+	if engine.p2 != nil {
+		score += int32(engine.p2.score)
+	}
+	engine.Stage.scores.score, engine.Stage.scores.lives = score, lives
 	for i := 0; i < 30 && !quit; i++ {
 		engine.Stage.Render(renderer, false)
 		engine.Input.Poll()

@@ -1,20 +1,20 @@
 /*
-    This file is part of Murinus.
+   This file is part of Murinus.
 
-    Murinus is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Murinus is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-    Murinus is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   Murinus is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with Murinus.  If not, see <http://www.gnu.org/licenses/>.
 */
-	
+
 package main
 
 import (
@@ -918,7 +918,8 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 	return data, levels
 }
 
-func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
+func (stage *Stage) Load(ID int, loadTiles bool, score uint64,
+	players int) *Engine {
 	stage.ID = ID
 	hideSnakes, hideWalls := false, false
 	if ID >= len(stage.levels[difficulty]) {
@@ -935,11 +936,11 @@ func (stage *Stage) Load(ID int, loadTiles bool, score uint64) *Engine {
 	diffIndex := stage.levels[difficulty][ID][1]
 
 	return stage.LoadSingleLevel(levelIndex, diffIndex,
-		hideSnakes, hideWalls, loadTiles, score)
+		hideSnakes, hideWalls, loadTiles, score, players)
 }
 
-func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int,
-	hideSnakes, hideWalls, loadTiles bool, score uint64) *Engine {
+func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int, hideSnakes,
+	hideWalls, loadTiles bool, score uint64, players int) *Engine {
 	var p1, p2 *Player
 	var snakes []*Snake
 	stage.sprites.entities = make([][]*Entity, 4)
@@ -953,8 +954,15 @@ func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int,
 	if loadTiles {
 		ConvertStringToTiles(level.stage)
 	}
-	p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
-		diffData.playerSpeed, score}
+	if players == 0 {
+		p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
+			diffData.playerSpeed, score}
+	} else {
+		p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
+			diffData.playerSpeed, score / 2}
+		p2 = &Player{stage.sprites.GetEntity(level.px, level.py, Player2),
+			diffData.playerSpeed, score - score/2}
+	}
 	if diffData.snakes != nil {
 		snakes = make([]*Snake, len(diffData.snakes))
 		for i := 0; i < len(snakes); i++ {
