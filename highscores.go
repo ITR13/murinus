@@ -305,7 +305,7 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 			for i := 0; i < len(names); i++ {
 				names[i].Destroy()
 				names[i] = list.RenderScore(i+currentIndex,
-					unique, true, renderer)
+					unique, displayDifficulty, renderer)
 			}
 		}
 	}
@@ -358,8 +358,8 @@ func (score *ScoreData) Render(i int, multi bool,
 			text += "."
 		}
 	}
-	text += fmt.Sprintf(" | %02d | %04d/%02d/%02d - %02d:%02d:%02d",
-		score.LevelsCleared,
+	text += fmt.Sprintf(" | %02d | %01d | %04d/%02d/%02d - %02d:%02d:%02d",
+		score.LevelsCleared, score.Difficulty,
 		score.Date.Year(), score.Date.Month(), score.Date.Day(),
 		score.Date.Hour(), score.Date.Minute(), score.Date.Second())
 
@@ -395,33 +395,50 @@ func (score *ScoreData) Render(i int, multi bool,
 	return texture
 }
 
-func Read(path string) *HighscoreList {
-	list := HighscoreList{
-		make([]*ScoreData, 0),
-		make([]*ScoreData, 0),
-	}
-	if _, err := os.Stat(path); err == nil {
-		file, err := os.Open(path)
-		e(err)
-		defer file.Close()
-		decoder := gob.NewDecoder(file)
-		datas := make([]*ScoreData, 0)
-		e(decoder.Decode(&datas))
-		for i := 0; i < len(datas); i++ {
-			list.Add(datas[i])
+func Read(paths ...string) Highscores {
+	highscores := Highscores{}
+	for i := range highscores[0] {
+		highscores[0][i] = &HighscoreList{
+			make([]*ScoreData, 0),
+			make([]*ScoreData, 0),
 		}
-		sort.Sort(SortByScore(list.scores))
-		sort.Sort(SortByScore(list.uniqueScores))
+		highscores[1][i] = &HighscoreList{
+			make([]*ScoreData, 0),
+			make([]*ScoreData, 0),
+		}
 	}
-	return &list
+
+	for i := range paths {
+		path := paths[i]
+		if _, err := os.Stat(path); err == nil {
+			file, err := os.Open(path)
+			e(err)
+			defer file.Close()
+			decoder := gob.NewDecoder(file)
+			datas := make([]*ScoreData, 0)
+			e(decoder.Decode(&datas))
+			for i := 0; i < len(datas); i++ {
+				highscores.Add(datas[i], i != 0)
+			}
+		}
+	}
+	for i := range highscores[0] {
+		sort.Sort(SortByScore(highscores[0][i].scores))
+		sort.Sort(SortByScore(highscores[0][i].uniqueScores))
+		sort.Sort(SortByScore(highscores[1][i].scores))
+		sort.Sort(SortByScore(highscores[1][i].uniqueScores))
+	}
+	return highscores
 }
 
-func (list *HighscoreList) Write(path string) {
-	file, err := os.Create(path)
-	e(err)
-	defer file.Close()
-	encoder := gob.NewEncoder(file)
-	e(encoder.Encode(list.scores))
+func (highscores Highscores) Write(paths ...string) {
+	for i := 0; i < len(paths); i++ {
+		file, err := os.Create(paths[i])
+		e(err)
+		defer file.Close()
+		encoder := gob.NewEncoder(file)
+		e(encoder.Encode(highscores[i][0].scores))
+	}
 }
 
 func (list *HighscoreList) Sort() {

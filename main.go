@@ -89,14 +89,8 @@ func main() {
 	stage := LoadTextures(renderer, input)
 	fmt.Println("Loaded stage-basis")
 
-	highscores := Highscores{}
-
-	for i := range highscores[0] {
-		highscores[0][i] = Read(fmt.Sprintf("singleplayer-%d.hs", i))
-		defer highscores[0][i].Write(fmt.Sprintf("singleplayer-%d.hs", i))
-		highscores[1][i] = Read(fmt.Sprintf("multiplayer-%d.hs", i))
-		defer highscores[1][i].Write(fmt.Sprintf("multiplayer-%d.hs", i))
-	}
+	highscores := Read("singleplayer.hs", "multiplayer.hs")
+	defer highscores.Write("singleplayer.hs", "multiplayer.hs")
 
 	fmt.Println("Loaded Highscores")
 
