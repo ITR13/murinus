@@ -234,6 +234,13 @@ func main() {
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
+	p1C, p2C := options.CharacterP1, options.CharacterP2
+	if engine.p1 == nil {
+		p1C = p2C
+	} else if engine.p2 == nil {
+		p2C = p1C
+	}
+
 	quit = false
 	lostLife = false
 	score := int32(0)
@@ -245,7 +252,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	}
 	engine.Stage.scores.score, engine.Stage.scores.lives = score, lives
 	for i := 0; i < 30 && !quit; i++ {
-		engine.Stage.Render(renderer, false)
+		engine.Stage.Render(p1C, p2C, renderer, false)
 		engine.Input.Poll()
 		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 			fmt.Println("Round was quit with exit key")
@@ -254,7 +261,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	}
 
 	for noKeysTouched >= 5 && !quit {
-		engine.Stage.Render(renderer, false)
+		engine.Stage.Render(p1C, p2C, renderer, false)
 		engine.Input.Poll()
 	}
 	fmt.Println("Finished starting animation")
@@ -273,7 +280,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 			", left " + strconv.Itoa(engine.Stage.pointsLeft) + ")")
 
 		engine.Stage.scores.score = int32(engine.p1.score)
-		engine.Stage.Render(renderer, true)
+		engine.Stage.Render(p1C, p2C, renderer, true)
 		if engine.Stage.pointsLeft <= 0 || lostLife {
 			break
 		}
@@ -293,8 +300,20 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		for i := 0; i < 90 && !quit; i++ {
 			engine.Stage.tiles.renderedOnce = false
 			engine.Stage.scores.lives = lives - int32(i/15%2)
-			engine.p1.entity.display = (i / 15 % 2) == 0
-			engine.Stage.Render(renderer, false)
+			p1C, p2C := options.CharacterP1, options.CharacterP2
+			if engine.p1 != nil {
+				engine.p1.entity.display = (i / 15 % 2) == 0
+			} else {
+				p1C = p2C
+			}
+
+			if engine.p2 != nil {
+				engine.p2.entity.display = (i / 15 % 2) == 0
+			} else {
+				p2C = p1C
+			}
+
+			engine.Stage.Render(p1C, p2C, renderer, false)
 			engine.Input.Poll()
 			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
 				fmt.Println("Round was quit with exit key")
@@ -303,7 +322,7 @@ func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		}
 	} else {
 		for i := 0; i < 30 && !quit; i++ {
-			engine.Stage.Render(renderer, false)
+			engine.Stage.Render(p1C, p2C, renderer, false)
 			engine.Input.Poll()
 		}
 	}

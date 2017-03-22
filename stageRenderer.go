@@ -161,7 +161,8 @@ func (spriteStage *SpriteStage) AlertSnakes(snake *Snake, activate bool) {
 	spriteStage.alertSnake(snake.tail, activate)
 }
 
-func (stage *Stage) Render(renderer *sdl.Renderer, hideWalls bool) {
+func (stage *Stage) Render(p1, p2 uint8,
+	renderer *sdl.Renderer, hideWalls bool) {
 	defer renderer.Present()
 	renderedOnce := stage.tiles.renderedOnce
 
@@ -178,7 +179,7 @@ func (stage *Stage) Render(renderer *sdl.Renderer, hideWalls bool) {
 
 	if !renderedOnce {
 		stage.tiles.Render(renderer, hideWalls && stage.hideWalls)
-		stage.scores.Render(renderer)
+		stage.scores.Render(p1, p2, renderer)
 	}
 	stage.sprites.Render(renderer)
 	renderer.SetRenderTarget(nil)
@@ -255,15 +256,38 @@ func (sprites *SpriteStage) Render(renderer *sdl.Renderer) {
 	sprites.time++
 }
 
-func (scoreField *ScoreField) Render(renderer *sdl.Renderer) {
+func SetLifeColor(player uint8, renderer *sdl.Renderer) {
+	switch player {
+	case 0:
+		renderer.SetDrawColor(255, 182, 193, 255)
+	case 1:
+		renderer.SetDrawColor(0, 127, 0, 255)
+	case 2:
+		renderer.SetDrawColor(255, 255, 0x38, 255)
+	case 3:
+		renderer.SetDrawColor(77, 77, 2, 255)
+	default:
+		renderer.SetDrawColor(172, 172, 172, 255)
+	}
+}
+
+func (scoreField *ScoreField) Render(p1, p2 uint8, renderer *sdl.Renderer) {
 	renderer.SetRenderTarget(scoreField.texture)
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.Clear()
+	SetLifeColor(p2, renderer)
 	for i := int32(0); i < scoreField.lives; i++ {
-		renderer.SetDrawColor(255, 182, 193, 255)
 		scoreField.lifeRect.X = scoreField.xOffset + scoreField.xMult*i
 		renderer.FillRect(scoreField.lifeRect)
 	}
+	SetLifeColor(p1, renderer)
+	w := scoreField.lifeRect.W
+	scoreField.lifeRect.W = w / 2
+	for i := int32(0); i < scoreField.lives; i++ {
+		scoreField.lifeRect.X = scoreField.xOffset + scoreField.xMult*i
+		renderer.FillRect(scoreField.lifeRect)
+	}
+	scoreField.lifeRect.W = w
 
 	numbers.WriteNumber(int64(scoreField.score),
 		scoreField.src.W/2, -2, true, renderer)
@@ -433,7 +457,6 @@ func (spriteInfo SpriteInfo) Draw(renderer *sdl.Renderer) {
 	renderer.SetDrawColor(235, 235, 235, 220)
 	renderer.Clear()
 	spriteInfo[SnakeBodyGhost].priority = 0
-
 }
 
 func (sprite *Sprite) DrawPlayer(renderer *sdl.Renderer, character uint8) {
