@@ -920,14 +920,23 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 
 func (stage *Stage) Load(ID int, loadTiles bool, score int64,
 	players int) *Engine {
+	if ID == 0 {
+		stage.lostOnce = false
+	}
 	stage.ID = ID
 	hideSnakes, hideWalls := false, false
 	if ID >= len(stage.levels[difficulty]) {
+		if stage.lostOnce {
+			return nil
+		}
 		ID = len(stage.levels[difficulty])*2 - ID - 1
 		hideSnakes = true
 		if ID < len(stage.levels[difficulty])*2/3 {
 			hideWalls = true
 		}
+	}
+	if ID < 0 {
+		return nil
 	}
 
 	fmt.Printf("Loading level %d, Tiles: %t\n", ID, loadTiles)

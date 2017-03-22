@@ -53,14 +53,14 @@ const (
 )
 
 type Stage struct {
-	input          *Input
-	tiles          *TileStage
-	sprites        *SpriteStage
-	scores         *ScoreField
-	stages         []*PreStageData
-	levels         [5][][2]int
-	pointsLeft, ID int
-	hideWalls      bool
+	input               *Input
+	tiles               *TileStage
+	sprites             *SpriteStage
+	scores              *ScoreField
+	stages              []*PreStageData
+	levels              [5][][2]int
+	pointsLeft, ID      int
+	hideWalls, lostOnce bool
 }
 
 type TileStage struct {
@@ -363,7 +363,7 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 
 	data, levels := GetPreStageDatas()
 	return &Stage{input, &tileStage, &spriteStage,
-		&scoreField, data, levels, -1, -1, false}
+		&scoreField, data, levels, -1, -1, false, false}
 }
 
 func (tileInfo *TileInfo) Draw(renderer *sdl.Renderer) {

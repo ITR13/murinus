@@ -168,6 +168,10 @@ func main() {
 							score+ScoreMult(500), subMenu)
 					}
 					fmt.Printf("Lives: %d\n", lives)
+					if engine == nil {
+						fmt.Println("Engine nil, game was won")
+						break
+					}
 					Play(engine, window, renderer, int32(lives))
 					score = engine.Score
 					if engine.Input.exit.timeHeld >
@@ -184,6 +188,7 @@ func main() {
 					fmt.Printf("Score: %d\n", score)
 				}
 				fmt.Printf("Game Over. Final score %d\n", score)
+				stage.lostOnce = true
 				input.exit.timeHeld = 0
 
 				menuChoice := -1
