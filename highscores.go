@@ -31,6 +31,8 @@ import (
 type Highscores [2][6]*HighscoreList
 
 type HighscoreList struct {
+	difficulty   int
+	multiplayer  bool
 	scores       []*ScoreData
 	uniqueScores []*ScoreData
 }
@@ -244,12 +246,14 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 	renderer.SetRenderTarget(nil)
 	scrollMult := int32(210)
 	update := false
+
+	header := GetHeader(list.multiplayer, list.difficulty, unique, renderer)
 	for !input.mono.a.down && !input.mono.b.down && !quit {
 		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.Clear()
 		for i := 0; i < len(names); i++ {
 			if names[i] != nil {
-				y := textureHeight*int32(i-1) + subPixel
+				y := textureHeight*int32(i) + subPixel
 				_, _, w, h, err := names[i].Query()
 				e(err)
 				dst.Y = y
@@ -257,6 +261,14 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 				src.W, src.H = w, h
 				renderer.Copy(names[i], src, dst)
 			}
+		}
+		if header != nil {
+			src.X, src.Y = 0, 0
+			_, _, w, h, err := header.Query()
+			e(err)
+			src.W, src.H = w, h
+			fmt.Println(src)
+			renderer.Copy(header, src, src)
 		}
 		renderer.Present()
 		input.Poll()
@@ -293,6 +305,8 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 		val := input.mono.leftRight.Val()
 		if (val > 0 && !unique) || (val < 0 && unique) {
 			unique = !unique
+			header.Destroy()
+			header = GetHeader(list.multiplayer, list.difficulty, unique, renderer)
 			if unique {
 				storedIndex = currentIndex
 			} else {
@@ -314,6 +328,7 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 			names[i].Destroy()
 		}
 	}
+	header.Destroy()
 }
 
 func (list *HighscoreList) RenderScore(index int, unique, multi bool,
@@ -332,6 +347,42 @@ func (list *HighscoreList) RenderScore(index int, unique, multi bool,
 		}
 		return list.scores[index].Render(index, multi, renderer)
 	}
+}
+
+func GetHeader(multiplayer bool, difficulty int, unique bool,
+	renderer *sdl.Renderer) *sdl.Texture {
+	text := "   SinglePlayer   >  "
+	if multiplayer {
+		text = "   MultiPlayer   >   "
+	}
+	switch difficulty {
+	case 0:
+		text += "Global"
+	case 1:
+		text += "Beginner"
+	case 2:
+		text += "Intermediate"
+	case 3:
+		text += "Advanced"
+	case 4:
+		text += "Beginner's Adventure"
+	case 5:
+		text += "Intermediate's Adventure"
+	default:
+		text += "Unknown"
+	}
+
+	if unique {
+		text += "   >   Unique"
+	}
+
+	surface, err := font.RenderUTF8_Solid(text,
+		sdl.Color{uint8(255), uint8(255), uint8(255), 255})
+	e(err)
+	defer surface.Free()
+	texture, err := renderer.CreateTextureFromSurface(surface)
+	e(err)
+	return texture
 }
 
 func (score *ScoreData) Render(i int, multi bool,
@@ -399,10 +450,12 @@ func Read(paths ...string) Highscores {
 	highscores := Highscores{}
 	for i := range highscores[0] {
 		highscores[0][i] = &HighscoreList{
+			i, false,
 			make([]*ScoreData, 0),
 			make([]*ScoreData, 0),
 		}
 		highscores[1][i] = &HighscoreList{
+			i, true,
 			make([]*ScoreData, 0),
 			make([]*ScoreData, 0),
 		}
