@@ -121,7 +121,21 @@ func main() {
 			case 4:
 				DoSettings(menus[3], renderer, input)
 			case 5:
-				fmt.Println("Not made yet") //Credits
+				creds, src, dst := GetText("Made by ITR   -   Source available on "+
+					"github.com/ITR13/murinus", sdl.Color{255, 255, 255, 255},
+					newScreenWidth/2, newScreenHeight/2, renderer)
+				input.mono.a.down = false
+				input.mono.b.down = false
+				renderer.SetRenderTarget(nil)
+				renderer.SetDrawColor(0, 0, 0, 255)
+				renderer.Clear()
+				dst.X -= dst.W / 2
+				e(renderer.Copy(creds, src, dst))
+				for !input.mono.a.down && !input.mono.b.down && !quit {
+					input.Poll()
+					renderer.Present()
+				}
+				creds.Destroy()
 			case 6:
 				quit = true
 			default:
