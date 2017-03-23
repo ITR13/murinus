@@ -101,44 +101,13 @@ func main() {
 				score := -ScoreMult(500)
 
 				RunGame(menuChoice, &levelsCleared, &score);
+
 				fmt.Printf("Game Over. Final score %d\n", score)
 				stage.lostOnce = true
 				input.exit.timeHeld = 0
 
-				menuChoice := -1
-				var scoreData *ScoreData
-				menus[2].selectedElement = 0
-				for !quit && menuChoice < 2 {
-					menuChoice = menus[2].Run(renderer, input)
-					if menuChoice == 0 {
-						name := GetName(defaultName, renderer, input)
-						if name != "" {
-							defaultName = name
-							if scoreData == nil {
-								scoreData = &ScoreData{score, name,
-									levelsCleared, difficulty, time.Now()}
-								highscores.Add(scoreData, menuChoice != 0, true)
-							} else {
-								scoreData.Name = name
-							}
-						}
-					} else if menuChoice == 1 {
-						highscores.Display(difficulty, menuChoice != 0,
-							renderer, input)
-					} else if menuChoice == -1 {
-						menuChoice = 4
-					}
-				}
-				if quit {
+				if !GameOverMenu(levelsCleared, score) {
 					break
-				} else if menuChoice == 2 {
-					stage.ID--
-				} else if menuChoice == 3 {
-					stage.ID = -1
-				} else if menuChoice == 4 {
-					break
-				} else {
-					panic("Unknown menu option")
 				}
 			}
 		}
@@ -414,4 +383,46 @@ func LogOnError(err error) bool {
 		fmt.Println(err)
 	}
 	return err != nil
+}
+
+func GameOverMenu(levelsCleared int, score int64) (resume bool) {
+	menuChoice := -1
+	var scoreData *ScoreData
+	menus[2].selectedElement = 0
+	for !quit && menuChoice < 2 {
+		menuChoice = menus[2].Run(renderer, input)
+		if menuChoice == 0 { // Set name
+			name := GetName(defaultName, renderer, input)
+			if name != "" {
+				defaultName = name
+				if scoreData == nil {
+					scoreData = &ScoreData{score, name,
+						levelsCleared, difficulty,
+						time.Now()}
+					highscores.Add(scoreData,
+						menuChoice != 0, true)
+				} else {
+					scoreData.Name = name
+				}
+			}
+		} else if menuChoice == 1 { // Highscores
+			highscores.Display(difficulty, menuChoice != 0,
+				renderer, input)
+		} else if menuChoice == -1 {
+			menuChoice = 4
+		}
+	}
+
+	resume = true
+	if menuChoice == 2 { // Continue
+		stage.ID--
+	} else if menuChoice == 3 { // Restart
+		stage.ID = -1
+	} else if menuChoice == 4 { // Exit to menu
+		resume = false
+	} else {
+		panic("Unknown menu option")
+	}
+
+	return
 }
