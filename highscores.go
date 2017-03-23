@@ -60,7 +60,7 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 
 	backTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565, sdl.TEXTUREACCESS_TARGET,
 		int(screenWidthD), int(screenHeightD))
-	e(err)
+	PanicOnError(err)
 	src, dst := &sdl.Rect{0, 0, screenWidth, screenHeight},
 		&sdl.Rect{-screenWidth / 2, -screenHeight / 2, screenWidth * 2, screenHeight * 2}
 	defer backTexture.Destroy()
@@ -266,7 +266,7 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 					y += textureHeight / 2
 				}
 				_, _, w, h, err := names[i].Query()
-				e(err)
+				PanicOnError(err)
 				dst.Y = y
 				if Arcade {
 					w, h = w*2, h*2
@@ -279,7 +279,7 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 		if header != nil {
 			src.X, src.Y = 0, 0
 			_, _, w, h, err := header.Query()
-			e(err)
+			PanicOnError(err)
 			if Arcade {
 				w, h = w*2, h*2
 			}
@@ -395,10 +395,10 @@ func GetHeader(multiplayer bool, difficulty int, unique bool,
 
 	surface, err := font.RenderUTF8_Solid(text,
 		sdl.Color{uint8(255), uint8(255), uint8(255), 255})
-	e(err)
+	PanicOnError(err)
 	defer surface.Free()
 	texture, err := renderer.CreateTextureFromSurface(surface)
-	e(err)
+	PanicOnError(err)
 	return texture
 }
 
@@ -456,10 +456,10 @@ func (score *ScoreData) Render(i int, multi bool,
 
 	surface, err := font.RenderUTF8_Solid(text,
 		sdl.Color{uint8(r), uint8(g), uint8(b), 255})
-	e(err)
+	PanicOnError(err)
 	defer surface.Free()
 	texture, err := renderer.CreateTextureFromSurface(surface)
-	e(err)
+	PanicOnError(err)
 	return texture
 }
 
@@ -482,11 +482,11 @@ func Read(paths ...string) Highscores {
 		path := paths[i]
 		if _, err := os.Stat(path); err == nil {
 			file, err := os.Open(path)
-			e(err)
+			PanicOnError(err)
 			defer file.Close()
 			decoder := gob.NewDecoder(file)
 			datas := make([]*ScoreData, 0)
-			e(decoder.Decode(&datas))
+			PanicOnError(decoder.Decode(&datas))
 			for i := 0; i < len(datas); i++ {
 				highscores.Add(datas[i], i != 0)
 			}
@@ -504,10 +504,10 @@ func Read(paths ...string) Highscores {
 func (highscores Highscores) Write(paths ...string) {
 	for i := 0; i < len(paths); i++ {
 		file, err := os.Create(paths[i])
-		e(err)
+		PanicOnError(err)
 		defer file.Close()
 		encoder := gob.NewEncoder(file)
-		e(encoder.Encode(highscores[i][0].scores))
+		PanicOnError(encoder.Encode(highscores[i][0].scores))
 	}
 }
 

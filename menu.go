@@ -114,9 +114,9 @@ func InitText(renderer *sdl.Renderer) {
 	if ttf.WasInit() || font != nil {
 		panic("Should only be called once!")
 	}
-	e(ttf.Init())
+	PanicOnError(ttf.Init())
 	font, err = ttf.OpenFont("./font/Play-Bold.ttf", 20)
-	e(err)
+	PanicOnError(err)
 }
 
 func GetMenus(renderer *sdl.Renderer) []*Menu {
@@ -203,7 +203,7 @@ func GetNumberMenuItem(text string, value, min, max int32,
 
 	texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(src.W), int(src.H))
-	e(err)
+	PanicOnError(err)
 	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
 	menuItem := &MenuItem{texture, src, dst, numberField}
@@ -215,11 +215,11 @@ func GetNumberMenuItem(text string, value, min, max int32,
 func GetText(text string, color sdl.Color, x, y int32,
 	renderer *sdl.Renderer) (*sdl.Texture, *sdl.Rect, *sdl.Rect) {
 	textSurface, err := font.RenderUTF8_Solid(text, color)
-	e(err)
+	PanicOnError(err)
 	defer textSurface.Free()
 
 	texture, err := renderer.CreateTextureFromSurface(textSurface)
-	e(err)
+	PanicOnError(err)
 	src := &sdl.Rect{0, 0, textSurface.W, textSurface.H}
 	dst := &sdl.Rect{x, y - src.H/2, src.W, src.H}
 	return texture, src, dst

@@ -34,15 +34,15 @@ var numbers *NumberData
 
 func InitNumbers(renderer *sdl.Renderer) {
 	dash, _, err := font.SizeUTF8("-")
-	e(err)
+	PanicOnError(err)
 	max := dash
 	space, _, err := font.SizeUTF8(" ")
-	e(err)
+	PanicOnError(err)
 	dist := space
 	middle := make([]int, 11)
 	for i := 0; i < 10; i++ {
 		c, _, err := font.SizeUTF8(strconv.Itoa(i))
-		e(err)
+		PanicOnError(err)
 		if c > max {
 			max = c
 		}
@@ -54,11 +54,11 @@ func InitNumbers(renderer *sdl.Renderer) {
 
 	textSurface, err := font.RenderUTF8_Solid(" 0 1 2 3 4 5 6 7 8 9 - ",
 		sdl.Color{255, 255, 255, 255})
-	e(err)
+	PanicOnError(err)
 	defer textSurface.Free()
 
 	texture, err := renderer.CreateTextureFromSurface(textSurface)
-	e(err)
+	PanicOnError(err)
 
 	W, H := int32(max), textSurface.H
 	src := make([]*sdl.Rect, 11)

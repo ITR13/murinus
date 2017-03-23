@@ -42,20 +42,20 @@ func ReadOptions(path string, input *Input) {
 	}
 	if _, err := os.Stat(path); err == nil {
 		file, err := os.Open(path)
-		e(err)
+		PanicOnError(err)
 		defer file.Close()
 		decoder := xml.NewDecoder(file)
-		e(decoder.Decode(&options))
+		PanicOnError(decoder.Decode(&options))
 	}
 	options.showDivert = options.ShowDivert != 0
 }
 
 func SaveOptions(path string, input *Input) {
 	file, err := os.Create(path)
-	e(err)
+	PanicOnError(err)
 	defer file.Close()
 	encoder := xml.NewEncoder(file)
 	encoder.Indent("  ", "    ")
 
-	e(encoder.Encode(&options))
+	PanicOnError(encoder.Encode(&options))
 }
