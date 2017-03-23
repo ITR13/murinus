@@ -62,11 +62,11 @@ func main() {
 
 	for !quit {
 		difficulty = -1
-		subMenu := -1
+		menuChoice := -1
 	menuLoop:
 		for difficulty == -1 && !quit {
-			subMenu = menus[0].Run(renderer, input)
-			switch subMenu {
+			menuChoice = menus[0].Run(renderer, input)
+			switch menuChoice {
 			case -1:
 				if !quit {
 					quit = Arcade
@@ -95,47 +95,47 @@ func main() {
 		}
 
 		stage.ID = -1
-		if subMenu == 0 || subMenu == 1 {
+		if menuChoice == 0 || menuChoice == 1 {
 			for !quit {
 				levelsCleared := 0
 				score := -ScoreMult(500)
 
-				RunGame(subMenu, &levelsCleared, &score);
+				RunGame(menuChoice, &levelsCleared, &score);
 				fmt.Printf("Game Over. Final score %d\n", score)
 				stage.lostOnce = true
 				input.exit.timeHeld = 0
 
-				subMenu := -1
+				menuChoice := -1
 				var scoreData *ScoreData
 				menus[2].selectedElement = 0
-				for !quit && subMenu < 2 {
-					subMenu = menus[2].Run(renderer, input)
-					if subMenu == 0 {
+				for !quit && menuChoice < 2 {
+					menuChoice = menus[2].Run(renderer, input)
+					if menuChoice == 0 {
 						name := GetName(defaultName, renderer, input)
 						if name != "" {
 							defaultName = name
 							if scoreData == nil {
 								scoreData = &ScoreData{score, name,
 									levelsCleared, difficulty, time.Now()}
-								highscores.Add(scoreData, subMenu != 0, true)
+								highscores.Add(scoreData, menuChoice != 0, true)
 							} else {
 								scoreData.Name = name
 							}
 						}
-					} else if subMenu == 1 {
-						highscores.Display(difficulty, subMenu != 0,
+					} else if menuChoice == 1 {
+						highscores.Display(difficulty, menuChoice != 0,
 							renderer, input)
-					} else if subMenu == -1 {
-						subMenu = 4
+					} else if menuChoice == -1 {
+						menuChoice = 4
 					}
 				}
 				if quit {
 					break
-				} else if subMenu == 2 {
+				} else if menuChoice == 2 {
 					stage.ID--
-				} else if subMenu == 3 {
+				} else if menuChoice == 3 {
 					stage.ID = -1
-				} else if subMenu == 4 {
+				} else if menuChoice == 4 {
 					break
 				} else {
 					panic("Unknown menu option")
@@ -233,7 +233,7 @@ func ShowCredits() {
 	creds.Destroy()
 }
 
-func RunGame(subMenu int, levelsCleared *int, score *int64) {
+func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 	lostLife = false
 	lives := 3
 	wonInARow := -2
@@ -252,7 +252,7 @@ func RunGame(subMenu int, levelsCleared *int, score *int64) {
 			if lives == 0 {
 				panic("Should not reach this statement")
 			}
-			engine = stage.Load(stage.ID, false, *score, subMenu)
+			engine = stage.Load(stage.ID, false, *score, menuChoice)
 			window.SetTitle("Score: " + strconv.Itoa(int(*score)) +
 				" Lives: " + strconv.Itoa(lives))
 		} else {
@@ -266,7 +266,7 @@ func RunGame(subMenu int, levelsCleared *int, score *int64) {
 			}
 			fmt.Printf("Won in a row counter: %d\n", wonInARow)
 			engine = stage.Load(stage.ID+1, true,
-				*score + ScoreMult(500), subMenu)
+				*score + ScoreMult(500), menuChoice)
 		}
 		fmt.Printf("Lives: %d\n", lives)
 		if engine == nil {
