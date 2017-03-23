@@ -83,28 +83,7 @@ func main() {
 			case 4:
 				DoSettings(menus[3], renderer, input)
 			case 5:
-				creds, src, dst := GetText("Made by ITR   -   Source available on "+
-					"github.com/ITR13/murinus", sdl.Color{255, 255, 255, 255},
-					newScreenWidth/2, newScreenHeight/2, renderer)
-				input.mono.a.down = false
-				input.mono.b.down = false
-				dst.X -= dst.W
-				dst.Y -= dst.H / 2
-				dst.W *= 2
-				dst.H *= 2
-				renderer.SetRenderTarget(nil)
-				renderer.SetDrawColor(0, 0, 0, 255)
-				renderer.Clear()
-				PanicOnError(renderer.Copy(creds, src, dst))
-				for !input.mono.a.down && !input.mono.b.down && !quit {
-					renderer.SetRenderTarget(nil)
-					renderer.SetDrawColor(0, 0, 0, 255)
-					renderer.Clear()
-					PanicOnError(renderer.Copy(creds, src, dst))
-					renderer.Present()
-					input.Poll()
-				}
-				creds.Destroy()
+				ShowCredits()
 			case 6:
 				quit = true
 			default:
@@ -276,6 +255,33 @@ func CleanUp() {
 	stage.Free()
 	renderer.Destroy()
 	window.Destroy()
+}
+
+func ShowCredits() {
+	txt := "Made by ITR   -   Source available on github.com/ITR13/murinus"
+	creds, src, dst := GetText(txt, sdl.Color{255, 255, 255, 255},
+		newScreenWidth/2, newScreenHeight/2, renderer)
+	input.mono.a.down = false
+	input.mono.b.down = false
+	dst.X -= dst.W
+	dst.Y -= dst.H / 2
+	dst.W *= 2
+	dst.H *= 2
+
+	renderer.SetRenderTarget(nil)
+	renderer.SetDrawColor(0, 0, 0, 255)
+	renderer.Clear()
+	PanicOnError(renderer.Copy(creds, src, dst))
+
+	for !input.mono.a.down && !input.mono.b.down && !quit {
+		renderer.SetRenderTarget(nil)
+		renderer.SetDrawColor(0, 0, 0, 255)
+		renderer.Clear()
+		PanicOnError(renderer.Copy(creds, src, dst))
+		renderer.Present()
+		input.Poll()
+	}
+	creds.Destroy()
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
