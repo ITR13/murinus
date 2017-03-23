@@ -226,9 +226,8 @@ func GetText(text string, color sdl.Color, x, y int32,
 }
 
 func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
-	prevVal, prevMod := int32(0), int32(0)
-	step, mStep := 0, 0
-	repeat, mRepeat := true, true
+	vStepper, mStepper := input.mono.upDown.Stepper(20, 5),
+		input.mono.leftRight.Stepper(20, 4)
 	input.mono.a.down = false
 	input.mono.b.down = false
 
@@ -244,13 +243,8 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 			break
 		}
 
-		mod := input.mono.leftRight.Val()
-		if prevMod != mod || mRepeat {
-			mRepeat = false
-			if prevMod != mod {
-				mStep = 0
-			}
-			prevMod = mod
+		mod := mStepper()
+		if mod != 0 {
 			if selected.numberField != nil {
 				if input.mono.a.down {
 					mod *= 10
@@ -259,20 +253,9 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 					renderer)
 			}
 		}
-		if mod != 0 {
-			mStep++
-			if mStep > 20 && mStep%4 == 0 {
-				mRepeat = true
-			}
-		}
 
-		val := input.mono.upDown.Val()
-		if val != prevVal || repeat {
-			repeat = false
-			if prevVal != val {
-				step = 0
-			}
-			prevVal = val
+		val := vStepper()
+		if val != 0 {
 			if val > 0 {
 				menu.selectedElement = (menu.selectedElement +
 					1) % len(menu.menuItems)
@@ -282,12 +265,6 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 			}
 		}
 
-		if val != 0 {
-			step++
-			if step > 20 && step%5 == 0 {
-				repeat = true
-			}
-		}
 	}
 	return menu.selectedElement
 }

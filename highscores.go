@@ -64,6 +64,9 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	src, dst := &sdl.Rect{0, 0, screenWidth, screenHeight},
 		&sdl.Rect{-screenWidth / 2, -screenHeight / 2, screenWidth * 2, screenHeight * 2}
 	defer backTexture.Destroy()
+
+	stepper := input.mono.upDown.Stepper(25, 2)
+
 	draw := func() {
 		renderer.SetRenderTarget(backTexture)
 		renderer.SetDrawColor(0, 0, 0, 255)
@@ -102,7 +105,7 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 		draw()
 		renderer.Present()
 		input.Poll()
-		ud := input.mono.upDown.Val()
+		ud := stepper()
 		if ud != prevUD {
 			prevUD = ud
 			if ud < 0 {

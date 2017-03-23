@@ -215,3 +215,32 @@ func (controller *Controller) Dir(dir Direction) int32 {
 	}
 	return 0
 }
+
+func (key *Key) Stepper(start, mod int) func() bool {
+	c := 0
+	return func() bool {
+		if key.down {
+			c++
+			return c == 1 || (c > start && c%mod == 0)
+		} else {
+			c = 0
+		}
+		return false
+	}
+}
+
+func (axis *Axis) Stepper(start, mod int) func() int32 {
+	c := 0
+	return func() int32 {
+		val := axis.Val()
+		if val == 0 {
+			c = 0
+		} else {
+			c++
+			if c == 1 || (c > start && c%mod == 0) {
+				return val
+			}
+		}
+		return 0
+	}
+}
