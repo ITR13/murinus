@@ -215,12 +215,6 @@ func main() {
 			}
 		}
 	}
-
-	numbers.Free()
-	for i := 0; i < len(menus); i++ {
-		menus[i].Free()
-	}
-	stage.Free()
 	fmt.Println("Quit")
 }
 
@@ -271,12 +265,17 @@ func Init() {
 }
 
 func CleanUp() {
-	window.Destroy()
-	renderer.Destroy()
+	highscores.Write("singleplayer.hs", "multiplayer.hs")
 	if !Arcade {
 		SaveOptions("options.xml", input)
 	}
-	highscores.Write("singleplayer.hs", "multiplayer.hs")
+	numbers.Free()
+	for i := 0; i < len(menus); i++ {
+		menus[i].Free()
+	}
+	stage.Free()
+	renderer.Destroy()
+	window.Destroy()
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
