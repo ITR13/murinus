@@ -240,7 +240,7 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 			fmt.Println("Engine nil, game was won")
 			break
 		}
-		Play(engine, window, renderer, int32(lives))
+		PlayStage(engine, window, renderer, int32(lives))
 		*score = engine.Score
 		if engine.Input.exit.timeHeld >
 			timeExitHasToBeHeldBeforeCloseGame {
@@ -257,7 +257,7 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 	}
 }
 
-func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
+func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	p1C, p2C := options.CharacterP1, options.CharacterP2
 	if engine.p1 == nil {
