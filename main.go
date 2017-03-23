@@ -75,7 +75,7 @@ func main() {
 			case 0:
 				fallthrough
 			case 1:
-				difficulty = menus[1].Run(renderer, input)
+				StartGameSession(menuChoice)
 			case 2:
 				fmt.Println("Not made yet") //Training
 			case 3:
@@ -88,27 +88,6 @@ func main() {
 				quit = true
 			default:
 				panic("Unknown menu option")
-			}
-		}
-		if quit {
-			break
-		}
-
-		stage.ID = -1
-		if menuChoice == 0 || menuChoice == 1 {
-			for !quit {
-				levelsCleared := 0
-				score := -ScoreMult(500)
-
-				RunGame(menuChoice, &levelsCleared, &score);
-
-				fmt.Printf("Game Over. Final score %d\n", score)
-				stage.lostOnce = true
-				input.exit.timeHeld = 0
-
-				if !GameOverMenu(levelsCleared, score) {
-					break
-				}
 			}
 		}
 	}
@@ -173,6 +152,25 @@ func CleanUp() {
 	stage.Free()
 	renderer.Destroy()
 	window.Destroy()
+}
+
+func StartGameSession(menuChoice int) {
+	difficulty = menus[1].Run(renderer, input)
+	stage.ID = -1
+	for !quit {
+		levelsCleared := 0
+		score := -ScoreMult(500)
+
+		RunGame(menuChoice, &levelsCleared, &score);
+
+		fmt.Printf("Game Over. Final score %d\n", score)
+		stage.lostOnce = true
+		input.exit.timeHeld = 0
+
+		if !GameOverMenu(levelsCleared, score) {
+			break
+		}
+	}
 }
 
 func ShowCredits() {
