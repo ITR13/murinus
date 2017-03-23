@@ -97,71 +97,20 @@ func main() {
 		stage.ID = -1
 		if subMenu == 0 || subMenu == 1 {
 			for !quit {
-				lostLife = false
-				lives := 3
-				score := -ScoreMult(500)
-				wonInARow := -2
-				extraLives := 0
-				extraLivesCounter := int64(25000)
 				levelsCleared := 0
-				for !quit && (lives != 1 || !lostLife) {
-					var engine *Engine
-					if lostLife {
-						wonInARow = -1
-						lostLife = false
-						lives--
-						if lives < extraLives {
-							extraLives = lives
-						}
-						if lives == 0 {
-							panic("Should not reach this statement")
-						}
-						engine = stage.Load(stage.ID, false, score, subMenu)
-						window.SetTitle("Score: " + strconv.Itoa(int(score)) +
-							" Lives: " + strconv.Itoa(lives))
-					} else {
-						levelsCleared++
-						wonInARow++
-						if wonInARow == 3 {
-							if lives-extraLives < 4 {
-								wonInARow = 0
-								lives++
-							}
-						}
-						fmt.Printf("Won in a row counter: %d\n", wonInARow)
-						engine = stage.Load(stage.ID+1, true,
-							score+ScoreMult(500), subMenu)
-					}
-					fmt.Printf("Lives: %d\n", lives)
-					if engine == nil {
-						fmt.Println("Engine nil, game was won")
-						break
-					}
-					Play(engine, window, renderer, int32(lives))
-					score = engine.Score
-					if engine.Input.exit.timeHeld >
-						timeExitHasToBeHeldBeforeCloseGame {
-						fmt.Println("Game was quit with exit key")
-						break
-					}
-					for score > extraLivesCounter &&
-						extraLivesCounter*2 > extraLivesCounter {
-						extraLivesCounter *= 2
-						//extraLives++
-						//lives++
-					}
-					fmt.Printf("Score: %d\n", score)
-				}
+				score := -ScoreMult(500)
+
+				RunGame(subMenu, &levelsCleared, &score);
 				fmt.Printf("Game Over. Final score %d\n", score)
 				stage.lostOnce = true
 				input.exit.timeHeld = 0
 
-				menuChoice := -1
+				subMenu := -1
 				var scoreData *ScoreData
 				menus[2].selectedElement = 0
-				for !quit && menuChoice < 2 {
-					menuChoice = menus[2].Run(renderer, input)
-					if menuChoice == 0 {
+				for !quit && subMenu < 2 {
+					subMenu = menus[2].Run(renderer, input)
+					if subMenu == 0 {
 						name := GetName(defaultName, renderer, input)
 						if name != "" {
 							defaultName = name
@@ -173,20 +122,20 @@ func main() {
 								scoreData.Name = name
 							}
 						}
-					} else if menuChoice == 1 {
+					} else if subMenu == 1 {
 						highscores.Display(difficulty, subMenu != 0,
 							renderer, input)
-					} else if menuChoice == -1 {
-						menuChoice = 4
+					} else if subMenu == -1 {
+						subMenu = 4
 					}
 				}
 				if quit {
 					break
-				} else if menuChoice == 2 {
+				} else if subMenu == 2 {
 					stage.ID--
-				} else if menuChoice == 3 {
+				} else if subMenu == 3 {
 					stage.ID = -1
-				} else if menuChoice == 4 {
+				} else if subMenu == 4 {
 					break
 				} else {
 					panic("Unknown menu option")
@@ -282,6 +231,63 @@ func ShowCredits() {
 		input.Poll()
 	}
 	creds.Destroy()
+}
+
+func RunGame(subMenu int, levelsCleared *int, score *int64) {
+	lostLife = false
+	lives := 3
+	wonInARow := -2
+	extraLives := 0
+	extraLivesCounter := int64(25000)
+
+	for !quit && (lives != 1 || !lostLife) {
+		var engine *Engine
+		if lostLife {
+			wonInARow = -1
+			lostLife = false
+			lives--
+			if lives < extraLives {
+				extraLives = lives
+			}
+			if lives == 0 {
+				panic("Should not reach this statement")
+			}
+			engine = stage.Load(stage.ID, false, *score, subMenu)
+			window.SetTitle("Score: " + strconv.Itoa(int(*score)) +
+				" Lives: " + strconv.Itoa(lives))
+		} else {
+			*levelsCleared++
+			wonInARow++
+			if wonInARow == 3 {
+				if lives-extraLives < 4 {
+					wonInARow = 0
+					lives++
+				}
+			}
+			fmt.Printf("Won in a row counter: %d\n", wonInARow)
+			engine = stage.Load(stage.ID+1, true,
+				*score + ScoreMult(500), subMenu)
+		}
+		fmt.Printf("Lives: %d\n", lives)
+		if engine == nil {
+			fmt.Println("Engine nil, game was won")
+			break
+		}
+		Play(engine, window, renderer, int32(lives))
+		*score = engine.Score
+		if engine.Input.exit.timeHeld >
+			timeExitHasToBeHeldBeforeCloseGame {
+			fmt.Println("Game was quit with exit key")
+			break
+		}
+		for *score > extraLivesCounter &&
+			extraLivesCounter*2 > extraLivesCounter {
+			extraLivesCounter *= 2
+			//extraLives++
+			//lives++
+		}
+		fmt.Printf("Score: %d\n", *score)
+	}
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
