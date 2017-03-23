@@ -195,10 +195,10 @@ func (stage *Stage) Render(p1, p2 uint8,
 }
 
 func (tiles *TileStage) Render(renderer *sdl.Renderer, hideWalls bool) {
-	e(renderer.SetRenderTarget(tiles.texture))
-	e(renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE))
-	e(renderer.SetDrawColor(0, 0, 0, 255))
-	e(renderer.Clear())
+	PanicOnError(renderer.SetRenderTarget(tiles.texture))
+	PanicOnError(renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE))
+	PanicOnError(renderer.SetDrawColor(0, 0, 0, 255))
+	PanicOnError(renderer.Clear())
 	if tiles.tiles != nil {
 		for x := int32(0); x < tiles.w; x++ {
 			tiles.tileDst.X = x * gSize
@@ -211,7 +211,7 @@ func (tiles *TileStage) Render(renderer *sdl.Renderer, hideWalls bool) {
 					tile = Empty
 				}
 
-				e(renderer.Copy(tiles.tileInfo.textures[tile],
+				PanicOnError(renderer.Copy(tiles.tileInfo.textures[tile],
 					tiles.tileInfo.src[tile], tiles.tileDst))
 			}
 		}
@@ -310,14 +310,14 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 
 	tileTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
-	e(err)
+	PanicOnError(err)
 	tileInfo := TileInfo{&sdl.Rect{},
 		make([]*sdl.Texture, NumTiles),
 		make([]*sdl.Rect, NumTiles)}
 	for i := 0; i < NumTiles; i++ {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 			sdl.TEXTUREACCESS_TARGET, int(gSize), int(gSize))
-		e(err)
+		PanicOnError(err)
 		tileInfo.textures[i] = texture
 		tileInfo.src[i] = &rect8x8
 	}
@@ -329,7 +329,7 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 
 	spriteTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET, int(w*gSize), int(h*gSize))
-	e(err)
+	PanicOnError(err)
 	spriteTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
 	spriteInfo := make(SpriteInfo, NumSprites)
@@ -337,7 +337,7 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 		texture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 			sdl.TEXTUREACCESS_TARGET, int(gSize)*2, int(gSize))
 		texture.SetBlendMode(sdl.BLENDMODE_BLEND)
-		e(err)
+		PanicOnError(err)
 		ownRect := rect8x8
 		spriteInfo[i] = &Sprite{texture,
 			[]*sdl.Rect{&rect8x8, &ownRect}, 60, 0}
@@ -350,7 +350,7 @@ func LoadTextures(renderer *sdl.Renderer, input *Input) *Stage {
 	scoreTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565,
 		sdl.TEXTUREACCESS_TARGET,
 		font.Height()*int(stageWidth), font.Height()+20)
-	e(err)
+	PanicOnError(err)
 	fontHeightDiv10 := int32(font.Height() / 5)
 	scoreField := ScoreField{-1, -1, scoreTexture,
 		&sdl.Rect{0, 0,

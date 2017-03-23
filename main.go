@@ -44,59 +44,21 @@ const (
 
 var screenWidth, screenHeight, blockSize, blockSizeBigBoard int32
 
-var quit bool
-var lostLife bool
+var quit, lostLife bool
+
+var (
+	window *sdl.Window
+	renderer *sdl.Renderer
+	input *Input
+	menus []*Menu
+	stage *Stage
+	highscores Highscores
+	defaultName string
+)
 
 func main() {
-	screenWidth, screenHeight, blockSize, blockSizeBigBoard =
-		screenWidthD, screenHeightD, blockSizeD, blockSizeBigBoardD
-	newScreenWidth, newScreenHeight = screenWidth, screenHeight
-
-	runtime.LockOSThread()
-	err := sdl.Init(sdl.INIT_EVERYTHING)
-	e(err)
-	fmt.Println("Init SDL")
-
-	window, err := sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
-		sdl.WINDOWPOS_UNDEFINED, int(screenWidth), int(screenHeight),
-		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE|sdl.RENDERER_PRESENTVSYNC)
-	e(err)
-	defer window.Destroy()
-	fmt.Println("Created window")
-
-	renderer, err := sdl.CreateRenderer(window, -1,
-		sdl.RENDERER_ACCELERATED)
-	e(err)
-	defer renderer.Destroy()
-	renderer.Clear()
-	fmt.Println("Created renderer")
-
-	InitText(renderer)
-	fmt.Println("Initiated text")
-	InitNumbers(renderer)
-	fmt.Println("Initiated numbers")
-
-	input := GetInput()
-	fmt.Println("Got inputs")
-
-	ReadOptions("options.xml", input)
-	if !Arcade {
-		defer SaveOptions("options.xml", input)
-	}
-	fmt.Println("Created options")
-
-	menus := GetMenus(renderer)
-	fmt.Println("Created menus")
-
-	stage := LoadTextures(renderer, input)
-	fmt.Println("Loaded stage-basis")
-
-	highscores := Read("singleplayer.hs", "multiplayer.hs")
-	defer highscores.Write("singleplayer.hs", "multiplayer.hs")
-
-	fmt.Println("Loaded Highscores")
-
-	defaultName := "\\\\\\"
+	Init()
+	defer CleanUp()
 
 	for !quit {
 		difficulty = -1
@@ -130,7 +92,7 @@ func main() {
 				renderer.SetDrawColor(0, 0, 0, 255)
 				renderer.Clear()
 				dst.X -= dst.W / 2
-				e(renderer.Copy(creds, src, dst))
+				PanicOnError(renderer.Copy(creds, src, dst))
 				for !input.mono.a.down && !input.mono.b.down && !quit {
 					input.Poll()
 					renderer.Present()
@@ -255,6 +217,61 @@ func main() {
 	fmt.Println("Quit")
 }
 
+func Init() {
+	screenWidth, screenHeight, blockSize, blockSizeBigBoard =
+		screenWidthD, screenHeightD, blockSizeD, blockSizeBigBoardD
+	newScreenWidth, newScreenHeight = screenWidth, screenHeight
+
+	runtime.LockOSThread()
+	err := sdl.Init(sdl.INIT_EVERYTHING)
+	PanicOnError(err)
+	fmt.Println("Init SDL")
+
+	window, err = sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
+		sdl.WINDOWPOS_UNDEFINED, int(screenWidth), int(screenHeight),
+		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE|sdl.RENDERER_PRESENTVSYNC)
+	PanicOnError(err)
+	fmt.Println("Created window")
+
+	renderer, err = sdl.CreateRenderer(window, -1,
+		sdl.RENDERER_ACCELERATED)
+	PanicOnError(err)
+	renderer.Clear()
+	fmt.Println("Created renderer")
+
+	InitText(renderer)
+	fmt.Println("Initiated text")
+	InitNumbers(renderer)
+	fmt.Println("Initiated numbers")
+
+	input = GetInput()
+	fmt.Println("Got inputs")
+
+	ReadOptions("options.xml", input)
+	fmt.Println("Created options")
+
+	menus = GetMenus(renderer)
+	fmt.Println("Created menus")
+
+	stage = LoadTextures(renderer, input)
+	fmt.Println("Loaded stage-basis")
+
+	highscores = Read("singleplayer.hs", "multiplayer.hs")
+
+	fmt.Println("Loaded Highscores")
+
+	defaultName = "\\\\\\"
+}
+
+func CleanUp() {
+	window.Destroy()
+	renderer.Destroy()
+	if !Arcade {
+		SaveOptions("options.xml", input)
+	}
+	highscores.Write("singleplayer.hs", "multiplayer.hs")
+}
+
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	p1C, p2C := options.CharacterP1, options.CharacterP2
@@ -368,7 +385,7 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	redrawTextures = true
 }
 
-func e(err error) {
+func PanicOnError(err error) {
 	if err != nil {
 		panic(err)
 	}
