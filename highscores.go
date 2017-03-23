@@ -290,7 +290,6 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 				w, h = w*2, h*2
 			}
 			src.W, src.H = w, h
-			fmt.Println(src)
 			renderer.Copy(header, src, src)
 		}
 		renderer.Present()
