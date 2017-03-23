@@ -158,17 +158,23 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	return name
 }
 
-func (highscores *Highscores) Add(score *ScoreData, multiplayer bool) {
+func (highscores *Highscores) Add(score *ScoreData, multiplayer, sort bool) {
 	if multiplayer {
+		fmt.Println("Adding %v to multiplayer\n", *score)
 		highscores[1][0].Add(score)
 		highscores[1][score.Difficulty+1].Add(score)
-		highscores[1][0].Sort()
-		highscores[1][score.Difficulty+1].Sort()
+		if sort {
+			highscores[1][0].Sort()
+			highscores[1][score.Difficulty+1].Sort()
+		}
 	} else {
+		fmt.Println("Adding %v to singleplayer\n", *score)
 		highscores[0][0].Add(score)
 		highscores[0][score.Difficulty+1].Add(score)
-		highscores[0][0].Sort()
-		highscores[0][score.Difficulty+1].Sort()
+		if sort {
+			highscores[0][0].Sort()
+			highscores[0][score.Difficulty+1].Sort()
+		}
 	}
 }
 
@@ -480,6 +486,11 @@ func Read(paths ...string) Highscores {
 
 	for i := range paths {
 		path := paths[i]
+		if i == 0 {
+			fmt.Printf("Loading \"%s\" as singleplayer\n", path)
+		} else {
+			fmt.Printf("Loading \"%s\" as multiplayer\n", path)
+		}
 		if _, err := os.Stat(path); err == nil {
 			file, err := os.Open(path)
 			PanicOnError(err)
@@ -488,7 +499,7 @@ func Read(paths ...string) Highscores {
 			datas := make([]*ScoreData, 0)
 			PanicOnError(decoder.Decode(&datas))
 			for i := 0; i < len(datas); i++ {
-				highscores.Add(datas[i], i != 0)
+				highscores.Add(datas[i], i != 0, false)
 			}
 		}
 	}
@@ -504,10 +515,11 @@ func Read(paths ...string) Highscores {
 func (highscores Highscores) Write(paths ...string) {
 	for i := 0; i < len(paths); i++ {
 		file, err := os.Create(paths[i])
-		PanicOnError(err)
-		defer file.Close()
-		encoder := gob.NewEncoder(file)
-		PanicOnError(encoder.Encode(highscores[i][0].scores))
+		if !LogOnError(err) {
+			defer file.Close()
+			encoder := gob.NewEncoder(file)
+			LogOnError(encoder.Encode(highscores[i][0].scores))
+		}
 	}
 }
 

@@ -189,7 +189,7 @@ func main() {
 							if scoreData == nil {
 								scoreData = &ScoreData{score, name,
 									levelsCleared, difficulty, time.Now()}
-								highscores.Add(scoreData, subMenu != 0)
+								highscores.Add(scoreData, subMenu != 0, true)
 							} else {
 								scoreData.Name = name
 							}
@@ -396,4 +396,11 @@ func PanicOnError(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func LogOnError(err error) bool {
+	if err != nil {
+		fmt.Println(err)
+	}
+	return err != nil
 }
