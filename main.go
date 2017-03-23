@@ -44,27 +44,34 @@ const (
 
 var screenWidth, screenHeight, blockSize, blockSizeBigBoard int32
 
-var quit bool
-var lostLife bool
+var quit, lostLife bool
+
+var (
+	window *sdl.Window
+	renderer *sdl.Renderer
+	input *Input
+	menus []*Menu
+	stage *Stage
+	highscores Highscores
+	defaultName string
+)
 
 func main() {
-	screenWidth, screenHeight, blockSize, blockSizeBigBoard =
-		screenWidthD, screenHeightD, blockSizeD, blockSizeBigBoardD
-	newScreenWidth, newScreenHeight = screenWidth, screenHeight
+	Init()
 
 	runtime.LockOSThread()
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	PanicOnError(err)
 	fmt.Println("Init SDL")
 
-	window, err := sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
+	window, err = sdl.CreateWindow("Murinus", sdl.WINDOWPOS_UNDEFINED,
 		sdl.WINDOWPOS_UNDEFINED, int(screenWidth), int(screenHeight),
 		sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE|sdl.RENDERER_PRESENTVSYNC)
 	PanicOnError(err)
 	defer window.Destroy()
 	fmt.Println("Created window")
 
-	renderer, err := sdl.CreateRenderer(window, -1,
+	renderer, err = sdl.CreateRenderer(window, -1,
 		sdl.RENDERER_ACCELERATED)
 	PanicOnError(err)
 	defer renderer.Destroy()
@@ -76,7 +83,7 @@ func main() {
 	InitNumbers(renderer)
 	fmt.Println("Initiated numbers")
 
-	input := GetInput()
+	input = GetInput()
 	fmt.Println("Got inputs")
 
 	ReadOptions("options.xml", input)
@@ -85,18 +92,18 @@ func main() {
 	}
 	fmt.Println("Created options")
 
-	menus := GetMenus(renderer)
+	menus = GetMenus(renderer)
 	fmt.Println("Created menus")
 
-	stage := LoadTextures(renderer, input)
+	stage = LoadTextures(renderer, input)
 	fmt.Println("Loaded stage-basis")
 
-	highscores := Read("singleplayer.hs", "multiplayer.hs")
+	highscores = Read("singleplayer.hs", "multiplayer.hs")
 	defer highscores.Write("singleplayer.hs", "multiplayer.hs")
 
 	fmt.Println("Loaded Highscores")
 
-	defaultName := "\\\\\\"
+	defaultName = "\\\\\\"
 
 	for !quit {
 		difficulty = -1
@@ -253,6 +260,12 @@ func main() {
 	}
 	stage.Free()
 	fmt.Println("Quit")
+}
+
+func Init() {
+	screenWidth, screenHeight, blockSize, blockSizeBigBoard =
+		screenWidthD, screenHeightD, blockSizeD, blockSizeBigBoardD
+	newScreenWidth, newScreenHeight = screenWidth, screenHeight
 }
 
 func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
