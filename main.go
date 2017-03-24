@@ -179,13 +179,13 @@ func StartTrainingSession() {
 	difficulty = -1
 	for play, ups, downs := menus[4].Run(renderer, input); !quit &&
 		play != -1; play, _, _ = menus[4].Run(renderer, input) {
-		ID := stage.levels[2][int(menus[4].menuItems[0].numberField.Value)][0]
-		difficulty := int(menus[4].menuItems[1].numberField.Value)
-		players := menus[4].menuItems[3].numberField.Value - 1
+		ID := stage.levels[2][int(menus[4].NVal(0))][0]
+		difficulty := int(menus[4].NVal(1))
+		players := menus[4].NVal(3) - 1
 
 		engine := stage.LoadSingleLevel(ID, difficulty,
 			ups > 8, downs > 8, true, 0, players)
-		for i := menus[4].menuItems[2].numberField.Value; i > 0; i-- {
+		for i := menus[4].NVal(2); i > 0; i-- {
 			PlayStage(engine, window, renderer, i)
 			if quit || input.exit.active || !lostLife {
 				break
@@ -372,11 +372,11 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	if quit {
 		return
 	}
-	options.CharacterP1 = uint8(menu.menuItems[0].numberField.Value)
-	options.CharacterP2 = uint8(menu.menuItems[1].numberField.Value)
-	options.EdgeSlip = int(menu.menuItems[2].numberField.Value)
-	options.BetterSlip = menu.menuItems[3].numberField.Value
-	options.ShowDivert = uint8(menu.menuItems[4].numberField.Value)
+	options.CharacterP1 = uint8(menu.NVal(0))
+	options.CharacterP2 = uint8(menu.NVal(1))
+	options.EdgeSlip = int(menu.NVal(2))
+	options.BetterSlip = menu.NVal(3)
+	options.ShowDivert = uint8(menu.NVal(4))
 	options.showDivert = options.ShowDivert != 0
 	redrawTextures = true
 }

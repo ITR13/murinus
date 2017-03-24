@@ -293,3 +293,10 @@ func (menu *Menu) Free() {
 	}
 	menu.menuItems = nil
 }
+
+func (menu *Menu) NVal(item int) int32 {
+	if menu.menuItems[item].numberField == nil {
+		panic("Tried to get value from menuitem without numberfield")
+	}
+	return menu.menuItems[item].numberField.Value
+}
