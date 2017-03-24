@@ -27,7 +27,9 @@ import (
 )
 
 const (
-	sizeMult int32 = 3
+	Arcade bool = false
+
+	sizeMult int32 = 1
 	sizeDiv  int32 = 2
 
 	timeExitHasToBeHeldBeforeGameEnd   int = 60 * 5
@@ -161,7 +163,7 @@ func StartGameSession(menuChoice int) {
 		levelsCleared := 0
 		score := -ScoreMult(500)
 
-		RunGame(menuChoice, &levelsCleared, &score);
+		RunGame(menuChoice, &levelsCleared, &score)
 
 		fmt.Printf("Game Over. Final score %d\n", score)
 		stage.lostOnce = true
@@ -233,7 +235,7 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 			}
 			fmt.Printf("Won in a row counter: %d\n", wonInARow)
 			engine = stage.Load(stage.ID+1, true,
-				*score + ScoreMult(500), menuChoice)
+				*score+ScoreMult(500), menuChoice)
 		}
 		fmt.Printf("Lives: %d\n", lives)
 		if engine == nil {

@@ -21,10 +21,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const (
-	Arcade bool = true
-)
-
 type Input struct {
 	mono   *Controller
 	p1, p2 *Controller

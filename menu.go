@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	MenuXOffset   int32 = 64 * 5
+	MenuXOffset   int32 = 64 * 5 * sizeMult / sizeDiv
 	MenuArrowSize int32 = 1280 // / 2
 
 	NumberFieldX     int32 = 185
