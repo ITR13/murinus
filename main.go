@@ -32,8 +32,8 @@ const (
 	sizeMult int32 = 1
 	sizeDiv  int32 = 2
 
-	timeExitHasToBeHeldBeforeGameEnd   int = 60 * 5
-	timeExitHasToBeHeldBeforeCloseGame int = 90
+	timeExitHasToBeHeldToQuit int = 60 * 5
+	timeExitHasToBeHeldToExit int = 90
 )
 
 const (
@@ -67,7 +67,7 @@ func main() {
 		menuChoice := -1
 	menuLoop:
 		for difficulty == -1 && !quit {
-			menuChoice = menus[0].Run(renderer, input)
+			menuChoice, _, _ = menus[0].Run(renderer, input)
 			switch menuChoice {
 			case -1:
 				if !quit {
@@ -79,7 +79,7 @@ func main() {
 			case 1:
 				StartGameSession(menuChoice)
 			case 2:
-				fmt.Println("Not made yet") //Training
+				StartTrainingSession()
 			case 3:
 				highscores.Display(-1, false, renderer, input)
 			case 4:
@@ -129,11 +129,11 @@ func Init() {
 	ReadOptions("options.xml", input)
 	fmt.Println("Created options")
 
-	menus = GetMenus(renderer)
-	fmt.Println("Created menus")
-
 	stage = LoadTextures(renderer, input)
 	fmt.Println("Loaded stage-basis")
+
+	menus = GetMenus(renderer)
+	fmt.Println("Created menus")
 
 	highscores = Read("singleplayer.hs", "multiplayer.hs")
 
@@ -157,7 +157,7 @@ func CleanUp() {
 }
 
 func StartGameSession(menuChoice int) {
-	difficulty = menus[1].Run(renderer, input)
+	difficulty, _, _ = menus[1].Run(renderer, input)
 	stage.ID = -1
 	for !quit {
 		levelsCleared := 0
@@ -171,6 +171,27 @@ func StartGameSession(menuChoice int) {
 
 		if !GameOverMenu(levelsCleared, score) {
 			break
+		}
+	}
+}
+
+func StartTrainingSession() {
+	difficulty = -1
+	for play, ups, downs := menus[4].Run(renderer, input); !quit &&
+		play != -1; play, _, _ = menus[4].Run(renderer, input) {
+		ID := stage.levels[2][int(menus[4].menuItems[0].numberField.Value)][0]
+		difficulty := int(menus[4].menuItems[1].numberField.Value)
+		players := menus[4].menuItems[3].numberField.Value - 1
+
+		engine := stage.LoadSingleLevel(ID, difficulty,
+			ups > 8, downs > 8, true, 0, players)
+		for i := menus[4].menuItems[2].numberField.Value; i > 0; i-- {
+			PlayStage(engine, window, renderer, i)
+			if quit || input.exit.active || !lostLife {
+				break
+			}
+			engine = stage.LoadSingleLevel(ID, difficulty,
+				ups > 8, downs > 8, false, engine.Score, players)
 		}
 	}
 }
@@ -244,8 +265,7 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 		}
 		PlayStage(engine, window, renderer, int32(lives))
 		*score = engine.Score
-		if engine.Input.exit.timeHeld >
-			timeExitHasToBeHeldBeforeCloseGame {
+		if engine.Input.exit.active {
 			fmt.Println("Game was quit with exit key")
 			break
 		}
@@ -261,12 +281,7 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 
 func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
-	p1C, p2C := options.CharacterP1, options.CharacterP2
-	if engine.p1 == nil {
-		p1C = p2C
-	} else if engine.p2 == nil {
-		p2C = p1C
-	}
+	p1C, p2C := engine.GetPlayerSpriteID()
 
 	quit = false
 	lostLife = false
@@ -275,7 +290,7 @@ func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	for i := 0; i < 30 && !quit; i++ {
 		engine.Stage.Render(p1C, p2C, renderer, false)
 		engine.Input.Poll()
-		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+		if engine.Input.exit.active {
 			fmt.Println("Round was quit with exit key")
 			return
 		}
@@ -290,7 +305,7 @@ func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	engine.Stage.tiles.renderedOnce = false
 	for !quit {
 		engine.Input.Poll()
-		if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+		if engine.Input.exit.active {
 			fmt.Println("Round was quit with exit key")
 			return
 		}
@@ -321,22 +336,16 @@ func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		for i := 0; i < 90 && !quit; i++ {
 			engine.Stage.tiles.renderedOnce = false
 			engine.Stage.scores.lives = lives - int32(i/15%2)
-			p1C, p2C := options.CharacterP1, options.CharacterP2
+			p1C, p2C := engine.GetPlayerSpriteID()
 			if engine.p1 != nil {
 				engine.p1.entity.display = (i / 15 % 2) == 0
-			} else {
-				p1C = p2C
 			}
-
 			if engine.p2 != nil {
 				engine.p2.entity.display = (i / 15 % 2) == 0
-			} else {
-				p2C = p1C
 			}
-
 			engine.Stage.Render(p1C, p2C, renderer, false)
 			engine.Input.Poll()
-			if engine.Input.exit.timeHeld > timeExitHasToBeHeldBeforeCloseGame {
+			if engine.Input.exit.active {
 				fmt.Println("Round was quit with exit key")
 				return
 			}
@@ -351,8 +360,8 @@ func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 }
 
 func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
-	for v := menu.Run(renderer, input); v != -1 &&
-		!quit; v = menu.Run(renderer, input) {
+	for v, _, _ := menu.Run(renderer, input); v != -1 &&
+		!quit; v, _, _ = menu.Run(renderer, input) {
 		ReadOptions("", input)
 		menu.menuItems[0].SetNumber(int32(options.CharacterP1), renderer)
 		menu.menuItems[1].SetNumber(int32(options.CharacterP2), renderer)
@@ -390,7 +399,7 @@ func GameOverMenu(levelsCleared int, score int64) (resume bool) {
 	var scoreData *ScoreData
 	menus[2].selectedElement = 0
 	for !quit && menuChoice < 2 {
-		menuChoice = menus[2].Run(renderer, input)
+		menuChoice, _, _ = menus[2].Run(renderer, input)
 		if menuChoice == 0 { // Set name
 			name := GetName(defaultName, renderer, input)
 			if name != "" {
@@ -411,6 +420,10 @@ func GameOverMenu(levelsCleared int, score int64) (resume bool) {
 		} else if menuChoice == -1 {
 			menuChoice = 4
 		}
+	}
+
+	if quit {
+		return false
 	}
 
 	resume = true

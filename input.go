@@ -42,6 +42,7 @@ type Axis struct {
 
 type DurationKey struct {
 	key      *Key
+	active   bool
 	timeHeld int
 }
 
@@ -128,7 +129,7 @@ func GetInput() *Input {
 		&Axis{allInputs[ipc*2+Left], allInputs[ipc*2+Right]},
 		allInputs[ipc*2+4], allInputs[ipc*2+5],
 	}
-	escape := DurationKey{allInputs[ipc*3], 9}
+	escape := DurationKey{allInputs[ipc*3], false, 9}
 	return &Input{&mono, &p1, &p2, &escape, allInputs}
 }
 
@@ -181,8 +182,15 @@ func (input *Input) Poll() {
 
 	if input.exit.key.down {
 		input.exit.timeHeld++
+		if input.exit.timeHeld > timeExitHasToBeHeldToExit {
+			input.exit.active = true
+			if input.exit.timeHeld > timeExitHasToBeHeldToQuit {
+				quit = true
+			}
+		}
 	} else {
 		input.exit.timeHeld = 0
+		input.exit.active = false
 	}
 }
 

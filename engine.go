@@ -239,6 +239,30 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	}
 }
 
+func CreatePlayers(x, y, pSpeed, players int32) (*Player, *Player) {
+	var p1, p2 *Player
+	p1 = &Player{stage.sprites.GetEntity(x, y, Player1),
+		pSpeed}
+	if players != 0 {
+		p2 = &Player{stage.sprites.GetEntity(x, y, Player2),
+			pSpeed}
+	}
+	return p1, p2
+}
+
+func (engine *Engine) GetPlayerSpriteID() (uint8, uint8) {
+	p1C, p2C := options.CharacterP1, options.CharacterP2
+	if engine.p1 == nil {
+		p1C = p2C
+	}
+
+	if engine.p2 == nil {
+		p2C = p1C
+	}
+
+	return p1C, p2C
+}
+
 func (player *Player) Control(controller *Controller, engine *Engine) {
 	e := player.entity
 	step := player.step
@@ -424,6 +448,8 @@ func ScoreMult(points int64) int64 {
 	case 3:
 		return points / 2
 	case 4:
+		return points
+	case -1:
 		return points
 	default:
 		panic("Should not be reached")

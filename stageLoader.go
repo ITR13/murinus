@@ -946,12 +946,11 @@ func (stage *Stage) Load(ID int, loadTiles bool, score int64,
 	diffIndex := stage.levels[difficulty][ID][1]
 
 	return stage.LoadSingleLevel(levelIndex, diffIndex,
-		hideSnakes, hideWalls, loadTiles, score, players)
+		hideSnakes, hideWalls, loadTiles, score, int32(players))
 }
 
 func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int, hideSnakes,
-	hideWalls, loadTiles bool, score int64, players int) *Engine {
-	var p1, p2 *Player
+	hideWalls, loadTiles bool, score int64, players int32) *Engine {
 	var snakes []*Snake
 	stage.sprites.entities = make([][]*Entity, 4)
 	for i := 0; i < 4; i++ {
@@ -960,15 +959,10 @@ func (stage *Stage) LoadSingleLevel(levelIndex, diffIndex int, hideSnakes,
 
 	level := stage.stages[levelIndex]
 	diffData := level.difficultyData[diffIndex]
+	p1, p2 := CreatePlayers(level.px, level.py, diffData.playerSpeed, players)
 
 	if loadTiles {
 		ConvertStringToTiles(level.stage)
-	}
-	p1 = &Player{stage.sprites.GetEntity(level.px, level.py, Player1),
-		diffData.playerSpeed}
-	if players != 0 {
-		p2 = &Player{stage.sprites.GetEntity(level.px, level.py, Player2),
-			diffData.playerSpeed}
 	}
 	if diffData.snakes != nil {
 		snakes = make([]*Snake, len(diffData.snakes))

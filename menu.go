@@ -130,7 +130,7 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	ret[0] = &Menu{[]*MenuItem{
 		GetMenuItem("1 Player", screenHeight/2-120*mult, renderer),
 		GetMenuItem("2 Players", screenHeight/2-80*mult, renderer),
-		GetMenuItem("Training (not implemented)", screenHeight/2-40*mult, renderer),
+		GetMenuItem("Training", screenHeight/2-40*mult, renderer),
 		GetMenuItem("High-Scores", screenHeight/2, renderer),
 		GetMenuItem("Options", screenHeight/2+40*mult, renderer),
 		GetMenuItem("Credits", screenHeight/2+80*mult, renderer),
@@ -164,12 +164,15 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetMenuItem("Reset", screenHeight/2+100*mult, renderer),
 	}, 0, true}
 	ret[4] = &Menu{[]*MenuItem{
-		GetNumberMenuItem("Level", 0, 0, 34,
-			screenHeight/2-40, renderer),
+		GetNumberMenuItem("Level", 0, 0, int32(len(stage.levels[2])-1),
+			screenHeight/2-80*mult, renderer),
 		GetNumberMenuItem("Difficulty", 0, 0, 2,
-			screenHeight/2, renderer),
+			screenHeight/2-40*mult, renderer),
 		GetNumberMenuItem("Lives", 3, 1, 16,
-			screenHeight/2+40, renderer),
+			screenHeight/2, renderer),
+		GetNumberMenuItem("Players", 1, 1, 2,
+			screenHeight/2+40*mult, renderer),
+		GetMenuItem("Start", screenHeight/2+80*mult, renderer),
 	}, 0, true}
 
 	return ret
@@ -225,19 +228,20 @@ func GetText(text string, color sdl.Color, x, y int32,
 	return texture, src, dst
 }
 
-func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
+func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) (int, int, int) {
 	vStepper, mStepper := input.mono.upDown.Stepper(20, 5),
 		input.mono.leftRight.Stepper(20, 4)
 	input.mono.a.down = false
 	input.mono.b.down = false
 
+	ups, downs := 0, 0
 	for !quit {
 		selected := menu.menuItems[menu.selectedElement]
 		menu.Display(renderer)
 		input.Poll()
 
 		if input.mono.b.down {
-			return -1
+			return -1, ups, downs
 		}
 		if input.mono.a.down && selected.numberField == nil {
 			break
@@ -256,17 +260,23 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) int {
 
 		val := vStepper()
 		if val != 0 {
-			if val > 0 {
-				menu.selectedElement = (menu.selectedElement +
-					1) % len(menu.menuItems)
-			} else if val < 0 {
-				menu.selectedElement = (menu.selectedElement +
-					len(menu.menuItems) - 1) % len(menu.menuItems)
+			if val < 0 {
+				menu.selectedElement--
+				if menu.selectedElement < 0 {
+					ups++
+					menu.selectedElement = len(menu.menuItems) - 1
+				}
+			} else if val > 0 {
+				menu.selectedElement++
+				if menu.selectedElement >= len(menu.menuItems) {
+					downs++
+					menu.selectedElement = 0
+				}
 			}
 		}
 
 	}
-	return menu.selectedElement
+	return menu.selectedElement, ups, downs
 }
 
 func (menu *Menu) Free() {
