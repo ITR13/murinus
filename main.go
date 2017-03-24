@@ -62,11 +62,11 @@ func main() {
 
 	for !quit {
 		difficulty = -1
-		subMenu := -1
+		menuChoice := -1
 	menuLoop:
 		for difficulty == -1 && !quit {
-			subMenu = menus[0].Run(renderer, input)
-			switch subMenu {
+			menuChoice = menus[0].Run(renderer, input)
+			switch menuChoice {
 			case -1:
 				if !quit {
 					quit = Arcade
@@ -75,7 +75,7 @@ func main() {
 			case 0:
 				fallthrough
 			case 1:
-				difficulty = menus[1].Run(renderer, input)
+				StartGameSession(menuChoice)
 			case 2:
 				fmt.Println("Not made yet") //Training
 			case 3:
@@ -83,135 +83,11 @@ func main() {
 			case 4:
 				DoSettings(menus[3], renderer, input)
 			case 5:
-				creds, src, dst := GetText("Made by ITR   -   Source available on "+
-					"github.com/ITR13/murinus", sdl.Color{255, 255, 255, 255},
-					newScreenWidth/2, newScreenHeight/2, renderer)
-				input.mono.a.down = false
-				input.mono.b.down = false
-				dst.X -= dst.W
-				dst.Y -= dst.H / 2
-				dst.W *= 2
-				dst.H *= 2
-				renderer.SetRenderTarget(nil)
-				renderer.SetDrawColor(0, 0, 0, 255)
-				renderer.Clear()
-				PanicOnError(renderer.Copy(creds, src, dst))
-				for !input.mono.a.down && !input.mono.b.down && !quit {
-					renderer.SetRenderTarget(nil)
-					renderer.SetDrawColor(0, 0, 0, 255)
-					renderer.Clear()
-					PanicOnError(renderer.Copy(creds, src, dst))
-					renderer.Present()
-					input.Poll()
-				}
-				creds.Destroy()
+				ShowCredits()
 			case 6:
 				quit = true
 			default:
 				panic("Unknown menu option")
-			}
-		}
-		if quit {
-			break
-		}
-
-		stage.ID = -1
-		if subMenu == 0 || subMenu == 1 {
-			for !quit {
-				lostLife = false
-				lives := 3
-				score := -ScoreMult(500)
-				wonInARow := -2
-				extraLives := 0
-				extraLivesCounter := int64(25000)
-				levelsCleared := 0
-				for !quit && (lives != 1 || !lostLife) {
-					var engine *Engine
-					if lostLife {
-						wonInARow = -1
-						lostLife = false
-						lives--
-						if lives < extraLives {
-							extraLives = lives
-						}
-						if lives == 0 {
-							panic("Should not reach this statement")
-						}
-						engine = stage.Load(stage.ID, false, score, subMenu)
-						window.SetTitle("Score: " + strconv.Itoa(int(score)) +
-							" Lives: " + strconv.Itoa(lives))
-					} else {
-						levelsCleared++
-						wonInARow++
-						if wonInARow == 3 {
-							if lives-extraLives < 4 {
-								wonInARow = 0
-								lives++
-							}
-						}
-						fmt.Printf("Won in a row counter: %d\n", wonInARow)
-						engine = stage.Load(stage.ID+1, true,
-							score+ScoreMult(500), subMenu)
-					}
-					fmt.Printf("Lives: %d\n", lives)
-					if engine == nil {
-						fmt.Println("Engine nil, game was won")
-						break
-					}
-					Play(engine, window, renderer, int32(lives))
-					score = engine.Score
-					if engine.Input.exit.timeHeld >
-						timeExitHasToBeHeldBeforeCloseGame {
-						fmt.Println("Game was quit with exit key")
-						break
-					}
-					for score > extraLivesCounter &&
-						extraLivesCounter*2 > extraLivesCounter {
-						extraLivesCounter *= 2
-						//extraLives++
-						//lives++
-					}
-					fmt.Printf("Score: %d\n", score)
-				}
-				fmt.Printf("Game Over. Final score %d\n", score)
-				stage.lostOnce = true
-				input.exit.timeHeld = 0
-
-				menuChoice := -1
-				var scoreData *ScoreData
-				menus[2].selectedElement = 0
-				for !quit && menuChoice < 2 {
-					menuChoice = menus[2].Run(renderer, input)
-					if menuChoice == 0 {
-						name := GetName(defaultName, renderer, input)
-						if name != "" {
-							defaultName = name
-							if scoreData == nil {
-								scoreData = &ScoreData{score, name,
-									levelsCleared, difficulty, time.Now()}
-								highscores.Add(scoreData, subMenu != 0, true)
-							} else {
-								scoreData.Name = name
-							}
-						}
-					} else if menuChoice == 1 {
-						highscores.Display(difficulty, subMenu != 0,
-							renderer, input)
-					} else if menuChoice == -1 {
-						menuChoice = 4
-					}
-				}
-				if quit {
-					break
-				} else if menuChoice == 2 {
-					stage.ID--
-				} else if menuChoice == 3 {
-					stage.ID = -1
-				} else if menuChoice == 4 {
-					break
-				} else {
-					panic("Unknown menu option")
-				}
 			}
 		}
 	}
@@ -278,7 +154,110 @@ func CleanUp() {
 	window.Destroy()
 }
 
-func Play(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
+func StartGameSession(menuChoice int) {
+	difficulty = menus[1].Run(renderer, input)
+	stage.ID = -1
+	for !quit {
+		levelsCleared := 0
+		score := -ScoreMult(500)
+
+		RunGame(menuChoice, &levelsCleared, &score);
+
+		fmt.Printf("Game Over. Final score %d\n", score)
+		stage.lostOnce = true
+		input.exit.timeHeld = 0
+
+		if !GameOverMenu(levelsCleared, score) {
+			break
+		}
+	}
+}
+
+func ShowCredits() {
+	txt := "Made by ITR   -   Source available on github.com/ITR13/murinus"
+	creds, src, dst := GetText(txt, sdl.Color{255, 255, 255, 255},
+		newScreenWidth/2, newScreenHeight/2, renderer)
+	input.mono.a.down = false
+	input.mono.b.down = false
+	dst.X -= dst.W
+	dst.Y -= dst.H / 2
+	dst.W *= 2
+	dst.H *= 2
+
+	renderer.SetRenderTarget(nil)
+	renderer.SetDrawColor(0, 0, 0, 255)
+	renderer.Clear()
+	PanicOnError(renderer.Copy(creds, src, dst))
+
+	for !input.mono.a.down && !input.mono.b.down && !quit {
+		renderer.SetRenderTarget(nil)
+		renderer.SetDrawColor(0, 0, 0, 255)
+		renderer.Clear()
+		PanicOnError(renderer.Copy(creds, src, dst))
+		renderer.Present()
+		input.Poll()
+	}
+	creds.Destroy()
+}
+
+func RunGame(menuChoice int, levelsCleared *int, score *int64) {
+	lostLife = false
+	lives := 3
+	wonInARow := -2
+	extraLives := 0
+	extraLivesCounter := int64(25000)
+
+	for !quit && (lives != 1 || !lostLife) {
+		var engine *Engine
+		if lostLife {
+			wonInARow = -1
+			lostLife = false
+			lives--
+			if lives < extraLives {
+				extraLives = lives
+			}
+			if lives == 0 {
+				panic("Should not reach this statement")
+			}
+			engine = stage.Load(stage.ID, false, *score, menuChoice)
+			window.SetTitle("Score: " + strconv.Itoa(int(*score)) +
+				" Lives: " + strconv.Itoa(lives))
+		} else {
+			*levelsCleared++
+			wonInARow++
+			if wonInARow == 3 {
+				if lives-extraLives < 4 {
+					wonInARow = 0
+					lives++
+				}
+			}
+			fmt.Printf("Won in a row counter: %d\n", wonInARow)
+			engine = stage.Load(stage.ID+1, true,
+				*score + ScoreMult(500), menuChoice)
+		}
+		fmt.Printf("Lives: %d\n", lives)
+		if engine == nil {
+			fmt.Println("Engine nil, game was won")
+			break
+		}
+		PlayStage(engine, window, renderer, int32(lives))
+		*score = engine.Score
+		if engine.Input.exit.timeHeld >
+			timeExitHasToBeHeldBeforeCloseGame {
+			fmt.Println("Game was quit with exit key")
+			break
+		}
+		for *score > extraLivesCounter &&
+			extraLivesCounter*2 > extraLivesCounter {
+			extraLivesCounter *= 2
+			//extraLives++
+			//lives++
+		}
+		fmt.Printf("Score: %d\n", *score)
+	}
+}
+
+func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 	lives int32) {
 	p1C, p2C := options.CharacterP1, options.CharacterP2
 	if engine.p1 == nil {
@@ -402,4 +381,46 @@ func LogOnError(err error) bool {
 		fmt.Println(err)
 	}
 	return err != nil
+}
+
+func GameOverMenu(levelsCleared int, score int64) (resume bool) {
+	menuChoice := -1
+	var scoreData *ScoreData
+	menus[2].selectedElement = 0
+	for !quit && menuChoice < 2 {
+		menuChoice = menus[2].Run(renderer, input)
+		if menuChoice == 0 { // Set name
+			name := GetName(defaultName, renderer, input)
+			if name != "" {
+				defaultName = name
+				if scoreData == nil {
+					scoreData = &ScoreData{score, name,
+						levelsCleared, difficulty,
+						time.Now()}
+					highscores.Add(scoreData,
+						menuChoice != 0, true)
+				} else {
+					scoreData.Name = name
+				}
+			}
+		} else if menuChoice == 1 { // Highscores
+			highscores.Display(difficulty, menuChoice != 0,
+				renderer, input)
+		} else if menuChoice == -1 {
+			menuChoice = 4
+		}
+	}
+
+	resume = true
+	if menuChoice == 2 { // Continue
+		stage.ID--
+	} else if menuChoice == 3 { // Restart
+		stage.ID = -1
+	} else if menuChoice == 4 { // Exit to menu
+		resume = false
+	} else {
+		panic("Unknown menu option")
+	}
+
+	return
 }
