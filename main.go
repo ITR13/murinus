@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"runtime"
 	"strconv"
 	"time"
@@ -140,6 +141,7 @@ func Init() {
 	fmt.Println("Loaded Highscores")
 
 	defaultName = "\\\\\\\\\\"
+	rand.Seed(time.Now().Unix())
 }
 
 func CleanUp() {
@@ -197,30 +199,54 @@ func StartTrainingSession() {
 }
 
 func ShowCredits() {
-	txt := "Made by ITR   -   Source available on github.com/ITR13/murinus"
-	creds, src, dst := GetText(txt, sdl.Color{255, 255, 255, 255},
-		newScreenWidth/2, newScreenHeight/2, renderer)
+	strings := []string{"Made by ITR",
+		"Source available on github.com/ITR13/murinus", " ",
+		"Other contributers:", "byllgrim"}
+
+	textures := make([]*sdl.Texture, len(strings))
+	src := make([]*sdl.Rect, len(strings))
+	dst := make([]*sdl.Rect, len(strings))
+	h := int32(0)
+
+	for i := 0; i < len(textures); i++ {
+		col := rand.Int()%26 + 1
+		red := uint8((col % 3) * 255 / 2)
+		col /= 3
+		green := uint8((col % 3) * 255 / 2)
+		col /= 3
+		blue := uint8((col % 3) * 255 / 2)
+
+		textures[i], src[i], dst[i] = GetText(strings[i],
+			sdl.Color{red, green, blue, 255},
+			newScreenWidth/2, newScreenHeight/2, renderer)
+		defer textures[i].Destroy()
+		h += dst[i].H * sizeMult / sizeDiv
+		dst[i].X -= dst[i].W * sizeMult / sizeDiv
+		dst[i].W *= 2 * sizeMult / sizeDiv
+		dst[i].H *= 2 * sizeMult / sizeDiv
+	}
+
 	input.mono.a.down = false
 	input.mono.b.down = false
-	dst.X -= dst.W
-	dst.Y -= dst.H / 2
-	dst.W *= 2
-	dst.H *= 2
+	for i := 0; i < len(textures); i++ {
+		dst[i].Y = newScreenHeight/2 - h
+		h -= dst[i].H
+	}
 
 	renderer.SetRenderTarget(nil)
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.Clear()
-	PanicOnError(renderer.Copy(creds, src, dst))
 
 	for !input.mono.a.down && !input.mono.b.down && !quit {
 		renderer.SetRenderTarget(nil)
 		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.Clear()
-		PanicOnError(renderer.Copy(creds, src, dst))
+		for i := 0; i < len(textures); i++ {
+			PanicOnError(renderer.Copy(textures[i], src[i], dst[i]))
+		}
 		renderer.Present()
 		input.Poll()
 	}
-	creds.Destroy()
 }
 
 func RunGame(menuChoice int, levelsCleared *int, score *int64) {
@@ -381,19 +407,6 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	redrawTextures = true
 }
 
-func PanicOnError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func LogOnError(err error) bool {
-	if err != nil {
-		fmt.Println(err)
-	}
-	return err != nil
-}
-
 func GameOverMenu(levelsCleared int, score int64) (resume bool) {
 	menuChoice := -1
 	var scoreData *ScoreData
@@ -438,4 +451,17 @@ func GameOverMenu(levelsCleared int, score int64) (resume bool) {
 	}
 
 	return
+}
+
+func PanicOnError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func LogOnError(err error) bool {
+	if err != nil {
+		fmt.Println(err)
+	}
+	return err != nil
 }
