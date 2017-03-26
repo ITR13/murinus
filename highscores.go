@@ -142,11 +142,11 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 				}
 			}
 		}
-		if input.mono.a.down {
+		if input.mono.a.Down() {
 			input.mono.a.down = false
 			currentCharacter++
 		}
-		if input.mono.b.down {
+		if input.mono.b.Down() {
 			input.mono.b.down = false
 			currentCharacter--
 			if currentCharacter < 0 {
@@ -186,13 +186,13 @@ func (highscores *Highscores) Display(diff int, multiplayer bool,
 	if diff == -1 {
 		diff++
 		input.mono.b.down = false
-		for !input.mono.b.down && !quit {
+		for !input.mono.b.Down() && !quit {
 			if multiplayer {
 				highscores[1][diff].Display(diff == 0, renderer, input)
 			} else {
 				highscores[0][diff].Display(diff == 0, renderer, input)
 			}
-			if input.mono.a.down {
+			if input.mono.a.Down() {
 				diff++
 				if diff >= len(highscores[0]) {
 					diff = 0
@@ -203,22 +203,22 @@ func (highscores *Highscores) Display(diff int, multiplayer bool,
 	} else {
 		if multiplayer {
 			input.mono.b.down = false
-			for !input.mono.b.down && !quit {
+			for !input.mono.b.Down() && !quit {
 				highscores[1][diff+1].Display(false, renderer, input)
-				if input.mono.a.down {
+				if input.mono.a.Down() {
 					input.mono.a.down = false
-					for !input.mono.b.down && !input.mono.a.down && !quit {
+					for !input.mono.b.Down() && !input.mono.a.Down() && !quit {
 						highscores[1][0].Display(true, renderer, input)
 					}
 				}
 			}
 		} else {
 			input.mono.b.down = false
-			for !input.mono.b.down && !quit {
+			for !input.mono.b.Down() && !quit {
 				highscores[0][diff+1].Display(false, renderer, input)
-				if input.mono.a.down {
+				if input.mono.a.Down() {
 					input.mono.a.down = false
-					for !input.mono.b.down && !input.mono.a.down && !quit {
+					for !input.mono.b.Down() && !input.mono.a.Down() && !quit {
 						highscores[0][0].Display(true, renderer, input)
 					}
 				}
@@ -265,7 +265,7 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 	update := false
 
 	header := GetHeader(list.multiplayer, list.difficulty, unique, renderer)
-	for !input.mono.a.down && !input.mono.b.down && !quit {
+	for !input.mono.a.Down() && !input.mono.b.Down() && !quit {
 		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.Clear()
 		for i := 0; i < len(names); i++ {

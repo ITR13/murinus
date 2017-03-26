@@ -161,7 +161,7 @@ func CleanUp() {
 func StartGameSession(menuChoice int) {
 	difficulty, _, _ = menus[1].Run(renderer, input)
 	stage.ID = -1
-	for !quit {
+	for !quit && difficulty != -1 {
 		levelsCleared := 0
 		score := -ScoreMult(500)
 
@@ -237,7 +237,7 @@ func ShowCredits() {
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.Clear()
 
-	for !input.mono.a.down && !input.mono.b.down && !quit {
+	for !input.mono.a.Down() && !input.mono.b.Down() && !quit {
 		renderer.SetRenderTarget(nil)
 		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.Clear()
@@ -391,18 +391,21 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 		ReadOptions("", input)
 		menu.menuItems[0].SetNumber(int32(options.CharacterP1), renderer)
 		menu.menuItems[1].SetNumber(int32(options.CharacterP2), renderer)
-		menu.menuItems[2].SetNumber(int32(options.EdgeSlip), renderer)
-		menu.menuItems[3].SetNumber(int32(options.BetterSlip), renderer)
-		menu.menuItems[4].SetNumber(int32(options.ShowDivert), renderer)
+		menu.menuItems[2].SetNumber(int32(options.UseTap), renderer)
+		menu.menuItems[3].SetNumber(int32(options.EdgeSlip), renderer)
+		menu.menuItems[4].SetNumber(int32(options.BetterSlip), renderer)
+		menu.menuItems[5].SetNumber(int32(options.ShowDivert), renderer)
 	}
 	if quit {
 		return
 	}
 	options.CharacterP1 = uint8(menu.NVal(0))
 	options.CharacterP2 = uint8(menu.NVal(1))
-	options.EdgeSlip = int(menu.NVal(2))
-	options.BetterSlip = menu.NVal(3)
-	options.ShowDivert = uint8(menu.NVal(4))
+	options.UseTap = uint8(menu.NVal(2))
+	options.useTap = options.UseTap != 0
+	options.EdgeSlip = int(menu.NVal(3))
+	options.BetterSlip = menu.NVal(4)
+	options.ShowDivert = uint8(menu.NVal(5))
 	options.showDivert = options.ShowDivert != 0
 	redrawTextures = true
 }

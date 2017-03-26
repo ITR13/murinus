@@ -152,16 +152,18 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	}, 0, false}
 	ret[3] = &Menu{[]*MenuItem{
 		GetNumberMenuItem("Character (P1)", int32(options.CharacterP1), 0, 3,
-			screenHeight/2-100*mult, renderer),
+			screenHeight/2-120*mult, renderer),
 		GetNumberMenuItem("Character (P2)", int32(options.CharacterP2), 0, 3,
-			screenHeight/2-60*mult, renderer),
+			screenHeight/2-80*mult, renderer),
+		GetNumberMenuItem("UseTap", int32(options.UseTap), 0, 1,
+			screenHeight/2-40*mult, renderer),
 		GetNumberMenuItem("EdgeSlip", int32(options.EdgeSlip), 0, 16,
-			screenHeight/2-20*mult, renderer),
+			screenHeight/2, renderer),
 		GetNumberMenuItem("BetterSlip", int32(options.BetterSlip), 0, 512,
-			screenHeight/2+20*mult, renderer),
+			screenHeight/2+40*mult, renderer),
 		GetNumberMenuItem("Show Divert", int32(options.ShowDivert), 0, 1,
-			screenHeight/2+60*mult, renderer),
-		GetMenuItem("Reset", screenHeight/2+100*mult, renderer),
+			screenHeight/2+80*mult, renderer),
+		GetMenuItem("Reset", screenHeight/2+120*mult, renderer),
 	}, 0, true}
 	ret[4] = &Menu{[]*MenuItem{
 		GetNumberMenuItem("Level", 0, 0, int32(len(stage.levels[2])-1),
@@ -240,17 +242,17 @@ func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) (int, int, int) {
 		menu.Display(renderer)
 		input.Poll()
 
-		if input.mono.b.down {
+		if input.mono.b.Down() {
 			return -1, ups, downs
 		}
-		if input.mono.a.down && selected.numberField == nil {
+		if input.mono.a.Down() && selected.numberField == nil {
 			break
 		}
 
 		mod := mStepper()
 		if mod != 0 {
 			if selected.numberField != nil {
-				if input.mono.a.down {
+				if input.mono.a.Down() {
 					mod *= 10
 				}
 				selected.SetNumber(selected.numberField.Value+mod,
