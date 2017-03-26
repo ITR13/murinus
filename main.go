@@ -168,13 +168,12 @@ func StartGameSession(menuChoice int) {
 		levelsCleared := 0
 		score := -ScoreMult(500)
 
-		RunGame(menuChoice, &levelsCleared, &score)
+		won := RunGame(menuChoice, &levelsCleared, &score)
 
 		fmt.Printf("Game Over. Final score %d\n", score)
 		stage.lostOnce = true
 		input.exit.timeHeld = 0
-
-		if !GameOverMenu(levelsCleared, score) {
+		if !GameOverMenu(levelsCleared, score, won) {
 			break
 		}
 	}
@@ -251,7 +250,7 @@ func ShowCredits() {
 	}
 }
 
-func RunGame(menuChoice int, levelsCleared *int, score *int64) {
+func RunGame(menuChoice int, levelsCleared *int, score *int64) bool {
 	lostLife = false
 	lives := 3
 	wonInARow := -2
@@ -289,13 +288,13 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 		fmt.Printf("Lives: %d\n", lives)
 		if engine == nil {
 			fmt.Println("Engine nil, game was won")
-			break
+			return true
 		}
 		PlayStage(engine, window, renderer, int32(lives))
 		*score = engine.Score
 		if engine.Input.exit.active {
 			fmt.Println("Game was quit with exit key")
-			break
+			return false
 		}
 		for *score > extraLivesCounter &&
 			extraLivesCounter*2 > extraLivesCounter {
@@ -305,6 +304,7 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) {
 		}
 		fmt.Printf("Score: %d\n", *score)
 	}
+	return false
 }
 
 func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
@@ -412,32 +412,62 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	redrawTextures = true
 }
 
-func GameOverMenu(levelsCleared int, score int64) (resume bool) {
+func GameOverMenu(levelsCleared int, score int64, won bool) (resume bool) {
 	menuChoice := -1
 	var scoreData *ScoreData
-	menus[2].selectedElement = 0
-	for !quit && menuChoice < 2 {
-		menuChoice, _, _ = menus[2].Run(renderer, input)
-		if menuChoice == 0 { // Set name
-			name := GetName(defaultName, renderer, input)
-			if name != "" {
-				defaultName = name
-				if scoreData == nil {
-					scoreData = &ScoreData{score, name,
-						levelsCleared, difficulty,
-						time.Now()}
-					highscores.Add(scoreData,
-						menuChoice != 0, true)
-				} else {
-					scoreData.Name = name
+	if !won {
+		menus[2].selectedElement = 0
+		for !quit && menuChoice < 2 {
+			menuChoice, _, _ = menus[2].Run(renderer, input)
+			switch menuChoice {
+			case 0: // Set name
+				name := GetName(defaultName, renderer, input)
+				if name != "" {
+					defaultName = name
+					if scoreData == nil {
+						scoreData = &ScoreData{score, name,
+							levelsCleared, difficulty,
+							time.Now()}
+						highscores.Add(scoreData,
+							menuChoice != 0, true)
+					} else {
+						scoreData.Name = name
+					}
 				}
+			case 1: // Highscores
+				highscores.Display(difficulty, menuChoice != 0,
+					renderer, input)
+			case -1:
+				menuChoice = 4
 			}
-		} else if menuChoice == 1 { // Highscores
-			highscores.Display(difficulty, menuChoice != 0,
-				renderer, input)
-		} else if menuChoice == -1 {
-			menuChoice = 4
 		}
+	} else {
+		menus[5].selectedElement = 0
+		for !quit && menuChoice < 2 {
+			menuChoice, _, _ = menus[5].Run(renderer, input)
+			switch menuChoice {
+			case 0: // Set name
+				name := GetName(defaultName, renderer, input)
+				if name != "" {
+					defaultName = name
+					if scoreData == nil {
+						scoreData = &ScoreData{score, name,
+							levelsCleared, difficulty,
+							time.Now()}
+						highscores.Add(scoreData,
+							menuChoice != 0, true)
+					} else {
+						scoreData.Name = name
+					}
+				}
+			case 1: // Highscores
+				highscores.Display(difficulty, menuChoice != 0,
+					renderer, input)
+			case -1:
+				menuChoice = 3
+			}
+		}
+		menuChoice++
 	}
 
 	if quit {
@@ -445,13 +475,14 @@ func GameOverMenu(levelsCleared int, score int64) (resume bool) {
 	}
 
 	resume = true
-	if menuChoice == 2 { // Continue
+	switch menuChoice {
+	case 2: // Continue
 		stage.ID--
-	} else if menuChoice == 3 { // Restart
+	case 3: // Restart
 		stage.ID = -1
-	} else if menuChoice == 4 { // Exit to menu
+	case 4: // Exit to menu
 		resume = false
-	} else {
+	default:
 		panic("Unknown menu option")
 	}
 

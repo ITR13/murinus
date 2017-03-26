@@ -120,7 +120,7 @@ func InitText(renderer *sdl.Renderer) {
 }
 
 func GetMenus(renderer *sdl.Renderer) []*Menu {
-	ret := make([]*Menu, 5)
+	ret := make([]*Menu, 6)
 
 	mult := int32(1)
 	if Arcade {
@@ -147,6 +147,12 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 		GetMenuItem("Set Name", screenHeight/2-80*mult, renderer),
 		GetMenuItem("Highscores", screenHeight/2-40*mult, renderer),
 		GetMenuItem("Continue", screenHeight/2, renderer),
+		GetMenuItem("Restart", screenHeight/2+40*mult, renderer),
+		GetMenuItem("Exit to menu", screenHeight/2+80*mult, renderer),
+	}, 0, false}
+	ret[5] = &Menu{[]*MenuItem{
+		GetMenuItem("Set Name", screenHeight/2-80*mult, renderer),
+		GetMenuItem("Highscores", screenHeight/2-40*mult, renderer),
 		GetMenuItem("Restart", screenHeight/2+40*mult, renderer),
 		GetMenuItem("Exit to menu", screenHeight/2+80*mult, renderer),
 	}, 0, false}

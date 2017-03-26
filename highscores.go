@@ -162,7 +162,7 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 
 func (highscores *Highscores) Add(score *ScoreData, multiplayer, sort bool) {
 	if multiplayer {
-		fmt.Println("Adding %v to multiplayer\n", *score)
+		fmt.Printf("Adding %v to multiplayer\n", *score)
 		highscores[1][0].Add(score)
 		highscores[1][score.Difficulty+1].Add(score)
 		if sort {
@@ -170,7 +170,7 @@ func (highscores *Highscores) Add(score *ScoreData, multiplayer, sort bool) {
 			highscores[1][score.Difficulty+1].Sort()
 		}
 	} else {
-		fmt.Println("Adding %v to singleplayer\n", *score)
+		fmt.Printf("Adding %v to singleplayer\n", *score)
 		highscores[0][0].Add(score)
 		highscores[0][score.Difficulty+1].Add(score)
 		if sort {
