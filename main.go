@@ -226,8 +226,7 @@ func ShowCredits() {
 		dst[i].H *= 2 * sizeMult / sizeDiv
 	}
 
-	input.mono.a.down = false
-	input.mono.b.down = false
+	input.Clear()
 	for i := 0; i < len(textures); i++ {
 		dst[i].Y = newScreenHeight/2 - h
 		h -= dst[i].H

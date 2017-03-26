@@ -47,8 +47,7 @@ type ScoreData struct {
 
 func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	characters := int32(len(defaultName))
-	input.mono.a.down = false
-	input.mono.b.down = false
+	input.Clear()
 	currentCharacter := int32(0)
 	charList := make([][13]byte, characters)
 	for i := 0; i < len(charList); i++ {
@@ -143,11 +142,11 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 			}
 		}
 		if input.mono.a.Down() {
-			input.mono.a.down = false
+			input.Clear()
 			currentCharacter++
 		}
 		if input.mono.b.Down() {
-			input.mono.b.down = false
+			input.Clear()
 			currentCharacter--
 			if currentCharacter < 0 {
 				return ""
@@ -185,8 +184,9 @@ func (highscores *Highscores) Display(diff int, multiplayer bool,
 	renderer *sdl.Renderer, input *Input) {
 	if diff == -1 {
 		diff++
-		input.mono.b.down = false
+		input.Clear()
 		for !input.mono.b.Down() && !quit {
+			input.Poll()
 			if multiplayer {
 				highscores[1][diff].Display(diff == 0, renderer, input)
 			} else {
@@ -202,22 +202,24 @@ func (highscores *Highscores) Display(diff int, multiplayer bool,
 		}
 	} else {
 		if multiplayer {
-			input.mono.b.down = false
+			input.Clear()
 			for !input.mono.b.Down() && !quit {
+				input.Poll()
 				highscores[1][diff+1].Display(false, renderer, input)
-				if input.mono.a.Down() {
-					input.mono.a.down = false
+				if input.mono.a.Down() && !input.mono.b.Down() {
+					input.Clear()
 					for !input.mono.b.Down() && !input.mono.a.Down() && !quit {
 						highscores[1][0].Display(true, renderer, input)
 					}
 				}
 			}
 		} else {
-			input.mono.b.down = false
+			input.mono.b.Clear()
 			for !input.mono.b.Down() && !quit {
+				input.Poll()
 				highscores[0][diff+1].Display(false, renderer, input)
-				if input.mono.a.Down() {
-					input.mono.a.down = false
+				if input.mono.a.Down() && !input.mono.b.Down() {
+					input.mono.a.Clear()
 					for !input.mono.b.Down() && !input.mono.a.Down() && !quit {
 						highscores[0][0].Display(true, renderer, input)
 					}
@@ -246,8 +248,7 @@ func (list *HighscoreList) Add(score *ScoreData) {
 
 func (list *HighscoreList) Display(displayDifficulty bool,
 	renderer *sdl.Renderer, input *Input) {
-	input.mono.a.down = false
-	input.mono.b.down = false
+	input.Clear()
 	subPixel := int32(0)
 	currentIndex := -1
 	storedIndex := -1

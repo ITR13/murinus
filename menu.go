@@ -233,8 +233,7 @@ func GetText(text string, color sdl.Color, x, y int32,
 func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) (int, int, int) {
 	vStepper, mStepper := input.mono.upDown.Stepper(20, 5),
 		input.mono.leftRight.Stepper(20, 4)
-	input.mono.a.down = false
-	input.mono.b.down = false
+	input.Clear()
 
 	ups, downs := 0, 0
 	for !quit {

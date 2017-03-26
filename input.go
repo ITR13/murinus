@@ -67,6 +67,11 @@ func (key *Key) Down() bool {
 	return key.down || key.tapped
 }
 
+func (key *Key) Clear() {
+	key.down = false
+	key.tapped = false
+}
+
 func GetKey(keyCode ...sdl.Keycode) *Key {
 	return &Key{keyCode, false, false}
 }
@@ -159,24 +164,28 @@ func (input *Input) Poll() {
 		case *sdl.QuitEvent:
 			quit = true
 		case *sdl.KeyDownEvent:
-			for i := 0; i < len(input.allInputs); i++ {
-				key := input.allInputs[i]
-				for k := 0; k < len(key.KeyCode); k++ {
-					if key.KeyCode[k] == t.Keysym.Sym {
-						key.down = true
-						key.tapped = true
-						noKeysTouched = 0
-						break
+			if t.Repeat == 0 {
+				for i := 0; i < len(input.allInputs); i++ {
+					key := input.allInputs[i]
+					for k := 0; k < len(key.KeyCode); k++ {
+						if key.KeyCode[k] == t.Keysym.Sym {
+							key.down = true
+							key.tapped = true
+							noKeysTouched = 0
+							break
+						}
 					}
 				}
 			}
 		case *sdl.KeyUpEvent:
-			for i := 0; i < len(input.allInputs); i++ {
-				key := input.allInputs[i]
-				for k := 0; k < len(key.KeyCode); k++ {
-					if key.KeyCode[k] == t.Keysym.Sym {
-						key.down = false
-						break
+			if t.Repeat == 0 {
+				for i := 0; i < len(input.allInputs); i++ {
+					key := input.allInputs[i]
+					for k := 0; k < len(key.KeyCode); k++ {
+						if key.KeyCode[k] == t.Keysym.Sym {
+							key.down = false
+							break
+						}
 					}
 				}
 			}
@@ -201,6 +210,12 @@ func (input *Input) Poll() {
 	} else {
 		input.exit.timeHeld = 0
 		input.exit.active = false
+	}
+}
+
+func (input *Input) Clear() {
+	for i := 0; i < len(input.allInputs); i++ {
+		input.allInputs[i].Clear()
 	}
 }
 
