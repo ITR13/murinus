@@ -324,7 +324,7 @@ func PlayStage(engine *Engine, window *sdl.Window, renderer *sdl.Renderer,
 		}
 	}
 
-	for noKeysTouched >= 5 && !quit {
+	for noKeysTouched >= 25 && !quit {
 		engine.Stage.Render(p1C, p2C, renderer, false)
 		engine.Input.Poll()
 	}
