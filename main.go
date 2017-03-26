@@ -28,9 +28,9 @@ import (
 )
 
 const (
-	Arcade bool = false
+	Arcade bool = true
 
-	sizeMult int32 = 1
+	sizeMult int32 = 3
 	sizeDiv  int32 = 2
 
 	timeExitHasToBeHeldToQuit int = 60 * 5
@@ -137,7 +137,6 @@ func Init() {
 	fmt.Println("Created menus")
 
 	highscores = Read("singleplayer.hs", "multiplayer.hs")
-
 	fmt.Println("Loaded Highscores")
 
 	defaultName = "\\\\\\\\\\"

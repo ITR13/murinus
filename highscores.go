@@ -501,8 +501,8 @@ func Read(paths ...string) Highscores {
 			decoder := gob.NewDecoder(file)
 			datas := make([]*ScoreData, 0)
 			PanicOnError(decoder.Decode(&datas))
-			for i := 0; i < len(datas); i++ {
-				highscores.Add(datas[i], i != 0, false)
+			for j := range datas {
+				highscores.Add(datas[j], i != 0, false)
 			}
 		}
 	}
