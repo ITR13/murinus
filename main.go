@@ -142,6 +142,9 @@ func Init() {
 
 	defaultName = "\\\\\\\\\\"
 	rand.Seed(time.Now().Unix())
+	if Arcade {
+		sdl.ShowCursor(sdl.DISABLE)
+	}
 }
 
 func CleanUp() {
