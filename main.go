@@ -172,7 +172,7 @@ func StartGameSession(menuChoice int) {
 		fmt.Printf("Game Over. Final score %d\n", score)
 		stage.lostOnce = true
 		input.exit.timeHeld = 0
-		if !GameOverMenu(levelsCleared, score, won) {
+		if !GameOverMenu(levelsCleared, score, menuChoice != 0, won) {
 			break
 		}
 	}
@@ -411,7 +411,8 @@ func DoSettings(menu *Menu, renderer *sdl.Renderer, input *Input) {
 	redrawTextures = true
 }
 
-func GameOverMenu(levelsCleared int, score int64, won bool) (resume bool) {
+func GameOverMenu(levelsCleared int, score int64, multiplayer,
+	won bool) (resume bool) {
 	menuChoice := -1
 	var scoreData *ScoreData
 	if !won {
@@ -428,13 +429,13 @@ func GameOverMenu(levelsCleared int, score int64, won bool) (resume bool) {
 							levelsCleared, difficulty,
 							time.Now()}
 						highscores.Add(scoreData,
-							menuChoice != 0, true)
+							multiplayer, true)
 					} else {
 						scoreData.Name = name
 					}
 				}
 			case 1: // Highscores
-				highscores.Display(difficulty, menuChoice != 0,
+				highscores.Display(difficulty, multiplayer,
 					renderer, input)
 			case -1:
 				menuChoice = 4
