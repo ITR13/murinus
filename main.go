@@ -438,7 +438,7 @@ func GameOverMenu(levelsCleared int, score int64, multiplayer,
 				highscores.Display(difficulty, multiplayer,
 					renderer, input)
 			case -1:
-				menuChoice = 4
+				//menuChoice = 4
 			}
 		}
 	} else {
@@ -464,7 +464,7 @@ func GameOverMenu(levelsCleared int, score int64, multiplayer,
 				highscores.Display(difficulty, menuChoice != 0,
 					renderer, input)
 			case -1:
-				menuChoice = 3
+				//menuChoice = 3
 			}
 		}
 		menuChoice++
