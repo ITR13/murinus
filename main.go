@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	Arcade bool = true
+	Arcade bool = false
 
 	sizeMult int32 = 4
 	sizeDiv  int32 = 5
