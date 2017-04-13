@@ -30,8 +30,8 @@ import (
 const (
 	Arcade bool = false
 
-	sizeMult int32 = 1
-	sizeDiv  int32 = 2
+	sizeMult int32 = 4
+	sizeDiv  int32 = 5
 
 	timeExitHasToBeHeldToQuit int = 60 * 5
 	timeExitHasToBeHeldToExit int = 90
