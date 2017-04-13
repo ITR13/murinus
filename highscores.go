@@ -47,8 +47,7 @@ type ScoreData struct {
 
 func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	characters := int32(len(defaultName))
-	input.mono.a.down = false
-	input.mono.b.down = false
+	input.Clear()
 	currentCharacter := int32(0)
 	charList := make([][13]byte, characters)
 	for i := 0; i < len(charList); i++ {
@@ -142,12 +141,12 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 				}
 			}
 		}
-		if input.mono.a.down {
-			input.mono.a.down = false
+		if input.mono.a.Down() {
+			input.Clear()
 			currentCharacter++
 		}
-		if input.mono.b.down {
-			input.mono.b.down = false
+		if input.mono.b.Down() {
+			input.Clear()
 			currentCharacter--
 			if currentCharacter < 0 {
 				return ""
@@ -163,7 +162,7 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 
 func (highscores *Highscores) Add(score *ScoreData, multiplayer, sort bool) {
 	if multiplayer {
-		fmt.Println("Adding %v to multiplayer\n", *score)
+		fmt.Printf("Adding %v to multiplayer\n", *score)
 		highscores[1][0].Add(score)
 		highscores[1][score.Difficulty+1].Add(score)
 		if sort {
@@ -171,7 +170,7 @@ func (highscores *Highscores) Add(score *ScoreData, multiplayer, sort bool) {
 			highscores[1][score.Difficulty+1].Sort()
 		}
 	} else {
-		fmt.Println("Adding %v to singleplayer\n", *score)
+		fmt.Printf("Adding %v to singleplayer\n", *score)
 		highscores[0][0].Add(score)
 		highscores[0][score.Difficulty+1].Add(score)
 		if sort {
@@ -185,14 +184,15 @@ func (highscores *Highscores) Display(diff int, multiplayer bool,
 	renderer *sdl.Renderer, input *Input) {
 	if diff == -1 {
 		diff++
-		input.mono.b.down = false
-		for !input.mono.b.down && !quit {
+		input.Clear()
+		for !input.mono.b.Down() && !quit {
+			input.Poll()
 			if multiplayer {
 				highscores[1][diff].Display(diff == 0, renderer, input)
 			} else {
 				highscores[0][diff].Display(diff == 0, renderer, input)
 			}
-			if input.mono.a.down {
+			if input.mono.a.Down() {
 				diff++
 				if diff >= len(highscores[0]) {
 					diff = 0
@@ -202,23 +202,25 @@ func (highscores *Highscores) Display(diff int, multiplayer bool,
 		}
 	} else {
 		if multiplayer {
-			input.mono.b.down = false
-			for !input.mono.b.down && !quit {
+			input.Clear()
+			for !input.mono.b.Down() && !quit {
+				input.Poll()
 				highscores[1][diff+1].Display(false, renderer, input)
-				if input.mono.a.down {
-					input.mono.a.down = false
-					for !input.mono.b.down && !input.mono.a.down && !quit {
+				if input.mono.a.Down() && !input.mono.b.Down() {
+					input.Clear()
+					for !input.mono.b.Down() && !input.mono.a.Down() && !quit {
 						highscores[1][0].Display(true, renderer, input)
 					}
 				}
 			}
 		} else {
-			input.mono.b.down = false
-			for !input.mono.b.down && !quit {
+			input.mono.b.Clear()
+			for !input.mono.b.Down() && !quit {
+				input.Poll()
 				highscores[0][diff+1].Display(false, renderer, input)
-				if input.mono.a.down {
-					input.mono.a.down = false
-					for !input.mono.b.down && !input.mono.a.down && !quit {
+				if input.mono.a.Down() && !input.mono.b.Down() {
+					input.mono.a.Clear()
+					for !input.mono.b.Down() && !input.mono.a.Down() && !quit {
 						highscores[0][0].Display(true, renderer, input)
 					}
 				}
@@ -246,8 +248,7 @@ func (list *HighscoreList) Add(score *ScoreData) {
 
 func (list *HighscoreList) Display(displayDifficulty bool,
 	renderer *sdl.Renderer, input *Input) {
-	input.mono.a.down = false
-	input.mono.b.down = false
+	input.Clear()
 	subPixel := int32(0)
 	currentIndex := -1
 	storedIndex := -1
@@ -265,7 +266,7 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 	update := false
 
 	header := GetHeader(list.multiplayer, list.difficulty, unique, renderer)
-	for !input.mono.a.down && !input.mono.b.down && !quit {
+	for !input.mono.a.Down() && !input.mono.b.Down() && !quit {
 		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.Clear()
 		for i := 0; i < len(names); i++ {
@@ -500,8 +501,8 @@ func Read(paths ...string) Highscores {
 			decoder := gob.NewDecoder(file)
 			datas := make([]*ScoreData, 0)
 			PanicOnError(decoder.Decode(&datas))
-			for i := 0; i < len(datas); i++ {
-				highscores.Add(datas[i], i != 0, false)
+			for j := range datas {
+				highscores.Add(datas[j], i != 0, false)
 			}
 		}
 	}

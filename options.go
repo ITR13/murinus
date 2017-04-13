@@ -27,6 +27,8 @@ var options Options
 type Options struct {
 	CharacterP1 uint8
 	CharacterP2 uint8
+	UseTap      uint8
+	useTap      bool
 	EdgeSlip    int
 	BetterSlip  int32
 	ShowDivert  uint8
@@ -35,7 +37,7 @@ type Options struct {
 }
 
 func ReadOptions(path string, input *Input) {
-	options = Options{0, 2, EdgeSlipDefault, BetterSlipDefault,
+	options = Options{0, 2, UseTapDefault, UseTapDefault != 0, EdgeSlipDefault, BetterSlipDefault,
 		ShowDivertDefault, ShowDivertDefault != 0, &input.allInputs}
 	if path == "" {
 		return
@@ -47,6 +49,7 @@ func ReadOptions(path string, input *Input) {
 		decoder := xml.NewDecoder(file)
 		PanicOnError(decoder.Decode(&options))
 	}
+	options.useTap = options.UseTap != 0
 	options.showDivert = options.ShowDivert != 0
 }
 

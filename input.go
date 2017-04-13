@@ -48,22 +48,32 @@ type DurationKey struct {
 
 type Key struct {
 	KeyCode []sdl.Keycode
+	tapped  bool
 	down    bool
 }
 
 func (axis *Axis) Val() int32 {
 	val := int32(0)
-	if axis.up.down {
+	if axis.up.Down() {
 		val -= 1
 	}
-	if axis.down.down {
+	if axis.down.Down() {
 		val += 1
 	}
 	return val
 }
 
+func (key *Key) Down() bool {
+	return key.down || key.tapped
+}
+
+func (key *Key) Clear() {
+	key.down = false
+	key.tapped = false
+}
+
 func GetKey(keyCode ...sdl.Keycode) *Key {
-	return &Key{keyCode, false}
+	return &Key{keyCode, false, false}
 }
 
 func GetInput() *Input {
@@ -145,28 +155,37 @@ func (input *Input) Poll() {
 		quit = true
 	}
 
+	for i := 0; i < len(input.allInputs); i++ {
+		input.allInputs[i].tapped = false
+	}
+
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch t := event.(type) { //TODO Add window resizing
 		case *sdl.QuitEvent:
 			quit = true
 		case *sdl.KeyDownEvent:
-			for i := 0; i < len(input.allInputs); i++ {
-				key := input.allInputs[i]
-				for k := 0; k < len(key.KeyCode); k++ {
-					if key.KeyCode[k] == t.Keysym.Sym {
-						key.down = true
-						noKeysTouched = 0
-						break
+			if t.Repeat == 0 {
+				for i := 0; i < len(input.allInputs); i++ {
+					key := input.allInputs[i]
+					for k := 0; k < len(key.KeyCode); k++ {
+						if key.KeyCode[k] == t.Keysym.Sym {
+							key.down = true
+							key.tapped = true
+							noKeysTouched = 0
+							break
+						}
 					}
 				}
 			}
 		case *sdl.KeyUpEvent:
-			for i := 0; i < len(input.allInputs); i++ {
-				key := input.allInputs[i]
-				for k := 0; k < len(key.KeyCode); k++ {
-					if key.KeyCode[k] == t.Keysym.Sym {
-						key.down = false
-						break
+			if t.Repeat == 0 {
+				for i := 0; i < len(input.allInputs); i++ {
+					key := input.allInputs[i]
+					for k := 0; k < len(key.KeyCode); k++ {
+						if key.KeyCode[k] == t.Keysym.Sym {
+							key.down = false
+							break
+						}
 					}
 				}
 			}
@@ -180,7 +199,7 @@ func (input *Input) Poll() {
 		}
 	}
 
-	if input.exit.key.down {
+	if input.exit.key.Down() {
 		input.exit.timeHeld++
 		if input.exit.timeHeld > timeExitHasToBeHeldToExit {
 			input.exit.active = true
@@ -191,6 +210,12 @@ func (input *Input) Poll() {
 	} else {
 		input.exit.timeHeld = 0
 		input.exit.active = false
+	}
+}
+
+func (input *Input) Clear() {
+	for i := 0; i < len(input.allInputs); i++ {
+		input.allInputs[i].Clear()
 	}
 }
 
@@ -223,7 +248,7 @@ func (controller *Controller) Dir(dir Direction) int32 {
 func (key *Key) Stepper(start, mod int) func() bool {
 	c := 0
 	return func() bool {
-		if key.down {
+		if key.Down() {
 			c++
 			return c == 1 || (c > start && c%mod == 0)
 		} else {

@@ -21,6 +21,7 @@ import "fmt"
 
 const (
 	PrecisionMax      int32 = 255 * 4
+	UseTapDefault     uint8 = 1
 	EdgeSlipDefault   int   = 5
 	BetterSlipDefault int32 = PrecisionMax * 13 / 40
 	ShowDivertDefault uint8 = 0
@@ -266,7 +267,7 @@ func (engine *Engine) GetPlayerSpriteID() (uint8, uint8) {
 func (player *Player) Control(controller *Controller, engine *Engine) {
 	e := player.entity
 	step := player.step
-	if controller.b.down {
+	if controller.b.Down() {
 		step = (step * 3) / 5
 	}
 
