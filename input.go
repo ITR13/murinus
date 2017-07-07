@@ -160,7 +160,7 @@ func (input *Input) Poll() {
 	}
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch t := event.(type) { //TODO Add window resizing
+		switch t := event.(type) {
 		case *sdl.QuitEvent:
 			quit = true
 		case *sdl.KeyDownEvent:
