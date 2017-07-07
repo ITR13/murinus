@@ -203,6 +203,7 @@ func (input *Input) Poll() {
 		input.exit.timeHeld++
 		if input.exit.timeHeld > timeExitHasToBeHeldToExit {
 			input.exit.active = true
+			noKeysTouched = 0
 			if input.exit.timeHeld > timeExitHasToBeHeldToQuit {
 				quit = true
 			}

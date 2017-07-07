@@ -28,10 +28,10 @@ import (
 )
 
 const (
-	Arcade bool = true
+	Arcade bool = false
 
-	sizeMult int32 = 3
-	sizeDiv  int32 = 2
+	sizeMult int32 = 4
+	sizeDiv  int32 = 5
 
 	timeExitHasToBeHeldToQuit int = 60 * 5
 	timeExitHasToBeHeldToExit int = 90
@@ -84,10 +84,12 @@ func main() {
 			case 3:
 				highscores.Display(-1, false, renderer, input)
 			case 4:
-				DoSettings(menus[3], renderer, input)
+				ShowStats()
 			case 5:
-				ShowCredits()
+				DoSettings(menus[3], renderer, input)
 			case 6:
+				ShowCredits()
+			case 7:
 				quit = true
 			default:
 				panic("Unknown menu option")
@@ -139,6 +141,9 @@ func Init() {
 	highscores = Read("singleplayer.hs", "multiplayer.hs")
 	fmt.Println("Loaded Highscores")
 
+	stats.Load("stats.info")
+	fmt.Println("Loaded Stats")
+
 	defaultName = "\\\\\\\\\\"
 	rand.Seed(time.Now().Unix())
 	if Arcade {
@@ -148,6 +153,7 @@ func Init() {
 
 func CleanUp() {
 	highscores.Write("singleplayer.hs", "multiplayer.hs")
+	stats.Save("stats.info")
 	if !Arcade {
 		SaveOptions("options.xml", input)
 	}
@@ -164,6 +170,12 @@ func StartGameSession(menuChoice int) {
 	difficulty, _, _ = menus[1].Run(renderer, input)
 	stage.ID = -1
 	for !quit && difficulty != -1 {
+		if menuChoice != 0 {
+			stats.Multiplayer[difficulty]++
+		} else {
+			stats.Singleplayer[difficulty]++
+		}
+
 		levelsCleared := 0
 		score := -ScoreMult(500)
 
@@ -179,6 +191,7 @@ func StartGameSession(menuChoice int) {
 }
 
 func StartTrainingSession() {
+	stats.TimesTrained++
 	difficulty = -1
 	for play, ups, downs := menus[4].Run(renderer, input); !quit &&
 		play != -1; play, _, _ = menus[4].Run(renderer, input) {
@@ -298,8 +311,9 @@ func RunGame(menuChoice int, levelsCleared *int, score *int64) bool {
 		for *score > extraLivesCounter &&
 			extraLivesCounter*2 > extraLivesCounter {
 			extraLivesCounter *= 2
-			//extraLives++
-			//lives++
+			extraLives++
+			lives++
+			stats.ExtraLives++
 		}
 		fmt.Printf("Score: %d\n", *score)
 	}

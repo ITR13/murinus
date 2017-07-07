@@ -921,6 +921,8 @@ func GetPreStageDatas() ([]*PreStageData, [5][][2]int) {
 
 func (stage *Stage) Load(ID int, loadTiles bool, score int64,
 	players int) *Engine {
+	stats.LevelsStarted++
+
 	if ID == 0 {
 		stage.lostOnce = false
 	}

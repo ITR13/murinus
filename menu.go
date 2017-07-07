@@ -42,6 +42,7 @@ type MenuItem struct {
 	texture     *sdl.Texture
 	src, dst    *sdl.Rect
 	numberField *NumberField
+	text        string
 }
 
 type NumberField struct {
@@ -109,16 +110,6 @@ func (menu *MenuItem) SetNumber(n int32, renderer *sdl.Renderer) {
 	}
 }
 
-func InitText(renderer *sdl.Renderer) {
-	var err error
-	if ttf.WasInit() || font != nil {
-		panic("Should only be called once!")
-	}
-	PanicOnError(ttf.Init())
-	font, err = ttf.OpenFont("./font/Play-Bold.ttf", 20)
-	PanicOnError(err)
-}
-
 func GetMenus(renderer *sdl.Renderer) []*Menu {
 	ret := make([]*Menu, 6)
 
@@ -128,13 +119,14 @@ func GetMenus(renderer *sdl.Renderer) []*Menu {
 	}
 
 	ret[0] = &Menu{[]*MenuItem{
-		GetMenuItem("1 Player", screenHeight/2-120*mult, renderer),
-		GetMenuItem("2 Players", screenHeight/2-80*mult, renderer),
-		GetMenuItem("Training", screenHeight/2-40*mult, renderer),
-		GetMenuItem("High-Scores", screenHeight/2, renderer),
-		GetMenuItem("Options", screenHeight/2+40*mult, renderer),
-		GetMenuItem("Credits", screenHeight/2+80*mult, renderer),
-		GetMenuItem("Quit", screenHeight/2+120*mult, renderer),
+		GetMenuItem("1 Player", screenHeight/2-140*mult, renderer),
+		GetMenuItem("2 Players", screenHeight/2-100*mult, renderer),
+		GetMenuItem("Training", screenHeight/2-60*mult, renderer),
+		GetMenuItem("High-Scores", screenHeight/2-20, renderer),
+		GetMenuItem("Stats", screenHeight/2+20, renderer),
+		GetMenuItem("Options", screenHeight/2+60*mult, renderer),
+		GetMenuItem("Credits", screenHeight/2+100*mult, renderer),
+		GetMenuItem("Quit", screenHeight/2+140*mult, renderer),
 	}, 0, false}
 	ret[1] = &Menu{[]*MenuItem{
 		GetMenuItem("Beginner", screenHeight/2-80*mult, renderer),
@@ -192,7 +184,7 @@ func GetMenuItem(text string, y int32, renderer *sdl.Renderer) *MenuItem {
 	if Arcade {
 		dst.W, dst.H = dst.W*2, dst.H*2
 	}
-	return &MenuItem{texture, src, dst, nil}
+	return &MenuItem{texture, src, dst, nil, text}
 }
 
 func GetNumberMenuItem(text string, value, min, max int32,
@@ -217,23 +209,10 @@ func GetNumberMenuItem(text string, value, min, max int32,
 	PanicOnError(err)
 	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
-	menuItem := &MenuItem{texture, src, dst, numberField}
+	menuItem := &MenuItem{texture, src, dst, numberField, text}
 	menuItem.SetNumber(value, renderer)
 
 	return menuItem
-}
-
-func GetText(text string, color sdl.Color, x, y int32,
-	renderer *sdl.Renderer) (*sdl.Texture, *sdl.Rect, *sdl.Rect) {
-	textSurface, err := font.RenderUTF8_Solid(text, color)
-	PanicOnError(err)
-	defer textSurface.Free()
-
-	texture, err := renderer.CreateTextureFromSurface(textSurface)
-	PanicOnError(err)
-	src := &sdl.Rect{0, 0, textSurface.W, textSurface.H}
-	dst := &sdl.Rect{x, y - src.H/2, src.W, src.H}
-	return texture, src, dst
 }
 
 func (menu *Menu) Run(renderer *sdl.Renderer, input *Input) (int, int, int) {

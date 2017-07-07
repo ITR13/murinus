@@ -231,10 +231,12 @@ func (engine *Engine) CheckCollisions(player *Player) {
 	}
 
 	engine.Score += ScoreMult(points)
+	stats.Points += uint64(points)
 
 	for i := 0; i < len(engine.snakes); i++ {
 		if engine.snakes[i].head.Is(x, y) {
 			lostLife = true
+			stats.Deaths++
 			break
 		}
 	}
@@ -293,6 +295,10 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 			val := controller.leftRight.Val()
 			if val != 0 {
 				if engine.Graph.nodes[e.x+val][e.y] != nil {
+					if controller.upDown.Val() != 0 {
+						stats.Diagonal++
+					}
+
 					useGraph = false
 					e.precision -= step
 					if e.precision < 0 {
@@ -305,6 +311,10 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 			val := controller.upDown.Val()
 			if val != 0 {
 				if engine.Graph.nodes[e.x][e.y+val] != nil {
+					if controller.leftRight.Val() != 0 {
+						stats.Diagonal++
+					}
+
 					useGraph = false
 					e.precision -= step
 					if e.precision < 0 {
@@ -317,7 +327,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 
 		if useGraph {
 			//If a specific direction hasn't been found yet
-			//Note:	Sides have a node either directly 1 tile in that direction
+			//Note:	Sides have a node if there's 1 tile in that direction
 			//		of it, or if you can move sideways to reach such a tile.
 			//		Distance is how many tiles you have to move sideways, with
 			//		zero being the first type of situation described in the note
@@ -335,6 +345,7 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 								if e.precision >= options.BetterSlip {
 									//If it's around a courner, apply BetterSlip
 									distance--
+									stats.QuickCourner++
 								}
 							} else {
 								if e.precision > options.BetterSlip {
@@ -344,12 +355,14 @@ func (player *Player) Control(controller *Controller, engine *Engine) {
 									// tile, we only have to add if it doesn't
 									// apply)
 									distance++
+									stats.QuickCourner++
 								}
 							}
 							if distance >= options.EdgeSlip {
 								continue
 							}
 							distance /= 2
+							stats.EdgeSlip++
 						}
 
 						if priority == -1 ||
