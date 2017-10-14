@@ -17,6 +17,7 @@
 
 package main
 
+/*
 import (
 	"math/rand"
 
@@ -169,3 +170,4 @@ func (gl *GhostLeg) Choose(renderer *sdl.Renderer) int {
 func (gl *GhostLeg) Play(renderer *sdl.Renderer) {
 
 }
+*/

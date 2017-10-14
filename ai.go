@@ -31,14 +31,14 @@ const (
 )
 
 func NewPos(x, y int32, d Direction) (int32, int32) {
-	d = d % 4
-	if d == Up {
+	switch d % 4 {
+	case Up:
 		return x, y - 1
-	} else if d == Down {
+	case Down:
 		return x, y + 1
-	} else if d == Left {
+	case Left:
 		return x - 1, y
-	} else if d == Right {
+	case Right:
 		return x + 1, y
 	}
 	return x, y
@@ -80,16 +80,17 @@ func (simpleAI *SimpleAI) Move(snakeID int, engine *Engine) Direction {
 			legalOptions++
 		}
 	}
-	if legalOptions == 0 {
+	switch legalOptions {
+	case 0:
 		return Up
-	} else if legalOptions == 1 {
+	case 1:
 		for i := Up; i <= Left; i++ {
 			if options[i] > 0 {
 				simpleAI.lastDirection = i
 				return i
 			}
 		}
-	} else if legalOptions == 2 {
+	case 2:
 		fx, fy := NewPos(X, Y, simpleAI.lastDirection)
 		if engine.LegalPos(fx, fy, true) {
 			for i := Up; i <= Left; i++ {
