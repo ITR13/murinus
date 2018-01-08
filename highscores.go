@@ -57,11 +57,16 @@ func GetName(defaultName string, renderer *sdl.Renderer, input *Input) string {
 	}
 	curCharUnderline := &sdl.Rect{0, screenHeight/2 + 12, 12, 4}
 
-	backTexture, err := renderer.CreateTexture(sdl.PIXELFORMAT_RGB565, sdl.TEXTUREACCESS_TARGET,
-		int(screenWidthD), int(screenHeightD))
+	backTexture, err := renderer.CreateTexture(
+		sdl.PIXELFORMAT_RGB565, sdl.TEXTUREACCESS_TARGET,
+		int(screenWidthD), int(screenHeightD),
+	)
 	PanicOnError(err)
 	src, dst := &sdl.Rect{0, 0, screenWidth, screenHeight},
-		&sdl.Rect{-screenWidth / 2, -screenHeight / 2, screenWidth * 2, screenHeight * 2}
+		&sdl.Rect{
+			-screenWidth / 2, -screenHeight / 2,
+			screenWidth * 2, screenHeight * 2,
+		}
 	defer backTexture.Destroy()
 
 	stepper := input.mono.upDown.Stepper(25, 2)
@@ -330,7 +335,11 @@ func (list *HighscoreList) Display(displayDifficulty bool,
 		if (val > 0 && !unique) || (val < 0 && unique) {
 			unique = !unique
 			header.Destroy()
-			header = GetHeader(list.multiplayer, list.difficulty, unique, renderer)
+			header = GetHeader(
+				list.multiplayer,
+				list.difficulty,
+				unique, renderer,
+			)
 			if unique {
 				storedIndex = currentIndex
 			} else {

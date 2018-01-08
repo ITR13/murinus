@@ -37,8 +37,12 @@ type Options struct {
 }
 
 func ReadOptions(path string, input *Input) {
-	options = Options{0, 2, UseTapDefault, UseTapDefault != 0, EdgeSlipDefault, BetterSlipDefault,
-		ShowDivertDefault, ShowDivertDefault != 0, &input.allInputs}
+	options = Options{
+		0, 2,
+		UseTapDefault, UseTapDefault != 0,
+		EdgeSlipDefault, BetterSlipDefault,
+		ShowDivertDefault, ShowDivertDefault != 0, &input.allInputs,
+	}
 	if path == "" {
 		return
 	}
