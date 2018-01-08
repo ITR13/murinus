@@ -63,6 +63,10 @@ func GetRandomGhostLeg(width, height int) *GhostLeg {
 }
 
 func (gl *GhostLeg) Display(renderer *sdl.Renderer) {
+	if newScreenWidth != screenWidth || newScreenHeight != screenHeight {
+		SetWindowSize(newScreenWidth, newScreenHeight, stage)
+	}
+
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.SetRenderTarget(nil)
 	renderer.Clear()
@@ -72,15 +76,10 @@ func (gl *GhostLeg) Display(renderer *sdl.Renderer) {
 
 	for i := range gl.flips {
 		for j := 0; j < gl.legs; j++ {
-			if j == s {
-				renderer.SetDrawColor(255, 0, 0, 255)
-			} else {
-				renderer.SetDrawColor(255, 255, 255, 255)
-			}
 			renderer.FillRect(&sdl.Rect{
 				int32(j) * screenWidth / int32(gl.legs),
 				int32(i) * screenHeight / int32(len(gl.flips)),
-				4, screenHeight / int32(gl.legs)})
+				4, screenHeight / int32(gl.legs*4)})
 		}
 
 		for j := range gl.flips[i] {
@@ -101,5 +100,12 @@ func (gl *GhostLeg) Display(renderer *sdl.Renderer) {
 			}
 		}
 	}
+	for j := 0; j < gl.legs; j++ {
+		renderer.FillRect(&sdl.Rect{
+			int32(j) * screenWidth / int32(gl.legs),
+			int32(len(gl.flips)) * screenHeight / int32(len(gl.flips)),
+			4, screenHeight / int32(gl.legs)})
+	}
+
 	renderer.Present()
 }
